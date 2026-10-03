@@ -99,6 +99,8 @@ export async function loadDashboardData(
         )
         .eq("user_id", userId)
         .order("booked_date", { ascending: false })
+        // Tink's order is not stable within a day; break ties explicitly.
+        .order("id", { ascending: false })
         .limit(8),
       supabase
         .from("transactions")
