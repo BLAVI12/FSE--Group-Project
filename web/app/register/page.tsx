@@ -215,6 +215,3 @@ export default function RegisterPage() {
     </main>
   );
 }
-<h1 className="text-3xl font-bold">
-  REGISTER PAGE TEST 123
-</h1>
