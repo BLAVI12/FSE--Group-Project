@@ -5,11 +5,31 @@
 
 begin;
 
--- Seed user. The backend's auth stub hardcodes this id until
--- real authentication replaces it.
-insert into users (id, email, password_hash) values
-  ('00000000-0000-4000-8000-000000000001', 'demo@example.com', '$2b$10$N9qo8uLOickgx2ZMRZoMye1VdLFkDPZxLPHIqLEcUPjPBF7dJ0jTS')
-on conflict (id) do nothing;
+-- Demo login (Supabase Auth). It owns all of the sample data below.
+--   Email:    demo@example.com
+--   Password: demo-planner-2026
+-- Sandbox data only, so the login is public on purpose: the examiners can use
+-- it to try the app. Re-running this seed resets the password to the above.
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password,
+                        email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+                        created_at, updated_at,
+                        confirmation_token, recovery_token, email_change, email_change_token_new)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000001',
+        'authenticated', 'authenticated', 'demo@example.com',
+        extensions.crypt('demo-planner-2026', extensions.gen_salt('bf')), now(),
+        '{"provider": "email", "providers": ["email"]}', '{}', now(), now(),
+        '', '', '', '')
+on conflict (id) do update
+   set encrypted_password = excluded.encrypted_password,
+       email_confirmed_at = coalesce(auth.users.email_confirmed_at, excluded.email_confirmed_at);
+
+insert into auth.identities (id, provider_id, user_id, identity_data, provider,
+                             created_at, updated_at)
+values (gen_random_uuid(), '00000000-0000-4000-8000-000000000001',
+        '00000000-0000-4000-8000-000000000001',
+        '{"sub": "00000000-0000-4000-8000-000000000001", "email": "demo@example.com", "email_verified": true}',
+        'email', now(), now())
+on conflict (provider_id, provider) do nothing;
 
 -- Bank connection. No access token: this seed is static data,
 -- not a live link, so there is nothing to refresh.
