@@ -1,55 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Student Finance Planner — web app
 
-## Getting Started
+Next.js app (App Router) that logs users in with Supabase Auth and reads their
+data straight from Supabase. What a user may see or change is enforced by the
+database's row level security (see `../supabase/README.md`), not by this app.
 
-First, run the development server:
+## Run it locally
+
+Needs Node 24 or later.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd web
+npm install
+cp .env.example .env.local   # then fill in the two values
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` needs the project URL and the **publishable** key from Supabase
+(**Project Settings > API Keys**). Both are public by design. Never put a
+secret or service-role key here: every `NEXT_PUBLIC_` value is shipped to the
+browser.
 
-## Authentication setup
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` |
 
-Copy `.env.example` to `.env.local` and provide the Supabase project URL and
-publishable key. Never place the service-role key or the Google client secret in
-the web application.
+Demo login: `demo@example.com` / `demo-planner-2026` (owns the sample data).
 
-Email/password login and Google OAuth are available on `/login`. Google must be
-enabled under **Supabase > Authentication > Providers**, and these URLs must be
-configured:
+## Checks
 
-- Google authorized redirect URI:
-  `https://<project-ref>.supabase.co/auth/v1/callback`
-- Supabase local redirect URL: `http://localhost:3000/auth/callback`
-- The equivalent HTTPS callback for the production domain
+```bash
+npm test      # unit tests (tests/)
+npm run lint
+npm run build
+```
 
-The Next.js proxy refreshes Supabase cookies and redirects unauthenticated
-visitors away from `/dashboard`. The dashboard also verifies the user on the
-server before rendering.
+## How login works
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Path | What it does |
+|---|---|
+| `/` | Landing page |
+| `/register` | Sign-up with email and password (`supabase.auth.signUp`) |
+| `/login` | Email/password login, or "Continue with Google" |
+| `/auth/callback` | Server route that finishes Google login (`exchangeCodeForSession`) and redirects to a checked internal path |
+| `/dashboard` | Logged-in users only |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`proxy.ts` runs before every page: it refreshes the Supabase session cookies,
+sends logged-out visitors from `/dashboard` to `/login`, and sends logged-in
+users away from `/login` and `/register`. The dashboard checks the user again
+on the server. Redirect targets pass through `lib/auth/redirects.ts`, which
+only accepts paths on this site.
 
-## Learn More
+Google login needs the provider set up in Google and Supabase once; the steps
+are in the root `README.md` under "Google OAuth configuration".
 
-To learn more about Next.js, take a look at the following resources:
+## Deploying on Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Root directory:** `web`.
+- **Environment variables:** the two from `.env.example`.
+- In Supabase **Authentication > URL Configuration**, set the Site URL to the
+  Vercel address and add `https://<vercel-app>.vercel.app/**` to the Redirect
+  URLs. For Google login, also add the Vercel address as an authorized
+  JavaScript origin in the Google OAuth client.
