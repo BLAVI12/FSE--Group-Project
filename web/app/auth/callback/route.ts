@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { safeInternalPath } from "@/lib/auth/redirects";
+import { oauthErrorPath, safeInternalPath } from "@/lib/auth/redirects";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const flowId = request.nextUrl.searchParams.get("sb_flow_id");
   const next = safeInternalPath(request.nextUrl.searchParams.get("next"));
+  const flow = request.nextUrl.searchParams.get("flow");
 
   if (code) {
     const supabase = await createClient();
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const loginUrl = new URL("/login", request.nextUrl.origin);
-  loginUrl.searchParams.set("error", "oauth_callback_failed");
-  return NextResponse.redirect(loginUrl);
+  const errorUrl = new URL(oauthErrorPath(flow), request.nextUrl.origin);
+  errorUrl.searchParams.set("error", "oauth_callback_failed");
+  return NextResponse.redirect(errorUrl);
 }

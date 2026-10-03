@@ -40,7 +40,7 @@ npm run build
 | Path | What it does |
 |---|---|
 | `/` | Landing page |
-| `/register` | Sign-up with email and password (`supabase.auth.signUp`) |
+| `/register` | Sign-up with email/password or Google OAuth |
 | `/login` | Email/password login, or "Continue with Google" |
 | `/auth/callback` | Server route that finishes Google login (`exchangeCodeForSession`) and redirects to a checked internal path |
 | `/dashboard` | Logged-in users only |
@@ -51,8 +51,10 @@ users away from `/login` and `/register`. The dashboard checks the user again
 on the server. Redirect targets pass through `lib/auth/redirects.ts`, which
 only accepts paths on this site.
 
-Google login needs the provider set up in Google and Supabase once; the steps
-are in the root `README.md` under "Google OAuth configuration".
+Google login and registration use the same OAuth provider flow: Supabase creates
+a user on first use and signs in an existing user afterwards. The provider only
+needs to be set up in Google and Supabase once; the steps are in the root
+`README.md` under "Google OAuth configuration".
 
 ## Deploying on Vercel
 

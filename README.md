@@ -25,7 +25,7 @@ Copy `.env.example` to `.env.local` and add your Supabase project URL and publis
 
 The framework-neutral authentication service lives in
 `src/features/auth/auth-service.js`. It supports email/password and Google
-login, local logout, verified current-user lookup and auth-state subscriptions.
+authentication, local logout, verified current-user lookup and auth-state subscriptions.
 Google login uses the PKCE flow; `src/features/auth/oauth-callback.js` exchanges
 the returned authorization code for a session.
 
@@ -80,6 +80,10 @@ to **Supabase**, and Supabase then sends them to the app's `/auth/callback`.
    under **Audience > Test users** can log in. Add the team (and the examiners
    for the presentation), or publish the app; with only the basic sign-in
    scopes, Google does not require a review.
+
+The same Google OAuth flow handles both login and registration. A first-time
+Google user is registered in Supabase Auth; an existing user is logged in. The
+web app exposes this flow on both `/login` and `/register`.
 
 ## Bank data (Tink)
 

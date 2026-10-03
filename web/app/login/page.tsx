@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { startGoogleOAuth } from "@/lib/auth/google";
 import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
@@ -53,13 +55,7 @@ function LoginForm() {
     setLoadingMethod("google");
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-        },
-      });
+      const { error } = await startGoogleOAuth("login");
 
       if (error) {
         setErrorMessage("Google login is currently unavailable. Please try again.");
@@ -162,14 +158,12 @@ function LoginForm() {
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
-          <button
-            type="button"
+          <GoogleAuthButton
+            mode="login"
             onClick={handleGoogleLogin}
             disabled={loadingMethod !== null}
-            className="w-full rounded-lg border border-white/20 px-4 py-3 font-semibold transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loadingMethod === "google" ? "Connecting to Google..." : "Continue with Google"}
-          </button>
+            loading={loadingMethod === "google"}
+          />
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Do not have an account?{" "}
