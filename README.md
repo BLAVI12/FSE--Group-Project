@@ -68,7 +68,25 @@ stack is chosen.
 The eventual `/auth/callback` page should call `completeOAuthCallback` with the
 current URL and navigate only to the returned internal `redirectTo` path.
 
-Run the unit tests with `npm test`.
+## Bank data (Tink)
+
+Code shared by the Supabase Edge Functions lives in `supabase/functions/_shared/`.
+`tink/convert.ts` turns Tink's accounts and transactions into our rows (amounts
+as integer cents from Tink's varying decimal scale, booked/pending status,
+transfer flag); `tink/reconcile.ts` decides which stored transaction each
+incoming one is, so a repeated sync never duplicates rows. Both are pure
+functions with tests in `tests/tink/`, run against 309 real Demo Bank
+transactions in `tests/fixtures/`.
+
+## Checks
+
+Needs Node 24 or later.
+
+```bash
+npm test            # unit tests
+npm run typecheck   # TypeScript type check
+npm run check:category-seed
+```
 
 ## Transaction imports
 
