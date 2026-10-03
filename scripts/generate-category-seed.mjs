@@ -98,7 +98,11 @@ async function main() {
   const mapping = JSON.parse(await readFile(inputPath, "utf8"));
   const generated = generateCategorySeed(mapping);
   if (process.argv.includes("--check")) {
-    const current = await readFile(outputPath, "utf8").catch(() => null);
+    // Compare content, not line endings: a CRLF checkout of an LF file is the
+    // same seed.
+    const current = await readFile(outputPath, "utf8")
+      .then((text) => text.replaceAll("\r\n", "\n"))
+      .catch(() => null);
     if (current !== generated) {
       console.error("Category SQL seed is missing or out of date; run npm run generate:category-seed.");
       process.exitCode = 1;
