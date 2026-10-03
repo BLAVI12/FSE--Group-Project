@@ -1,0 +1,6873 @@
+{
+ "source": "Tink Demo Bank sandbox, German market, demo User 1 (public test data)",
+ "accounts": [
+  {
+   "id": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "name": "Girokonto",
+   "type": "CHECKING",
+   "balances": {
+    "booked": {
+     "amount": {
+      "value": {
+       "unscaledValue": "-178576",
+       "scale": "2"
+      },
+      "currencyCode": "EUR"
+     }
+    },
+    "available": {
+     "amount": {
+      "value": {
+       "unscaledValue": "-189705",
+       "scale": "2"
+      },
+      "currencyCode": "EUR"
+     }
+    }
+   },
+   "identifiers": {
+    "iban": {
+     "iban": "DE27610893823721836839",
+     "bban": "610893823721836839"
+    }
+   },
+   "dates": {
+    "lastRefreshed": "2026-09-26T18:48:29Z"
+   }
+  },
+  {
+   "id": "e507af63058a4e8590a0ffde342a1b03",
+   "name": "Sparkonto",
+   "type": "SAVINGS",
+   "balances": {
+    "booked": {
+     "amount": {
+      "value": {
+       "unscaledValue": "1520003",
+       "scale": "2"
+      },
+      "currencyCode": "EUR"
+     }
+    },
+    "available": {
+     "amount": {
+      "value": {
+       "unscaledValue": "1520003",
+       "scale": "2"
+      },
+      "currencyCode": "EUR"
+     }
+    }
+   },
+   "identifiers": {
+    "iban": {
+     "iban": "DE27169043499267014538",
+     "bban": "169043499267014538"
+    }
+   },
+   "dates": {
+    "lastRefreshed": "2026-09-26T18:48:29Z"
+   }
+  }
+ ],
+ "transactions": [
+  {
+   "id": "910813d1c30349a28db6615b0f3ef60b",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-340",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "E.ON",
+    "display": "E.on"
+   },
+   "dates": {
+    "booked": "2026-09-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1002"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f6ae1f77c055412486ec005ac6d8ec39",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-09-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1001"
+   },
+   "status": "PENDING"
+  },
+  {
+   "id": "048095444b454bb6be77ecd4b1f42fd9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-979",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-09-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1003"
+   },
+   "status": "PENDING"
+  },
+  {
+   "id": "f6c3dde05cc94869ae0e401b7849bd82",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-09-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1004"
+   },
+   "status": "PENDING"
+  },
+  {
+   "id": "61814d9a02124c72b344330dbb68cef8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-09-24"
+   },
+   "identifiers": {
+    "providerTransactionId": "1005"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4fc8bebfeb1448f18e15686715fb2530",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "H&M",
+    "display": "H&M"
+   },
+   "dates": {
+    "booked": "2026-09-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1006"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f453bf8edd91402199913fb68b3d360a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5366",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-09-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1007"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0c0d3c5851c140cba3d01a790b4d1c20",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-09-21"
+   },
+   "identifiers": {
+    "providerTransactionId": "1009"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ddf3bb66ecf84e588055dfa1492d9142",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-09-21"
+   },
+   "identifiers": {
+    "providerTransactionId": "1008"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "86e5970ad1014a4583d71c47d39a554d",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-129",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Deutsche Bahn",
+    "display": "Deutsche Bahn"
+   },
+   "dates": {
+    "booked": "2026-09-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1011"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ebf6b43f32504f5c8964e7487a465fb7",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1967",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Lidl",
+    "display": "Lidl"
+   },
+   "dates": {
+    "booked": "2026-09-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1010"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "48ca8a773289469f8f67c4f95ad8171f",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2496",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Sausalitos",
+    "display": "Sausalitos"
+   },
+   "dates": {
+    "booked": "2026-09-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1012"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "5afd5bfa37ce426ab69e054cf8fbe4ba",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-09-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1014"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "969571aaf9b14a05983b9c0e5d166573",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Adler Apotheke",
+    "display": "Adler Apotheke"
+   },
+   "dates": {
+    "booked": "2026-09-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1015"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "cb731132a222473d9931a26c2a4ce0d5",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Spotify",
+    "display": "Spotify"
+   },
+   "dates": {
+    "booked": "2026-09-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1013"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ec28ead5c933475ea4fecb270b904a34",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-09-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1016"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ae6b1882bed1453a89abc4b9fa627a14",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-12999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Mediamarkt",
+    "display": "Mediamarkt"
+   },
+   "dates": {
+    "booked": "2026-09-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1017"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f4b9c464ebbd406aa64be42bb9e69583",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1733",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Rewe",
+    "display": "Rewe"
+   },
+   "dates": {
+    "booked": "2026-09-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1018"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "7c56655e14264cc2ae959067899ee480",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-09-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1019"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b18c45b014774b84b1f9ecfe6b5f25fb",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-09-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1020"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e9ad1fdf61ab4136857d05997a9759ea",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-09-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1021"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "69d8fa1776744407ba90953dc43c7b9b",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2299",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Vodafone",
+    "display": "Vodafone"
+   },
+   "dates": {
+    "booked": "2026-09-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1022"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "99caa4a90c6846a09aed78ab11817b3a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1599",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Maredo",
+    "display": "Maredo"
+   },
+   "dates": {
+    "booked": "2026-09-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1024"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "afb9598f75c6453db6e65068a0b9f9e3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-200",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bargeldauszahlung",
+    "display": "Bargeldauszahlung"
+   },
+   "dates": {
+    "booked": "2026-09-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1023"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "cfee2e0220134336ac408c9622d3d5dc",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-09-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1025"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e6811da478994e92a8b476a15a150d23",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1027"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e8b66123a28741e183f3bd5709c12b85",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1026"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4e7efe8352c344349196e9f67205f9d0",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1001"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9719d0dc2f9f4f94911b19f03af77f20",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5698",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Amazon",
+    "display": "Amazon"
+   },
+   "dates": {
+    "booked": "2026-09-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1028"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9425abf4f826441e857aab597f8cbb2c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-09-07"
+   },
+   "identifiers": {
+    "providerTransactionId": "1030"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ef6db94eb3c9444096bdfa3a98094892",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-09-07"
+   },
+   "identifiers": {
+    "providerTransactionId": "1029"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "65b73a436f50432fbf03672eea33c819",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-3485",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Allianz",
+    "display": "Allianz"
+   },
+   "dates": {
+    "booked": "2026-09-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1031"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8ffa73a49b61459db65c4a3f5a07ad5b",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-6500",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Miete",
+    "display": "Miete"
+   },
+   "dates": {
+    "booked": "2026-09-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1032"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a5a162d8c866477a8d5854ccb93d2624",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-09-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1035"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b205b8c446d542d2aca26d894ce31d17",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2766",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-09-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1033"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fe511b604b694d788e82b336f84e2eb6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-09-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1034"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "514814b35351427f8bc1040c2ab1f474",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Fielmann",
+    "display": "Fielmann"
+   },
+   "dates": {
+    "booked": "2026-09-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1036"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b03ad398126345199531eb55546b9332",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "188703",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Salary",
+    "display": "Salary"
+   },
+   "dates": {
+    "booked": "2026-09-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1037"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c3279e671564493e9645e8a23aaed56d",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1799",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Burger King",
+    "display": "Burger King"
+   },
+   "dates": {
+    "booked": "2026-09-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1038"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e74fb7e30e7942e9835211ab1003e9ac",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "372",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zinserträge",
+    "display": "Zinserträge"
+   },
+   "dates": {
+    "booked": "2026-09-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1039"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "027a3c0ea37c40d3b24c715cb775e6f4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-08-31"
+   },
+   "identifiers": {
+    "providerTransactionId": "1041"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0eedebefea9b44eb96f885cd73e2bbb9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-08-31"
+   },
+   "identifiers": {
+    "providerTransactionId": "1040"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "aef903615377409ebe41e859b910f427",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-08-31"
+   },
+   "identifiers": {
+    "providerTransactionId": "1042"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "240e81d20f634f32877df46fed50b8c3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-08-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1045"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "38e5bbf97bed478a8aeccc3d677e4589",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Telekom",
+    "display": "Telekom"
+   },
+   "dates": {
+    "booked": "2026-08-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1043"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "703c8ce2fa2146b2992caf280d9b6739",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-569",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "McDonalds",
+    "display": "Mcdonalds"
+   },
+   "dates": {
+    "booked": "2026-08-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1044"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e23c3da31d8049ad962ed4dc37a001e7",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-08-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1046"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2655a6bfba71417c9ea44b181a82d075",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-340",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "E.ON",
+    "display": "E.on"
+   },
+   "dates": {
+    "booked": "2026-08-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1048"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6ddc158197644dd1b98f1172f5196297",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-08-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1047"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c79dd8ce595643fc989db7d98f50b74c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-979",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-08-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1049"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1b69ab496a3340a68979d99003459f8e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-08-24"
+   },
+   "identifiers": {
+    "providerTransactionId": "1050"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ecbf50a92b9e40c49f083a3f0297c8b7",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-08-24"
+   },
+   "identifiers": {
+    "providerTransactionId": "1051"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1578f699db0d4b898cb0fad1a80f7285",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "H&M",
+    "display": "H&M"
+   },
+   "dates": {
+    "booked": "2026-08-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1052"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f6c41daa532342ec9eae13175d7c60c2",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5366",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-08-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1053"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "185ca267a1144f74a2d051b814c6c4f9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-08-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1057"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "874e0724a12443e19300047387c8d5d3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-129",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Deutsche Bahn",
+    "display": "Deutsche Bahn"
+   },
+   "dates": {
+    "booked": "2026-08-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1055"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8f801ad22a4245e8a51cba7d89a3a9fe",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-08-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1056"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c085d235c6334c75823c635931c86fbb",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1967",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Lidl",
+    "display": "Lidl"
+   },
+   "dates": {
+    "booked": "2026-08-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1054"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "13db792f15884807b463099656218364",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2496",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Sausalitos",
+    "display": "Sausalitos"
+   },
+   "dates": {
+    "booked": "2026-08-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1058"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3a3a17292d214d46b5ea60e19e8ed749",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-08-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1060"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "638bea3e225449769a10eecfd2d1d742",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Adler Apotheke",
+    "display": "Adler Apotheke"
+   },
+   "dates": {
+    "booked": "2026-08-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1063"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "755beb62641c4e36847faaf4243160c4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Spotify",
+    "display": "Spotify"
+   },
+   "dates": {
+    "booked": "2026-08-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1062"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "854df4b97e1847a4860c80473b19fceb",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-08-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1061"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c83274b7838b40e0bc6a66979fdc5c52",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-08-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1059"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b7e5e1ae55b24c53bce5423ad31f39f6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-12999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Mediamarkt",
+    "display": "Mediamarkt"
+   },
+   "dates": {
+    "booked": "2026-08-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1064"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a4e431201d234066a6551726f4119744",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1733",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Rewe",
+    "display": "Rewe"
+   },
+   "dates": {
+    "booked": "2026-08-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1065"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a63dd55bcc614bf8acedb3a6920e83cd",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-08-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1066"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0262bd5b6ac442debffb168b06055a75",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-08-13"
+   },
+   "identifiers": {
+    "providerTransactionId": "1067"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "07e387ca26a246f6aa76cc43cd9be0e9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2299",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Vodafone",
+    "display": "Vodafone"
+   },
+   "dates": {
+    "booked": "2026-08-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1068"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8e9d5383394148958122669677ad4cc9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1599",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Maredo",
+    "display": "Maredo"
+   },
+   "dates": {
+    "booked": "2026-08-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1070"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "be8138db02c446c7bf4d9be44e62fe60",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-200",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bargeldauszahlung",
+    "display": "Bargeldauszahlung"
+   },
+   "dates": {
+    "booked": "2026-08-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1069"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "91db257dadcc487cb32ead9aea555ca4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1072"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e3b3ab6116a44f7d9cb44276a9e56e99",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1071"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f020f088e1ea44c2a09b93a0048e5545",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1073"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3c6d6a8063d342db9567eff97890dcdb",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1002"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4f01410bb59e4a82a910f93e5dfb7742",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5698",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Amazon",
+    "display": "Amazon"
+   },
+   "dates": {
+    "booked": "2026-08-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1074"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2d4d66fe704a43a0bb3b072e5b86ed3e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-08-06"
+   },
+   "identifiers": {
+    "providerTransactionId": "1076"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b43688278b8e487aaed2d7ae39366b28",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-08-06"
+   },
+   "identifiers": {
+    "providerTransactionId": "1075"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1b33ed9192c0417a8820c0a7e20faa43",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-3485",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Allianz",
+    "display": "Allianz"
+   },
+   "dates": {
+    "booked": "2026-08-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1077"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1061027188ff4815b1947d72d5e8b685",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-08-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1080"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "832f39cedbb74dfb944728e938752f36",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-6500",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Miete",
+    "display": "Miete"
+   },
+   "dates": {
+    "booked": "2026-08-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1078"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "921d2d31d0aa4ec1a415796c0ca156b6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2766",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-08-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1082"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a2d417d002f54ca4aa556141931866ef",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-08-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1079"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fd1794e8925249eea0b7d67940407b10",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-08-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1081"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a8314000dd554c8783b1f59a3d082dff",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "188703",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Salary",
+    "display": "Salary"
+   },
+   "dates": {
+    "booked": "2026-08-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1084"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e491ab391372425ca1f7119754310391",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Fielmann",
+    "display": "Fielmann"
+   },
+   "dates": {
+    "booked": "2026-08-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1083"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0917f80a9a894bb7a669546c1821fc63",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1799",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Burger King",
+    "display": "Burger King"
+   },
+   "dates": {
+    "booked": "2026-08-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1085"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fd969370e29041d4b752dcf7dbbead66",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "372",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zinserträge",
+    "display": "Zinserträge"
+   },
+   "dates": {
+    "booked": "2026-08-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1086"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "064a67aaf3264f3faddecdd97067bd44",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-07-31"
+   },
+   "identifiers": {
+    "providerTransactionId": "1087"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9d742da7d1da4c389aa3ace3c43f852e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-07-30"
+   },
+   "identifiers": {
+    "providerTransactionId": "1088"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "197de9fdf6f34f6f93694c9d722a2b37",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-569",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "McDonalds",
+    "display": "Mcdonalds"
+   },
+   "dates": {
+    "booked": "2026-07-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1090"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bea20fab86304a8daa26e76c456ecd3a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Telekom",
+    "display": "Telekom"
+   },
+   "dates": {
+    "booked": "2026-07-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1089"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "974db0a7f2d445aeb6718752752e330a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-07-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1091"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ea0018bdc1304adfa36b631ba4a02c12",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-07-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1092"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "10dd9a100460498194ccbe57ab055934",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-340",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "E.ON",
+    "display": "E.on"
+   },
+   "dates": {
+    "booked": "2026-07-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1094"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "aef3feab440e447b972ccdb78105f5cc",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-07-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1093"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d267fb286b1c426e8c065664ef3f9840",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-979",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-07-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1095"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "adbf4ad12c434ce1b3bc3a5aa28c8bf6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-07-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1098"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c53666af99d14f4197291a9593219e31",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-07-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1097"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e961bc4ebcd24009b64ed4538aa254a8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "H&M",
+    "display": "H&M"
+   },
+   "dates": {
+    "booked": "2026-07-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1096"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a3cefbc7a3c343b695119b193d4b630e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5366",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-07-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1099"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "194afdbc2e124ac4941d9f37b138e42f",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-07-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1100"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2bcaa15409754501972731437343d08a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-129",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Deutsche Bahn",
+    "display": "Deutsche Bahn"
+   },
+   "dates": {
+    "booked": "2026-07-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1104"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3893d66595e0452d928440da416f0845",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-07-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1101"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9a1b03e77787430484360ceebc632003",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1967",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Lidl",
+    "display": "Lidl"
+   },
+   "dates": {
+    "booked": "2026-07-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1103"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bc35fdc43880498e9a3f3d7b02ce40fe",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-07-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1102"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6434d0a94ba74846b91c9a328eda66c9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2496",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Sausalitos",
+    "display": "Sausalitos"
+   },
+   "dates": {
+    "booked": "2026-07-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1105"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e20d1109ce524c92849703a3b48fe1a1",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Spotify",
+    "display": "Spotify"
+   },
+   "dates": {
+    "booked": "2026-07-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1106"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e9fb0d31fe6441b99053472956055e43",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-07-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1108"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fd757281e1944a9497a9579d83e41367",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Adler Apotheke",
+    "display": "Adler Apotheke"
+   },
+   "dates": {
+    "booked": "2026-07-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1107"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0910dd47824f4b77b7708fc8490865d9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-07-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1110"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8d592ec1225e4a25ade9b04e8cb574ed",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-12999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Mediamarkt",
+    "display": "Mediamarkt"
+   },
+   "dates": {
+    "booked": "2026-07-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1109"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "db215e6bd6a2469da7f92d222e281fd4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1733",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Rewe",
+    "display": "Rewe"
+   },
+   "dates": {
+    "booked": "2026-07-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1111"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "33f27c70caa34c4d98f565e7dabeccc8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-07-13"
+   },
+   "identifiers": {
+    "providerTransactionId": "1112"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3a170484c93540688592b6efa0173244",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-07-13"
+   },
+   "identifiers": {
+    "providerTransactionId": "1113"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "282361f1f4c44b36817a203ddfe73417",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2299",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Vodafone",
+    "display": "Vodafone"
+   },
+   "dates": {
+    "booked": "2026-07-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1114"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "825290156f1e4d249dd3c7f31ef59c45",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-200",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bargeldauszahlung",
+    "display": "Bargeldauszahlung"
+   },
+   "dates": {
+    "booked": "2026-07-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1115"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "beaaa04ee3884d149e4e586759787e99",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1599",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Maredo",
+    "display": "Maredo"
+   },
+   "dates": {
+    "booked": "2026-07-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1116"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0d5bacc7f90943f28012e4ef55e472e2",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1117"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "73c60bca0d9d4a41a9369f695c09af51",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1003"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8584f34ebcb04f93ab9a3e55427bd165",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-07-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1119"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ac803cbc2a3c432b870724bd4df73df0",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5698",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Amazon",
+    "display": "Amazon"
+   },
+   "dates": {
+    "booked": "2026-07-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1118"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bf7241f6de354f68a0c0f01318c2e083",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-07-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1120"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6ce8f32166284ed190b01369e63c1176",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-07-06"
+   },
+   "identifiers": {
+    "providerTransactionId": "1121"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8b402c4835bb454787f85220cc042181",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-07-06"
+   },
+   "identifiers": {
+    "providerTransactionId": "1122"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a34661ed1e314850a0be97c3ad382840",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-07-06"
+   },
+   "identifiers": {
+    "providerTransactionId": "1123"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "89423e32203b46b6bf32f1f67f165945",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-3485",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Allianz",
+    "display": "Allianz"
+   },
+   "dates": {
+    "booked": "2026-07-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1124"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "520e207c537d48aaad03b1d87e87069c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2766",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-07-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1126"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "76b1e9113a204b5386932213aa89cbe2",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-07-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1127"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "7b4d716599b84f1f86813af003dc6ff3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-6500",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Miete",
+    "display": "Miete"
+   },
+   "dates": {
+    "booked": "2026-07-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1125"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2fa9a2e8882a4f5f9fe01cbd612ca7ca",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "188703",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Salary",
+    "display": "Salary"
+   },
+   "dates": {
+    "booked": "2026-07-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1130"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "949b3ec5ad2a4eff970a6dbbcec0b1da",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-07-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1129"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bde573e6d7684db4b6745ef3ba8cffaf",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Fielmann",
+    "display": "Fielmann"
+   },
+   "dates": {
+    "booked": "2026-07-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1128"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4fb892435e0a47428848bcbf9868c064",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1799",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Burger King",
+    "display": "Burger King"
+   },
+   "dates": {
+    "booked": "2026-07-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1131"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "edadda9cd3874f8f91f6258f70486741",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "372",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zinserträge",
+    "display": "Zinserträge"
+   },
+   "dates": {
+    "booked": "2026-07-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1132"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1bbd2855c23049d8ba11653802cdc799",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-06-29"
+   },
+   "identifiers": {
+    "providerTransactionId": "1134"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "53219d70178e4159a9f5a7a6b5093e08",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-06-29"
+   },
+   "identifiers": {
+    "providerTransactionId": "1133"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "588591930f494e05b97ffd04a3e7ac17",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-569",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "McDonalds",
+    "display": "Mcdonalds"
+   },
+   "dates": {
+    "booked": "2026-06-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1136"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6d5bf52a443043649f63917b87602409",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Telekom",
+    "display": "Telekom"
+   },
+   "dates": {
+    "booked": "2026-06-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1135"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "07f1bde505f3492ead98f42713b2aed1",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-06-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1137"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a541d04150ed4ad9bf0b1605ee3997ea",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-340",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "E.ON",
+    "display": "E.on"
+   },
+   "dates": {
+    "booked": "2026-06-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1138"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1b0f0fbc943840be84ab441fe1d2f28e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-06-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1140"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a61e1501c95b40aabe863e199364ab8a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-979",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-06-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1139"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c8aac18bc1d04b37902a70849602c4b5",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-06-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1141"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6ff828fabcb74eca9f912a1db7567127",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "H&M",
+    "display": "H&M"
+   },
+   "dates": {
+    "booked": "2026-06-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1142"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3f5b67f1c80349eb9ed6f408f9985238",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-06-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1144"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "76b49cbfb51f4b13a78defa1fe6d25fa",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-06-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1146"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e2cfdc89a7344c36b950cf289e8d4551",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-06-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1145"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f9c63506a5a94b9580f45dc2c75745e8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5366",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-06-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1143"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "14292046872c47a995420b2ef13ccebe",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-129",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Deutsche Bahn",
+    "display": "Deutsche Bahn"
+   },
+   "dates": {
+    "booked": "2026-06-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1148"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ba2336cde69142e39fba77df458ea5ff",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1967",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Lidl",
+    "display": "Lidl"
+   },
+   "dates": {
+    "booked": "2026-06-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1147"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "14f520b4323e4b0695f3a34c28f040de",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-06-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1150"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1c9a92bea8d44959b69d0bef8bf7c8e1",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2496",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Sausalitos",
+    "display": "Sausalitos"
+   },
+   "dates": {
+    "booked": "2026-06-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1149"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "caf308a793544cdd8bea15f0aa023ef7",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-06-18"
+   },
+   "identifiers": {
+    "providerTransactionId": "1151"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6897fc81359541dba78da9cc1ae83398",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Spotify",
+    "display": "Spotify"
+   },
+   "dates": {
+    "booked": "2026-06-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1152"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9adc40b9b8f142a18d91414aed28fd96",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Adler Apotheke",
+    "display": "Adler Apotheke"
+   },
+   "dates": {
+    "booked": "2026-06-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1153"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d7ffc4e86cf24ea9a0a9a52a4329c064",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-12999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Mediamarkt",
+    "display": "Mediamarkt"
+   },
+   "dates": {
+    "booked": "2026-06-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1154"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "32f6acfc90634ef3bf6867d0aea5369c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-06-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1156"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3f7eab0810544930816e354e3ee5f4db",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1733",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Rewe",
+    "display": "Rewe"
+   },
+   "dates": {
+    "booked": "2026-06-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1157"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "76f6a7a32b9c439caa64a701f1ea6e1e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-06-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1155"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "32e25ea0d7cd4b49994a6d39ddedd516",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-200",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bargeldauszahlung",
+    "display": "Bargeldauszahlung"
+   },
+   "dates": {
+    "booked": "2026-06-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1159"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "583904bb3d8f417a9f52d850dff27042",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1599",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Maredo",
+    "display": "Maredo"
+   },
+   "dates": {
+    "booked": "2026-06-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1160"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a6f617f720d54805bee6becc7181f97b",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2299",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Vodafone",
+    "display": "Vodafone"
+   },
+   "dates": {
+    "booked": "2026-06-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1158"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "13abf8d4fed24002ba80e0688d4835bb",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-06-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1161"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "44e6c3c231eb488784b9874e695060f3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-06-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1162"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1d0a79beba2d48ce830aff6b2fc1dacd",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1163"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "eecd316dbbd145fdb4b21bb13b3c82e4",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1004"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d711d2466b174bb5bdf6ff1f2372dc85",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5698",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Amazon",
+    "display": "Amazon"
+   },
+   "dates": {
+    "booked": "2026-06-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1164"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "18b07edfa0de4595b000366b2ba6559e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-06-08"
+   },
+   "identifiers": {
+    "providerTransactionId": "1167"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "66f5c82d8de44dbfbfbb8eeb21f63e90",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-06-08"
+   },
+   "identifiers": {
+    "providerTransactionId": "1165"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b9bf1c708eb3402ca004c996a8939e75",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-06-08"
+   },
+   "identifiers": {
+    "providerTransactionId": "1166"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "17d2e0b3aa4b472a9e91156329f3a272",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-3485",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Allianz",
+    "display": "Allianz"
+   },
+   "dates": {
+    "booked": "2026-06-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1168"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "aeab1a6188b74c55a82981aa866fcfa7",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-06-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1169"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d259bd1b8d5e485d833c88de1c34503c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-06-04"
+   },
+   "identifiers": {
+    "providerTransactionId": "1170"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "647bdd3615bb4b879c617444d16b790e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2766",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-06-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1172"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a41432e5522e4e7196be2a8cae6d0124",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-6500",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Miete",
+    "display": "Miete"
+   },
+   "dates": {
+    "booked": "2026-06-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1171"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1ba65171f21a4df8b401c8f16136b9b5",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "188703",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Salary",
+    "display": "Salary"
+   },
+   "dates": {
+    "booked": "2026-06-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1174"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "20ef140c86dc490582adb6ce3eed8071",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Fielmann",
+    "display": "Fielmann"
+   },
+   "dates": {
+    "booked": "2026-06-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1173"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4cb9d777b73d4c0794b294819a6cb9f1",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "372",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zinserträge",
+    "display": "Zinserträge"
+   },
+   "dates": {
+    "booked": "2026-06-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1178"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8034e4cd1cf348d0b23ba14559c744bd",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-06-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1176"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "83aafc67d88d42768465eb10e7eb9d7c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1799",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Burger King",
+    "display": "Burger King"
+   },
+   "dates": {
+    "booked": "2026-06-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1177"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c45275847819426a82e02aa1ab38cfc8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-06-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1175"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0989bcc7b9a943bfae1221c8f63da71d",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-569",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "McDonalds",
+    "display": "Mcdonalds"
+   },
+   "dates": {
+    "booked": "2026-05-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1181"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4f84cfb07bbd4c2d956fdf4280b3fc96",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-05-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1182"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8200d0b87de540e09407df62216a4efb",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Telekom",
+    "display": "Telekom"
+   },
+   "dates": {
+    "booked": "2026-05-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1179"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e8c81a3f5c664de0a94a334064c18264",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-05-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1180"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3ee754e3ad09484483d5c1c0e0f91505",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-340",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "E.ON",
+    "display": "E.on"
+   },
+   "dates": {
+    "booked": "2026-05-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1184"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "eaad361a25e7473ca65c1a2a97aa45b6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-05-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1183"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8cb2787a02714789bb904c15b7f46bc1",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-05-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1185"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9a09e37f1c10433f82298530bc4899d2",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-979",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-05-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1188"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9bfc55cb0d00469685676176bcaf8a23",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-05-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1187"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d43af6da584c4fbf8a323115695eba39",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-05-25"
+   },
+   "identifiers": {
+    "providerTransactionId": "1186"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a9c73bcc30cb465ba13107b5be0bcd71",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "H&M",
+    "display": "H&M"
+   },
+   "dates": {
+    "booked": "2026-05-23"
+   },
+   "identifiers": {
+    "providerTransactionId": "1189"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "28990e5fb18348a89a3a84de0974921f",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5366",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-05-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1190"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d198a714f4484aab888122b245401208",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-05-22"
+   },
+   "identifiers": {
+    "providerTransactionId": "1191"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "cdaace52c42e4860b34fe6e843debb7e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-05-21"
+   },
+   "identifiers": {
+    "providerTransactionId": "1192"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e8ec9ca5422342a1aa34c8c3f2a3666a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-129",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Deutsche Bahn",
+    "display": "Deutsche Bahn"
+   },
+   "dates": {
+    "booked": "2026-05-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1194"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f23fbb73f20748c99d0e3150abcdf55c",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1967",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Lidl",
+    "display": "Lidl"
+   },
+   "dates": {
+    "booked": "2026-05-20"
+   },
+   "identifiers": {
+    "providerTransactionId": "1193"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ddcdcdc524a6465aae5f34993ba573e0",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2496",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Sausalitos",
+    "display": "Sausalitos"
+   },
+   "dates": {
+    "booked": "2026-05-19"
+   },
+   "identifiers": {
+    "providerTransactionId": "1195"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3ec8cba0d60246f997b04ed47c431ae4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-05-18"
+   },
+   "identifiers": {
+    "providerTransactionId": "1197"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4a30da03749e48a49425bc4db7a45bf4",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-05-18"
+   },
+   "identifiers": {
+    "providerTransactionId": "1196"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c12865ac874a422ead3a80d7184cc895",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Adler Apotheke",
+    "display": "Adler Apotheke"
+   },
+   "dates": {
+    "booked": "2026-05-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1199"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "cfbc36db14ec4a1c883ababd6f9d7100",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Spotify",
+    "display": "Spotify"
+   },
+   "dates": {
+    "booked": "2026-05-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1198"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "16a3157696ec46fd8afd0747b172e26a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-12999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Mediamarkt",
+    "display": "Mediamarkt"
+   },
+   "dates": {
+    "booked": "2026-05-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1200"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8b834a2b2bd34bb2a63a0bb994d7082f",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1733",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Rewe",
+    "display": "Rewe"
+   },
+   "dates": {
+    "booked": "2026-05-15"
+   },
+   "identifiers": {
+    "providerTransactionId": "1201"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2d96cb0285a3457aae4e1de96e928b30",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-05-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1203"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "437b0d8f67664da2b4eddcbd55c12ffe",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-05-14"
+   },
+   "identifiers": {
+    "providerTransactionId": "1202"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3de7fb24816a4f82864133d8aa5db68e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1599",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Maredo",
+    "display": "Maredo"
+   },
+   "dates": {
+    "booked": "2026-05-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1206"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3e88899ff0ec4b7f84444f84a8b99537",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-200",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bargeldauszahlung",
+    "display": "Bargeldauszahlung"
+   },
+   "dates": {
+    "booked": "2026-05-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1205"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e0b66ca24dcf4e4da0e6782aad46cc5f",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2299",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Vodafone",
+    "display": "Vodafone"
+   },
+   "dates": {
+    "booked": "2026-05-12"
+   },
+   "identifiers": {
+    "providerTransactionId": "1204"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2bbad8296fa24f6faa7edece33db08af",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-05-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1207"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "99101fcbb92841d7a708bb5a592b033d",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-05-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1208"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b1faa5536c164e059a71a8f9ebb5f469",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-05-11"
+   },
+   "identifiers": {
+    "providerTransactionId": "1209"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d19ad4dbd650431f971aa16c76679917",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1210"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1ec9e76715914554aa65502f55c3ca9d",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1005"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "5f64101cce32486ca7e6661f27c9742b",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-5698",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Amazon",
+    "display": "Amazon"
+   },
+   "dates": {
+    "booked": "2026-05-09"
+   },
+   "identifiers": {
+    "providerTransactionId": "1211"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "67d5f32d3bb647dba0afcfa551af62b8",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-379",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Starbucks",
+    "display": "Starbucks"
+   },
+   "dates": {
+    "booked": "2026-05-08"
+   },
+   "identifiers": {
+    "providerTransactionId": "1212"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "92471c0a3a4d4c92aae22c6b5c4e799e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-05-07"
+   },
+   "identifiers": {
+    "providerTransactionId": "1213"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "82cee05219b94b228892d392b129714a",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-3485",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Allianz",
+    "display": "Allianz"
+   },
+   "dates": {
+    "booked": "2026-05-05"
+   },
+   "identifiers": {
+    "providerTransactionId": "1214"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "30441bbb2c324e01968c960b01d861b6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-05-04"
+   },
+   "identifiers": {
+    "providerTransactionId": "1216"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a441c37a04214b98b2f62d31e91cca01",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-05-04"
+   },
+   "identifiers": {
+    "providerTransactionId": "1215"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "5a957b786a2a4ea7b4cdde0b734c55cc",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2766",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Aldi",
+    "display": "Aldi"
+   },
+   "dates": {
+    "booked": "2026-05-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1218"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c5ebc09160f84089b0345c6bada1eca3",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-6500",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Miete",
+    "display": "Miete"
+   },
+   "dates": {
+    "booked": "2026-05-03"
+   },
+   "identifiers": {
+    "providerTransactionId": "1217"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a55b0cc740234617834836b5bcfdc97e",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "188703",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Salary",
+    "display": "Salary"
+   },
+   "dates": {
+    "booked": "2026-05-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1220"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bda3238c1c964544bc5bda4573300929",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Fielmann",
+    "display": "Fielmann"
+   },
+   "dates": {
+    "booked": "2026-05-02"
+   },
+   "identifiers": {
+    "providerTransactionId": "1219"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "92b5421c30604fa9bd716ca802bec578",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "372",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zinserträge",
+    "display": "Zinserträge"
+   },
+   "dates": {
+    "booked": "2026-05-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1222"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ae118d8a02444825ac36cec8138e71a9",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-1799",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Burger King",
+    "display": "Burger King"
+   },
+   "dates": {
+    "booked": "2026-05-01"
+   },
+   "identifiers": {
+    "providerTransactionId": "1221"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3f8b4825ec4e4c8b965c50e981ba9bba",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-249",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Coffee Fellows",
+    "display": "Coffee Fellows"
+   },
+   "dates": {
+    "booked": "2026-04-30"
+   },
+   "identifiers": {
+    "providerTransactionId": "1224"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b1ac4db30b7d42f1bce100f5c4f7e535",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-868",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Bar Celona",
+    "display": "Bar Celona"
+   },
+   "dates": {
+    "booked": "2026-04-30"
+   },
+   "identifiers": {
+    "providerTransactionId": "1223"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "7303be20053a47bfae9230333dcf07d6",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2399",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Telekom",
+    "display": "Telekom"
+   },
+   "dates": {
+    "booked": "2026-04-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1225"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "aa92673511e64e92abf2dbe7b5c1be46",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-569",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "McDonalds",
+    "display": "Mcdonalds"
+   },
+   "dates": {
+    "booked": "2026-04-28"
+   },
+   "identifiers": {
+    "providerTransactionId": "1226"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "50c52c0859c240dc85ff0031cc85e398",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-2999",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Edeka",
+    "display": "Edeka"
+   },
+   "dates": {
+    "booked": "2026-04-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1228"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "51bcf142f6a6442ebbd0e8c19fc0a757",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-279",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Flixbus",
+    "display": "Flixbus"
+   },
+   "dates": {
+    "booked": "2026-04-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1229"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "673c6106edad4a289ae7098ec930c9b5",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-400",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Jet Tankstelle",
+    "display": "Jet Tankstelle"
+   },
+   "dates": {
+    "booked": "2026-04-27"
+   },
+   "identifiers": {
+    "providerTransactionId": "1227"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a9baae76cb524addb67ec7e1094a7f56",
+   "accountId": "c5eeec19b9604a73b351e2554e6ec9ed",
+   "amount": {
+    "value": {
+     "unscaledValue": "-9771",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Zalando",
+    "display": "Zalando"
+   },
+   "dates": {
+    "booked": "2026-04-26"
+   },
+   "identifiers": {
+    "providerTransactionId": "1230"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "00140dd584144e5ab162b4004f636e80",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1006"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e3e123781b1f44f5afa1af035279c10a",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1007"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9d041db1c43949e88b2d5dce5f4cd462",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1008"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1df02f81acf34a039ca8f8b21f9ebe72",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2026-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1009"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "72d9b6b409244dd68d5bbeee1aca8a71",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1010"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "cf8b1abce95a4e30ab5d29740908d702",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1011"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "1b6f30809ad14d5094849f00eb804aa7",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1012"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "328e0f766a13489794aa56014c41472f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1013"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "75e6326b1aaf47e28d5b3a3b30269ac8",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1014"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "8995e71c37784108a22d6a681eaf5ace",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1015"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e2f9942953de4406b4b226434daf3d25",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1016"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "bb8cf5eb84234965937979d4a99f6089",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1017"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "07da17357e4748698e9caaf7818dee1b",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1018"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "7e4fe59f75b04ff79e42679f2a16a12b",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1019"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3734f30596124611ae461a6a90872ec3",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1020"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6736b964f0c742bda72c17533ef42757",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2025-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1021"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "57c01d8176e941129efedd738493ebf0",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "1",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "trxDEIBAN11",
+    "display": "Trxdeiban11"
+   },
+   "dates": {
+    "booked": "2024-12-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1022"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d30704b4f45d4255953d4169fa70a775",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "1",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "checkDestinationIBAN",
+    "display": "Checkdestinationiban"
+   },
+   "dates": {
+    "booked": "2024-12-17"
+   },
+   "identifiers": {
+    "providerTransactionId": "1023"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0dbc8996b63c4e848d104fa36f4a4084",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "1",
+     "scale": "2"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "trxDEIBAN",
+    "display": "Trxdeiban"
+   },
+   "dates": {
+    "booked": "2024-12-16"
+   },
+   "identifiers": {
+    "providerTransactionId": "1024"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a118927cd3de4a72911dcfda36943336",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1025"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9d62e37c0f644734ae5d32a9cf22d489",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1026"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0b8cc23233ec4a08bf5674e69887e51d",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1027"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "67edcbeda27e4dd08920b0d449f6aa6f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1028"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0b45a6de9cb146959a48fb52be37b992",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1029"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "0d6c8717489c4e00a3741402a12fb0fe",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1030"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "c511a77deb5740b889b9e8e67b44544c",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1031"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2f4d3c01ca7d43dea27f4dc834b9179d",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1032"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "dc3c5d0d23794097b2d21ac68a926f85",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1033"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "af069d5badff4c9389801002089ada2a",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1034"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "4f9bb4efd7084ff1bcbafb2289132697",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1035"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f8d847db9fdd48a5a6139ad01f616608",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2024-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1036"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a2b13ce658984cb6ac4710008b195536",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1037"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e3708bd4ff894cbca23b4555c3956b50",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1038"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "188e2f9d7a1e407a9ef65ce58316b6d6",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1039"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "2daf83bdc2224107bae2330462f46d4b",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1040"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f075ec2d86624420b1a84d0d0a60ac0f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1041"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "efd4cd1298484cb2a1211e90919994e6",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1042"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "07a11fc3f28b48f28716002b3f9e088c",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1043"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9a237a44d31e48f89e449ca29b764b3e",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1044"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "f84c0a28c0d64647b75ee1b409338fa3",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1045"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d147ecffe98545ee92769f083e0d9264",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1046"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b77ac910e0fd4f0cbb8d478b78c159d9",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1047"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "77dcd778087f42758e45fa026926ba81",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2023-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1048"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6974c1d2a0de4b539f18771cad432cf8",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1049"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "3c899a878fc94609b7350bb3625d8858",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1050"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fbb00cd9a41842d8ad1115bb4a83725f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1051"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "138894beb5a24551a6399e4475bdf7a0",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1052"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "7de526c6acf549188d5d0cc424e88c57",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1053"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d5d6a8cbe779465b9260fc1f612d74b0",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1054"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b1cd1aa11c914ebdb296491d7ebc8bc9",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1055"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "acd22df832714acd931980265768edac",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1056"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "e80ef64110a24e0ca56eb8007022a1f1",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1057"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "99643357f6e44e2aa5441df689b3fb55",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1058"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "fe83910a43be46828447a7ce3e79bb38",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1059"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "6b583222a3004da18e7ef6195419f7da",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2022-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1060"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d74447ddad3c45bca0b07a537dd9c690",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1061"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "21410361096446d7b56042425b9c0f84",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1062"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a5a65acc8c69429dbd7ed1f6ca6ea464",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1063"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "97d4742a2b36481e935460da4eca4afc",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1064"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "957b128c2e02444291cf8a95e93c8abe",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1065"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "14899bb4ccdc4748876b29d22cfa8ecc",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1066"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "211461baf4c34271a0eb52501d70acb9",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1067"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "42b6d77ef1054a81b18d1abd6a0d993d",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-05-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1068"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "15f261c5a7b94e81b4b444d5375d60a5",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-04-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1069"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "216a0c3f29e34d1288d409a639c8caca",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-03-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1070"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "252ce6ac29c74047ac26fab64acde37f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-02-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1071"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d7f4ebff999145b1af2fb71fa4ec551f",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2021-01-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1072"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b77d3f9d03d842da9fa1ca58938b9ffd",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-12-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1073"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "a477caa81d074dcaa0da282a7b649f69",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-11-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1074"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "ba04ba0d99944c0e99f0df3b05511192",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-10-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1075"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "9aaf234879ae43ee9f8d5e2de03923ec",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-09-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1076"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "330add8337e8459da8dd94ad2ae3a0bd",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-08-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1077"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "b6a64276d41640d8bce6455ea81f81ef",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-07-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1078"
+   },
+   "status": "BOOKED"
+  },
+  {
+   "id": "d2fc02569b89483795a1629eb8610488",
+   "accountId": "e507af63058a4e8590a0ffde342a1b03",
+   "amount": {
+    "value": {
+     "unscaledValue": "2000",
+     "scale": "1"
+    },
+    "currencyCode": "EUR"
+   },
+   "descriptions": {
+    "original": "Übertrag",
+    "display": "Übertrag"
+   },
+   "dates": {
+    "booked": "2020-06-10"
+   },
+   "identifiers": {
+    "providerTransactionId": "1079"
+   },
+   "status": "BOOKED"
+  }
+ ]
+}
