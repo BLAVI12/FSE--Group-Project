@@ -4,12 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.1",
+    "typescript": "^7.0.2"
   }
 }
