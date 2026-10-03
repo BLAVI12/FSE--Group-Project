@@ -20,6 +20,7 @@ export function createSupabaseBrowserClient({ url, publishableKey }) {
     required(publishableKey, "Supabase publishable key"),
     {
       auth: {
+        flowType: "pkce",
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true

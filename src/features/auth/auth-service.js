@@ -36,7 +36,43 @@ function toAuthenticationError(error) {
   );
 }
 
-export function createAuthService(supabase) {
+function browserOrigin() {
+  return globalThis.location?.origin ?? null;
+}
+
+function sameOriginRedirect(redirectTo, appOrigin) {
+  if (!appOrigin) {
+    throw new AuthenticationError(
+      "The application URL is not configured.",
+      "missing_app_origin"
+    );
+  }
+
+  let origin;
+  let redirectUrl;
+
+  try {
+    origin = new URL(appOrigin).origin;
+    redirectUrl = new URL(redirectTo ?? "/auth/callback", origin);
+  } catch (error) {
+    throw new AuthenticationError(
+      "The login redirect URL is invalid.",
+      "invalid_redirect_url",
+      error
+    );
+  }
+
+  if (redirectUrl.origin !== origin) {
+    throw new AuthenticationError(
+      "The login redirect must use the application origin.",
+      "invalid_redirect_url"
+    );
+  }
+
+  return redirectUrl.toString();
+}
+
+export function createAuthService(supabase, { appOrigin = browserOrigin() } = {}) {
   if (!supabase?.auth) {
     throw new TypeError("A Supabase client with an auth API is required.");
   }
@@ -55,6 +91,25 @@ export function createAuthService(supabase) {
         user: data.user,
         session: data.session
       };
+    },
+
+    async signInWithGoogle({ redirectTo } = {}) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: sameOriginRedirect(redirectTo, appOrigin)
+        }
+      });
+
+      if (error) {
+        throw new AuthenticationError(
+          "Google login is currently unavailable. Please try again.",
+          error.code ?? "oauth_start_failed",
+          error
+        );
+      }
+
+      return data;
     },
 
     async signOut() {

@@ -13,6 +13,10 @@ function clientWith(overrides = {}) {
         data: { user: { id: "user-1" }, session: { access_token: "token" } },
         error: null
       }),
+      signInWithOAuth: async () => ({
+        data: { provider: "google", url: "https://accounts.google.com" },
+        error: null
+      }),
       signOut: async () => ({ error: null }),
       getUser: async () => ({ data: { user: { id: "user-1" } }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: {} } }),
@@ -82,6 +86,39 @@ test("signIn exposes a generic invalid-credentials message", async () => {
       error instanceof AuthenticationError &&
       error.code === "invalid_credentials" &&
       error.message === "Invalid email or password."
+  );
+});
+
+test("signInWithGoogle starts OAuth with a same-origin callback", async () => {
+  let receivedOptions;
+  const auth = createAuthService(
+    clientWith({
+      signInWithOAuth: async (options) => {
+        receivedOptions = options;
+        return { data: { url: "https://accounts.google.com" }, error: null };
+      }
+    }),
+    { appOrigin: "http://localhost:5173" }
+  );
+
+  const result = await auth.signInWithGoogle();
+
+  assert.deepEqual(receivedOptions, {
+    provider: "google",
+    options: { redirectTo: "http://localhost:5173/auth/callback" }
+  });
+  assert.equal(result.url, "https://accounts.google.com");
+});
+
+test("signInWithGoogle rejects redirects to a different origin", async () => {
+  const auth = createAuthService(clientWith(), {
+    appOrigin: "https://financial-planner.example"
+  });
+
+  await assert.rejects(
+    auth.signInWithGoogle({ redirectTo: "https://attacker.example/callback" }),
+    (error) =>
+      error instanceof AuthenticationError && error.code === "invalid_redirect_url"
   );
 });
 
