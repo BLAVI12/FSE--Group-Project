@@ -1,10 +1,5 @@
 "use client";
-<Link
-  href="/"
-  className="mb-8 inline-block text-sm text-slate-400 hover:text-white"
->
-  ← Back to home
-</Link>
+
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
