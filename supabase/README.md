@@ -14,7 +14,9 @@ login. It is sandbox data with no real personal or financial information.
 | `..._transaction_content_identity.sql` | Identifies transactions by content, not by Tink's ids |
 | `..._enable_rls.sql` | Turns on row level security for every table |
 | `..._link_supabase_auth.sql` | Users move to Supabase Auth; `user_id` on every table; "own rows only" rules |
+| `..._fintech_import.sql` | Profiles, import batches, categories/rules, exclusions, exact amounts, and import audit fields |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
+| `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
 The reasoning behind the schema is recorded in the team's `DECISIONS.md`
 (ADR-0005, ADR-0006 and ADR-0008), which moves into this repository next.
@@ -36,8 +38,14 @@ browser may do is decided by the database itself:
 | | Not logged in | Logged in |
 |---|---|---|
 | `connections`, `accounts` | nothing | read own rows |
-| `transactions` | nothing | read own rows; change `category` only |
+| `transactions` | nothing | read own rows; use `set_transaction_category` for audited category changes |
 | `oauth_states` | nothing | nothing |
+| `raw_payload` | nothing | nothing; service-role import context only |
+
+System categories and rules are readable to authenticated users. Custom
+categories and rules are scoped to their owner. Import batches and assignments
+are readable only by their owner; writes are reserved for the trusted importer
+or the category-assignment RPC.
 
 Row level security decides *which rows*; column privileges decide *which
 columns*. Without the second, a user could change the amount of their own
@@ -66,9 +74,12 @@ a table must enable RLS and add its rules in the same file.
 The hosted project `FSE--Group-Project` was set up on 3 October 2026 by
 running the first six migrations and `seed.sql` in the SQL Editor.
 
-**Applying `..._link_supabase_auth.sql` there:** run it in the SQL Editor,
-then run `seed.sql` once more. The seed is safe to repeat: it adds nothing
-twice, and this time it sets the demo login's password. Then check:
+The hosted setup below is historical documentation of work applied manually
+before this repository had CLI migration tracking. Do not apply new migrations
+or seeds through the Dashboard. New changes belong in migration/seed files and
+must be applied through the Supabase CLI only after the target is approved.
+
+Then check the existing hosted seed with:
 
 ```sql
 select
@@ -82,16 +93,30 @@ More than 3,534 is expected once a live Tink sync has run: the seed is the
 26 September snapshot, and Demo Bank keeps adding transactions (3,545 after
 the sync on 3 October).
 
-Because the migrations were applied by hand, the Supabase CLI does not know
-about them. Before the first `supabase db push`, mark them as applied:
+Because the initial migrations were applied by hand, the Supabase CLI may not
+know about them. The historical notes above only establish that migrations
+001-006 were applied; the state of 007 is not verified here. After explicit
+project approval, inspect the target's migration history and schema, reconcile
+only migrations confirmed as already applied, and then use:
 
-```bash
-supabase migration repair --status applied 20261003000001 20261003000002 20261003000003 20261003000004 20261003000005 20261003000006 20261003000007
+```sh
+supabase db push --project-ref <APPROVED_PROJECT_REF>
 ```
 
 ## Rebuilding locally
 
-With the Supabase CLI and Docker (after `supabase init` has added
-`config.toml`): `supabase start`, then `supabase db reset` applies every
-migration and then `seed.sql`. The migrations need Supabase's `auth` schema,
-so a plain PostgreSQL database is no longer enough.
+With the Supabase CLI and Docker: `supabase start`, then `supabase db reset`
+applies every migration and configured seed file. **`supabase db reset`
+destroys the local Supabase database**, so use it only for a disposable local
+instance. The migrations need Supabase's `auth` schema, so plain PostgreSQL is
+not sufficient. The repository config runs `seed.sql` followed by the
+generated transaction-category seed.
+
+The hosted project has migration history from manual SQL Editor application;
+the CLI's migration history must be reconciled before a future approved remote
+push. Do not run a remote command until the target project is explicitly
+approved. Once approved and linked, the migration application command is:
+
+```sh
+supabase db push --project-ref <APPROVED_PROJECT_REF>
+```

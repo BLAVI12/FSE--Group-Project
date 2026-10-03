@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "generate:category-seed": "node scripts/generate-category-seed.mjs",
+    "check:category-seed": "node scripts/generate-category-seed.mjs --check",
+    "import:transactions": "node scripts/import-transactions.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0"

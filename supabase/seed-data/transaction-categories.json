@@ -1,0 +1,73 @@
+{
+  "categories": [
+    {
+      "name": "Income",
+      "keywords": ["Salary", "Zinserträge"]
+    },
+    {
+      "name": "Housing",
+      "keywords": ["Miete"]
+    },
+    {
+      "name": "Groceries",
+      "keywords": ["Aldi", "Edeka", "Lidl", "Rewe"]
+    },
+    {
+      "name": "Dining & Coffee",
+      "keywords": [
+        "Bar Celona",
+        "Burger King",
+        "Coffee Fellows",
+        "Maredo",
+        "McDonalds",
+        "Sausalitos",
+        "Starbucks"
+      ]
+    },
+    {
+      "name": "Transportation",
+      "keywords": ["Deutsche Bahn", "Flixbus", "Jet Tankstelle"]
+    },
+    {
+      "name": "Shopping",
+      "keywords": ["Amazon", "H&M", "Mediamarkt", "Zalando"]
+    },
+    {
+      "name": "Health",
+      "keywords": ["Adler Apotheke", "Fielmann"]
+    },
+    {
+      "name": "Insurance",
+      "keywords": ["Allianz"]
+    },
+    {
+      "name": "Utilities",
+      "keywords": ["E.ON"]
+    },
+    {
+      "name": "Phone & Internet",
+      "keywords": ["Telekom", "Vodafone"]
+    },
+    {
+      "name": "Subscriptions",
+      "keywords": ["Spotify"]
+    },
+    {
+      "name": "Cash Withdrawal",
+      "keywords": ["Bargeldauszahlung"]
+    },
+    {
+      "name": "Transfers",
+      "keywords": ["Übertrag"]
+    },
+    {
+      "name": "Uncategorized",
+      "keywords": []
+    }
+  ],
+  "ignored_test_transactions": [
+    "checkDestinationIBAN",
+    "trxDEIBAN",
+    "trxDEIBAN11"
+  ]
+}

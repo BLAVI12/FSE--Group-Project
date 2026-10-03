@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+data/private/
 node_modules/
 dist/
 .DS_Store
