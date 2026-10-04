@@ -21,7 +21,7 @@ export function validateCategoryMapping(mapping) {
     fail("invalid_category_mapping");
   }
 
-  if (mapping.categories.length !== 14 || mapping.ignored_test_transactions.length !== 3) {
+  if (mapping.categories.length !== 17 || mapping.ignored_test_transactions.length !== 3) {
     fail("unexpected_mapping_counts");
   }
 
@@ -44,7 +44,7 @@ export function validateCategoryMapping(mapping) {
     }
   }
 
-  if (keywordCount !== 30 || !categoryNames.has("uncategorized")) {
+  if (keywordCount !== 48 || !categoryNames.has("uncategorized")) {
     fail("unexpected_keyword_count");
   }
   if (mapping.ignored_test_transactions.some((pattern) => !nonEmptyString(pattern))) {
