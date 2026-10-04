@@ -10,41 +10,23 @@
     },
     {
       "name": "Groceries",
-      "keywords": ["Aldi", "Edeka", "Kaufland", "Lidl", "Netto", "Norma", "Penny", "Rewe"]
+      "keywords": ["Aldi", "Edeka", "Lidl", "Rewe"]
     },
     {
-      "name": "Dining",
+      "name": "Dining & Coffee",
       "keywords": [
+        "Bar Celona",
         "Burger King",
+        "Coffee Fellows",
         "Maredo",
         "McDonalds",
-        "Sausalitos"
-      ]
-    },
-    {
-      "name": "Coffee & Cafes",
-      "keywords": ["Coffee Fellows", "Starbucks"]
-    },
-    {
-      "name": "Drinks & Bars",
-      "keywords": ["Bar Celona", "Durstexpress", "Flaschenpost", "Getränke Hoffmann"]
-    },
-    {
-      "name": "Sports & Fitness",
-      "keywords": [
-        "Decathlon",
-        "FitX",
-        "Fitness First",
-        "Intersport",
-        "McFit",
-        "Nike",
-        "SportScheck",
-        "Urban Sports Club"
+        "Sausalitos",
+        "Starbucks"
       ]
     },
     {
       "name": "Transportation",
-      "keywords": ["Bolt", "Deutsche Bahn", "Flixbus", "Jet Tankstelle", "Taxi", "Uber"]
+      "keywords": ["Deutsche Bahn", "Flixbus", "Jet Tankstelle"]
     },
     {
       "name": "Shopping",

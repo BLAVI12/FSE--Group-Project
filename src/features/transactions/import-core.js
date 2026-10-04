@@ -21,8 +21,8 @@ export function validateCategoryMapping(mapping) {
     fail("invalid_category_mapping");
   }
 
-  if (mapping.categories.length !== 17 || mapping.ignored_test_transactions.length !== 3) {
-    fail("unexpected_mapping_counts");
+  if (mapping.categories.length === 0 || mapping.ignored_test_transactions.length === 0) {
+    fail("invalid_category_mapping");
   }
 
   const categoryNames = new Set();
@@ -44,8 +44,8 @@ export function validateCategoryMapping(mapping) {
     }
   }
 
-  if (keywordCount !== 48 || !categoryNames.has("uncategorized")) {
-    fail("unexpected_keyword_count");
+  if (!categoryNames.has("uncategorized")) {
+    fail("missing_uncategorized_category");
   }
   if (mapping.ignored_test_transactions.some((pattern) => !nonEmptyString(pattern))) {
     fail("invalid_exclusion_pattern");

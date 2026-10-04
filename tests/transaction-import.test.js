@@ -37,15 +37,18 @@ function transaction(overrides = {}) {
   };
 }
 
-test("canonical category mapping validates exactly 17 categories, 48 keywords, and 3 exclusions", () => {
+test("canonical category mapping validates category names, keywords, and exclusions", () => {
   assert.deepEqual(validateCategoryMapping(mapping), {
-    categories: 17,
-    keywords: 48,
+    categories: 14,
+    keywords: 30,
     exclusions: 3
   });
   assert.throws(
-    () => validateCategoryMapping({ ...mapping, categories: mapping.categories.slice(1) }),
-    /unexpected_mapping_counts/
+    () => validateCategoryMapping({
+      ...mapping,
+      categories: mapping.categories.filter((category) => category.name !== "Uncategorized")
+    }),
+    /missing_uncategorized_category/
   );
 });
 
@@ -66,7 +69,7 @@ test("exact amount conversion handles scale one, scale two, signs, and zero with
 
 test("category matching is case-insensitive across original and display descriptions", () => {
   assert.equal(classifyDescriptions(" salary payment ", "unrelated", mapping).categoryName, "Income");
-  assert.equal(classifyDescriptions("unrelated", "cOfFeE fElLoWs", mapping).categoryName, "Coffee & Cafes");
+  assert.equal(classifyDescriptions("unrelated", "cOfFeE fElLoWs", mapping).categoryName, "Dining & Coffee");
 });
 
 test("custom rules honor configured fields and remain ambiguous against system matches", () => {
@@ -123,7 +126,7 @@ test("normalization preserves identifiers, descriptions, exact amounts, and raw 
   assert.equal(normalized.amount, "-1234");
   assert.equal(normalized.original_description, "coffee shop");
   assert.equal(normalized.display_description, "Coffee Fellows");
-  assert.equal(normalized.category_name, "Coffee & Cafes");
+  assert.equal(normalized.category_name, "Dining & Coffee");
   assert.equal(normalized.raw_payload, raw);
 });
 
@@ -168,7 +171,7 @@ test("pending transactions promote to booked and never regress", () => {
 test("generated category SQL is deterministic and idempotent", () => {
   const generated = generateCategorySeed(mapping);
   assert.equal(generated, generateCategorySeed(mapping));
-  assert.equal((generated.match(/'contains'/g) ?? []).length, 51);
+  assert.equal((generated.match(/'contains'/g) ?? []).length, 33);
   assert.equal((generated.match(/on conflict \(id\) do update/g) ?? []).length, 3);
   assert.match(generated, /is distinct from/);
   assert.match(generated, /on conflict \(transaction_id\) where is_active and is_primary do nothing/);

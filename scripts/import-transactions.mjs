@@ -223,7 +223,20 @@ async function applyImport({ client, userId, source, filename, checksum, rows, r
   try {
     const accountIds = await ensureAccounts(client, userId, rows, source);
     const catalog = await loadSystemCatalog(client, userId);
-    if (catalog.systemCategories.size !== 14 || catalog.rules.size !== 30 || catalog.systemExclusionCount !== 3) {
+    const missingCategories = mapping.categories.filter(
+      (category) => !catalog.systemCategories.has(normalize(category.name))
+    );
+    const missingRules = mapping.categories.flatMap((category) => {
+      const categoryId = catalog.systemCategories.get(normalize(category.name));
+      return category.keywords.filter(
+        (keyword) => !catalog.rules.has(`${categoryId}:${normalize(keyword)}`)
+      );
+    });
+    if (
+      missingCategories.length > 0 ||
+      missingRules.length > 0 ||
+      catalog.systemExclusionCount !== mapping.ignored_test_transactions.length
+    ) {
       throw new Error("System category seed is missing or inconsistent.");
     }
     const importRows = rows.map((row) => {
