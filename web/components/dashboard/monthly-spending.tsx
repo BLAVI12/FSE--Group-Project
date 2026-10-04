@@ -2,6 +2,7 @@
 
 import { useState, type KeyboardEvent } from "react";
 import type { DashboardTransaction } from "@/lib/data/dashboard";
+import { countsTowardTotals } from "@/lib/data/totals";
 
 const chartColors = [
   "#34d399",
@@ -48,7 +49,7 @@ function MonthlySpendingPanel({
   transactions: DashboardTransaction[];
 }) {
   const spendingTransactions = transactions.filter(
-    (transaction) => transaction.amount < 0 && !transaction.is_transfer,
+    (transaction) => transaction.amount < 0 && countsTowardTotals(transaction),
   );
   const totals = new Map<string, number>();
 
@@ -66,12 +67,9 @@ function MonthlySpendingPanel({
     .sort((first, second) => second.amount - first.amount);
   const total = categories.reduce((sum, category) => sum + category.amount, 0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const selectedTransactions = transactions.filter(
+  const selectedTransactions = spendingTransactions.filter(
     (transaction) =>
-      selectedCategory !== null &&
-      transaction.amount < 0 &&
-      !transaction.is_transfer &&
-      getCategory(transaction) === selectedCategory,
+      selectedCategory !== null && getCategory(transaction) === selectedCategory,
   );
   const currency = spendingTransactions[0]?.currency ?? "EUR";
   const circumference = 2 * Math.PI * 36;
