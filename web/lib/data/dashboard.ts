@@ -1,4 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
+  type: "json",
+};
 
 export type DashboardAccount = {
   id: string;
@@ -34,7 +37,10 @@ export type DashboardData = {
   recentTransactions: DashboardTransaction[];
   transactionCount: number;
   monthlySummary: MonthlySummary;
+  currentMonthTransactions: DashboardTransaction[];
+  previousMonthTransactions: DashboardTransaction[];
   monthStart: string;
+  previousMonthStart: string;
 };
 
 export class DashboardDataError extends Error {
@@ -47,6 +53,16 @@ export class DashboardDataError extends Error {
 export function getUtcMonthRange(date: Date) {
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth();
+
+  return {
+    start: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
+    end: new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10),
+  };
+}
+
+export function getPreviousUtcMonthRange(date: Date) {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() - 1;
 
   return {
     start: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
@@ -76,14 +92,58 @@ export function summariseTransactions(
   );
 }
 
+function normalizeCategoryText(value: string) {
+  return value.normalize("NFKC").toLocaleLowerCase("de-DE");
+}
+
+function categorizeTransaction(transaction: DashboardTransaction) {
+  if (transaction.category?.trim()) {
+    return transaction.category;
+  }
+
+  const description = normalizeCategoryText(transaction.description);
+  if (
+    categoryMapping.ignored_test_transactions.some((pattern) =>
+      description.includes(normalizeCategoryText(pattern)),
+    )
+  ) {
+    return "Uncategorized";
+  }
+
+  const matches = categoryMapping.categories.flatMap((category) =>
+    category.keywords.some((keyword) =>
+      description.includes(normalizeCategoryText(keyword)),
+    )
+      ? [category.name]
+      : [],
+  );
+  const matchingCategories = new Set(matches);
+
+  return matchingCategories.size === 1
+    ? matches[0]
+    : "Uncategorized";
+}
+
+export function categorizeTransactions(
+  transactions: DashboardTransaction[],
+): DashboardTransaction[] {
+  return transactions.map((transaction) => ({
+    ...transaction,
+    category: categorizeTransaction(transaction),
+  }));
+}
+
 export async function loadDashboardData(
   supabase: SupabaseClient,
   userId: string,
   now = new Date(),
 ): Promise<DashboardData> {
   const monthRange = getUtcMonthRange(now);
+  const previousMonthRange = getPreviousUtcMonthRange(now);
+  const monthlyTransactionFields =
+    "id,amount,currency,description,booked_date,status,category,is_transfer";
 
-  const [accountsResult, recentResult, countResult, monthResult] =
+  const [accountsResult, recentResult, countResult, monthResult, previousMonthResult] =
     await Promise.all([
       supabase
         .from("accounts")
@@ -108,11 +168,16 @@ export async function loadDashboardData(
         .eq("user_id", userId),
       supabase
         .from("transactions")
-        .select("amount,is_transfer")
+        .select(monthlyTransactionFields)
         .eq("user_id", userId)
-        .eq("status", "BOOKED")
         .gte("booked_date", monthRange.start)
         .lt("booked_date", monthRange.end),
+      supabase
+        .from("transactions")
+        .select(monthlyTransactionFields)
+        .eq("user_id", userId)
+        .gte("booked_date", previousMonthRange.start)
+        .lt("booked_date", previousMonthRange.end),
     ]);
 
   const firstError = [
@@ -120,6 +185,7 @@ export async function loadDashboardData(
     recentResult.error,
     countResult.error,
     monthResult.error,
+    previousMonthResult.error,
   ].find(Boolean);
 
   if (firstError) {
@@ -127,13 +193,21 @@ export async function loadDashboardData(
     throw new DashboardDataError();
   }
 
+  const currentMonthTransactions =
+    (monthResult.data ?? []) as DashboardTransaction[];
+  const previousMonthTransactions =
+    (previousMonthResult.data ?? []) as DashboardTransaction[];
+
   return {
     accounts: (accountsResult.data ?? []) as DashboardAccount[],
-    recentTransactions: (recentResult.data ?? []) as DashboardTransaction[],
-    transactionCount: countResult.count ?? 0,
-    monthlySummary: summariseTransactions(
-      (monthResult.data ?? []) as TransactionAmount[],
+    recentTransactions: categorizeTransactions(
+      (recentResult.data ?? []) as DashboardTransaction[],
     ),
+    transactionCount: countResult.count ?? 0,
+    monthlySummary: summariseTransactions(currentMonthTransactions),
+    currentMonthTransactions: categorizeTransactions(currentMonthTransactions),
+    previousMonthTransactions: categorizeTransactions(previousMonthTransactions),
     monthStart: monthRange.start,
+    previousMonthStart: previousMonthRange.start,
   };
 }

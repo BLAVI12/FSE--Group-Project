@@ -7,6 +7,7 @@ import {
   type DashboardAccount,
   type DashboardTransaction,
 } from "@/lib/data/dashboard";
+import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { createClient } from "@/lib/supabase/server";
 
 function formatMoney(cents: number | null, currency = "EUR") {
@@ -71,6 +72,11 @@ export default async function DashboardPage() {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${dashboardData.monthStart}T00:00:00Z`));
+  const previousMonthLabel = new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${dashboardData.previousMonthStart}T00:00:00Z`));
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -130,6 +136,13 @@ export default async function DashboardPage() {
             value={dashboardData.transactionCount.toLocaleString("en-GB")}
           />
         </section>
+
+        <MonthlySpending
+          currentMonthLabel={monthLabel}
+          previousMonthLabel={previousMonthLabel}
+          currentMonthTransactions={dashboardData.currentMonthTransactions}
+          previousMonthTransactions={dashboardData.previousMonthTransactions}
+        />
 
         <section className="mt-10">
           <div className="flex items-end justify-between gap-4">

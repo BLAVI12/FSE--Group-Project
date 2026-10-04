@@ -11,9 +11,12 @@ Needs Node 24 or later.
 ```bash
 cd web
 npm install
-cp .env.example .env.local   # then fill in the two values
 npm run dev                  # http://localhost:3000
 ```
+
+The public landing page works without Supabase configuration. To use login,
+registration, or the dashboard, copy `.env.example` to `.env.local` and fill
+in the two values below, then restart the development server.
 
 `.env.local` needs the project URL and the **publishable** key from Supabase
 (**Project Settings > API Keys**). Both are public by design. Never put a

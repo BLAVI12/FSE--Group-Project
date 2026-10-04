@@ -37,15 +37,18 @@ function transaction(overrides = {}) {
   };
 }
 
-test("canonical category mapping validates exactly 14 categories, 30 keywords, and 3 exclusions", () => {
+test("canonical category mapping validates category names, keywords, and exclusions", () => {
   assert.deepEqual(validateCategoryMapping(mapping), {
     categories: 14,
     keywords: 30,
     exclusions: 3
   });
   assert.throws(
-    () => validateCategoryMapping({ ...mapping, categories: mapping.categories.slice(1) }),
-    /unexpected_mapping_counts/
+    () => validateCategoryMapping({
+      ...mapping,
+      categories: mapping.categories.filter((category) => category.name !== "Uncategorized")
+    }),
+    /missing_uncategorized_category/
   );
 });
 

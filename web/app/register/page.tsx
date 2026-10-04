@@ -4,12 +4,15 @@ import Link from "next/link";
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { SupabaseSetupNotice } from "@/components/auth/supabase-setup-notice";
 import { startGoogleOAuth } from "@/lib/auth/google";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabaseConfigured = isSupabaseConfigured();
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -125,6 +128,8 @@ function RegisterForm() {
             Start managing your student finances.
           </p>
 
+          {!supabaseConfigured && <SupabaseSetupNotice />}
+
           <form
             onSubmit={handleRegistration}
             className="mt-8 space-y-5"
@@ -230,7 +235,7 @@ function RegisterForm() {
 
             <button
               type="submit"
-              disabled={loadingMethod !== null}
+              disabled={loadingMethod !== null || !supabaseConfigured}
               className="w-full rounded-lg bg-emerald-400 px-4 py-3 font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loadingMethod === "password"
@@ -250,7 +255,7 @@ function RegisterForm() {
           <GoogleAuthButton
             mode="register"
             onClick={handleGoogleRegistration}
-            disabled={loadingMethod !== null}
+            disabled={loadingMethod !== null || !supabaseConfigured}
             loading={loadingMethod === "google"}
           />
 
