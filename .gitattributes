@@ -12,3 +12,10 @@
 *.gif binary
 *.webp binary
 *.pdf binary
+
+# Sample data produced by scripts, not hand-written code: GitHub leaves these
+# out of the repository's language statistics and collapses them in pull
+# requests. seed.sql holds the 3,534 Demo Bank transactions; the category
+# seed comes from scripts/generate-category-seed.mjs.
+supabase/seed.sql linguist-generated
+supabase/seeds/transaction-categories.sql linguist-generated
