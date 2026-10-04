@@ -105,6 +105,13 @@ npm run typecheck   # TypeScript type check
 npm run check:category-seed
 ```
 
+## AI coding agents
+
+Rules for every coding agent working in this repository, and for the people
+instructing them, are in [AGENTS.md](AGENTS.md): no direct pushes to `main`,
+no secrets in Git, a person types the bank login, and the data rules learned
+from live Tink data. `CLAUDE.md` points to the same file.
+
 ## Transaction imports
 
 Category names, keyword rules, and ignored test descriptions are maintained in
