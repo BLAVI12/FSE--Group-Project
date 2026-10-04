@@ -105,6 +105,19 @@ npm run typecheck   # TypeScript type check
 npm run check:category-seed
 ```
 
+CI also builds a throwaway database from the migrations and seed files and
+runs the checks in `tests/database/` against it: data, ownership and
+cascade rules in the database itself (`db-check.sql`), and the access rules
+through the real Auth and Data API (`rls-check.mjs`). Locally, with Docker and
+the Supabase CLI:
+
+```bash
+supabase start
+eval "$(supabase status -o env)"
+psql "$DB_URL" -f tests/database/db-check.sql
+node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"
+```
+
 ## AI coding agents
 
 Rules for every coding agent working in this repository, and for the people
