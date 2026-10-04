@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
   type: "json",
 };
+import { countsTowardTotals } from "./totals.ts";
 
 export type DashboardAccount = {
   id: string;
@@ -24,7 +25,10 @@ export type DashboardTransaction = {
   is_transfer: boolean;
 };
 
-type TransactionAmount = Pick<DashboardTransaction, "amount" | "is_transfer">;
+type TransactionAmount = Pick<
+  DashboardTransaction,
+  "amount" | "is_transfer" | "status"
+>;
 
 export type MonthlySummary = {
   income: number;
@@ -75,7 +79,7 @@ export function summariseTransactions(
 ): MonthlySummary {
   return transactions.reduce<MonthlySummary>(
     (summary, transaction) => {
-      if (transaction.is_transfer) {
+      if (!countsTowardTotals(transaction)) {
         return summary;
       }
 

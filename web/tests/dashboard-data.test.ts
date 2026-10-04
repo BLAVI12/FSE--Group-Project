@@ -7,6 +7,7 @@ import {
   summariseTransactions,
   type DashboardTransaction,
 } from "../lib/data/dashboard.ts";
+import { countsTowardTotals } from "../lib/data/totals.ts";
 
 test("getUtcMonthRange returns an exclusive range across a year boundary", () => {
   assert.deepEqual(getUtcMonthRange(new Date("2026-12-15T12:00:00Z")), {
@@ -28,9 +29,9 @@ test("getPreviousUtcMonthRange returns the previous month across a year boundary
 test("summariseTransactions separates income and spending", () => {
   assert.deepEqual(
     summariseTransactions([
-      { amount: 125000, is_transfer: false },
-      { amount: -3499, is_transfer: false },
-      { amount: -50000, is_transfer: true },
+      { amount: 125000, is_transfer: false, status: "BOOKED" },
+      { amount: -3499, is_transfer: false, status: "BOOKED" },
+      { amount: -50000, is_transfer: true, status: "BOOKED" },
     ]),
     {
       income: 125000,
@@ -38,6 +39,29 @@ test("summariseTransactions separates income and spending", () => {
       net: 121501,
     },
   );
+});
+
+test("pending transactions do not count toward monthly totals", () => {
+  assert.deepEqual(
+    summariseTransactions([
+      { amount: 125000, is_transfer: false, status: "BOOKED" },
+      { amount: -3499, is_transfer: false, status: "BOOKED" },
+      { amount: -2000, is_transfer: false, status: "PENDING" },
+      { amount: 9900, is_transfer: false, status: "PENDING" },
+    ]),
+    {
+      income: 125000,
+      spending: 3499,
+      net: 121501,
+    },
+  );
+});
+
+test("only booked transactions that are not transfers count toward totals", () => {
+  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: false }), true);
+  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: false }), false);
+  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: true }), false);
+  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: true }), false);
 });
 
 test("categorizeTransactions uses the supplied mapping and preserves saved categories", () => {
