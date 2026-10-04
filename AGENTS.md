@@ -15,6 +15,9 @@ The repository is public.
 - **Don't merge pull requests.** A teammate reviews and merges; nobody merges
   their own.
 - Keep one topic per pull request, so it can be reviewed.
+- When you open a pull request, use `.github/pull_request_template.md` as its
+  description and fill it in, including the AI use section. Don't claim
+  checks nobody ran.
 - Commit and push only when the person asks. Don't force-push, rewrite history
   or delete branches unless they ask.
 - Before opening a pull request, run the checks CI runs:
