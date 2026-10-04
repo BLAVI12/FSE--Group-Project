@@ -4,12 +4,14 @@
  * plain message and the one thing the user can do out.
  *
  * This decides only what to say. Whether anything is saved is the flow's job:
- * a failed connect saves nothing, and a failed refresh leaves the last data in
- * place, because the sync writes all-or-nothing (ADR-0016). The messages
- * promise exactly that.
+ * a failed connect must save nothing, and a failed refresh must leave the last
+ * data in place, so the sync has to write all-or-nothing. The messages promise
+ * exactly that.
  *
  * Tink's own codes and texts are for the logs, never for the user.
  */
+
+import { needsRelink } from "./consents.ts";
 
 export type BankProblemCode =
   | "BANK_LOGIN_REJECTED"
@@ -109,17 +111,13 @@ export function tinkRequestProblem(error: { status: number; code: string }): Ban
   return bankProblem(temporary ? "TEMPORARY_PROBLEM" : "UNKNOWN");
 }
 
-// Bank login states only the user can recover from, by reconnecting. Under
-// PSD2 access lapses after 90 to 180 days, so SESSION_EXPIRED is routine.
-const NEEDS_RECONNECT = new Set(["SESSION_EXPIRED", "AUTHENTICATION_ERROR", "PERMANENT_ERROR", "DELETED"]);
-
 /**
  * The problem with an existing bank login, from its Tink status, or null if
- * it is fine or still in progress. TEMPORARY_ERROR is not the user's to fix:
- * Tink retries it.
+ * it is fine or still in progress. Which states need a reconnect is decided
+ * in consents.ts; TEMPORARY_ERROR is not the user's to fix: Tink retries it.
  */
 export function bankLoginProblem(status: string | undefined): BankProblem | null {
-  if (status && NEEDS_RECONNECT.has(status)) return bankProblem("RECONNECT_NEEDED");
+  if (needsRelink(status)) return bankProblem("RECONNECT_NEEDED");
   if (status === "TEMPORARY_ERROR") return bankProblem("TEMPORARY_PROBLEM");
   return null;
 }
