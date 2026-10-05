@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
+import { BankConnection } from "@/components/bank-connection";
+import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import {
   DashboardDataError,
   loadDashboardData,
   type DashboardAccount,
   type DashboardTransaction,
 } from "@/lib/data/dashboard";
-import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { createClient } from "@/lib/supabase/server";
 
 function formatMoney(cents: number | null, currency = "EUR") {
@@ -34,7 +35,11 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bank?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,6 +48,20 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login");
   }
+
+  const { bank } = await searchParams;
+  const { data: connection, error: connectionError } = await supabase
+    .from("connections")
+    .select("status,live_sync_enabled,last_synced")
+    .eq("user_id", user.id)
+    .eq("provider", "tink")
+    .maybeSingle();
+  const bankConfigured = [
+    "DATABASE_URL",
+    "TINK_CLIENT_ID",
+    "TINK_CLIENT_SECRET",
+    "TINK_REDIRECT_URI",
+  ].every((name) => Boolean(process.env[name]));
 
   let dashboardData;
 
@@ -91,14 +110,29 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/dashboard"
+              aria-current="page"
+              className="rounded-lg bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-300"
             >
-              Log out
-            </button>
-          </form>
+              Overview
+            </Link>
+            <Link
+              href="/dashboard/transactions"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+            >
+              Transactions
+            </Link>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+              >
+                Log out
+              </button>
+            </form>
+          </div>
         </nav>
       </header>
 
@@ -109,9 +143,15 @@ export default async function DashboardPage() {
           </p>
           <h1 className="mt-2 text-3xl font-bold">Dashboard</h1>
           <p className="mt-2 text-slate-400">
-            Live data from your connected Supabase account.
+            Your saved accounts and transactions, updated from your bank.
           </p>
         </div>
+
+        <BankConnection
+          configured={!connectionError && bankConfigured}
+          connection={connection}
+          outcome={bank}
+        />
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
@@ -134,6 +174,7 @@ export default async function DashboardPage() {
           <SummaryCard
             label="Transactions"
             value={dashboardData.transactionCount.toLocaleString("en-GB")}
+            href="/dashboard/transactions"
           />
         </section>
 
@@ -169,11 +210,19 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-10 pb-12">
-          <div>
-            <h2 className="text-2xl font-bold">Recent transactions</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Your eight most recent booked or pending entries.
-            </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Recent transactions</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Your eight most recent booked or pending entries.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/transactions"
+              className="text-sm font-semibold text-emerald-300 hover:text-emerald-200"
+            >
+              View all transactions →
+            </Link>
           </div>
 
           {dashboardData.recentTransactions.length > 0 ? (
@@ -191,10 +240,7 @@ export default async function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-white/10">
                     {dashboardData.recentTransactions.map((transaction) => (
-                      <TransactionRow
-                        key={transaction.id}
-                        transaction={transaction}
-                      />
+                      <TransactionRow key={transaction.id} transaction={transaction} />
                     ))}
                   </tbody>
                 </table>
@@ -213,13 +259,15 @@ function SummaryCard({
   label,
   value,
   tone = "default",
+  href,
 }: {
   label: string;
   value: string;
   tone?: "default" | "positive";
+  href?: string;
 }) {
-  return (
-    <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
+  const content = (
+    <>
       <p className="text-sm text-slate-400">{label}</p>
       <p
         className={`mt-2 text-2xl font-bold ${
@@ -228,6 +276,28 @@ function SummaryCard({
       >
         {value}
       </p>
+      {href && (
+        <p className="mt-3 text-xs font-semibold text-emerald-300">
+          Explore spending trends →
+        </p>
+      )}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="rounded-2xl border border-emerald-400/25 bg-emerald-400/5 p-5 transition hover:border-emerald-300/60 hover:bg-emerald-400/10 focus-visible:outline-2 focus-visible:outline-emerald-300"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
+      {content}
     </article>
   );
 }
