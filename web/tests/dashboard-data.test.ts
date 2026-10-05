@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+import categoryMapping from "../../supabase/seed-data/transaction-categories.json" with {
+  type: "json",
+};
+import { classifyDescriptions } from "../../src/features/transactions/transaction-rules.js";
 import {
   categorizeTransactions,
   getMonthRange,
@@ -137,4 +142,48 @@ test("categorizeTransactions uses the supplied mapping and preserves saved categ
     categorizeTransactions(transactions).map((transaction) => transaction.category),
     ["Shopping", "Dining & Coffee", "Uncategorized", "Personal"],
   );
+});
+
+function uncategorized(description: string): DashboardTransaction {
+  return {
+    id: description,
+    amount: -100,
+    currency: "EUR",
+    description,
+    booked_date: "2026-10-01",
+    status: "BOOKED",
+    category: null,
+    is_transfer: false,
+  };
+}
+
+test("test bookings and descriptions matching several categories show as Uncategorized", () => {
+  assert.deepEqual(
+    categorizeTransactions(
+      ["checkDestinationIBAN", "trxDEIBAN11 Rewe", "Miete Aldi", "Aldi Lidl", ""].map(uncategorized),
+    ).map((transaction) => transaction.category),
+    ["Uncategorized", "Uncategorized", "Uncategorized", "Groceries", "Uncategorized"],
+  );
+});
+
+test("the dashboard shows each real Demo Bank transaction in the category the sync stores", () => {
+  const fixture = JSON.parse(
+    readFileSync(new URL("../../tests/fixtures/tink-demo-fixture.json", import.meta.url), "utf8"),
+  ) as { transactions: { descriptions: { display?: string; original?: string } }[] };
+  // The sync stores Tink's display text, falling back to the original.
+  const descriptions = fixture.transactions.map(
+    ({ descriptions }) => descriptions.display ?? descriptions.original ?? "",
+  );
+
+  const shown = categorizeTransactions(descriptions.map(uncategorized)).map(
+    (transaction) => transaction.category,
+  );
+  const stored = descriptions.map(
+    (description) =>
+      classifyDescriptions(description, description, categoryMapping).categoryName ??
+      "Uncategorized",
+  );
+
+  assert.equal(descriptions.length, 309);
+  assert.deepEqual(shown, stored);
 });
