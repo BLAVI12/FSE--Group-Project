@@ -1,11 +1,7 @@
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
-
-import {
-  stableUuid,
-  validateCategoryMapping
-} from "../src/features/transactions/import-core.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const inputPath = path.join(root, "supabase/seed-data/transaction-categories.json");
@@ -17,6 +13,66 @@ function sqlString(value) {
 
 function normalize(value) {
   return value.normalize("NFKC").toLocaleLowerCase("de-DE");
+}
+
+function fail(code) {
+  const error = new Error(code);
+  error.code = code;
+  throw error;
+}
+
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+export function validateCategoryMapping(mapping) {
+  if (!mapping || !Array.isArray(mapping.categories) || !Array.isArray(mapping.ignored_test_transactions)) {
+    fail("invalid_category_mapping");
+  }
+
+  if (mapping.categories.length === 0 || mapping.ignored_test_transactions.length === 0) {
+    fail("invalid_category_mapping");
+  }
+
+  const categoryNames = new Set();
+  let keywordCount = 0;
+  for (const category of mapping.categories) {
+    if (!nonEmptyString(category.name) || !Array.isArray(category.keywords)) {
+      fail("invalid_category_entry");
+    }
+    const normalizedName = normalize(category.name.trim());
+    if (categoryNames.has(normalizedName)) {
+      fail("duplicate_category_name");
+    }
+    categoryNames.add(normalizedName);
+    for (const keyword of category.keywords) {
+      if (!nonEmptyString(keyword)) {
+        fail("invalid_category_keyword");
+      }
+      keywordCount += 1;
+    }
+  }
+
+  if (!categoryNames.has("uncategorized")) {
+    fail("missing_uncategorized_category");
+  }
+  if (mapping.ignored_test_transactions.some((pattern) => !nonEmptyString(pattern))) {
+    fail("invalid_exclusion_pattern");
+  }
+
+  return {
+    categories: mapping.categories.length,
+    keywords: keywordCount,
+    exclusions: mapping.ignored_test_transactions.length
+  };
+}
+
+export function stableUuid(namespace, value) {
+  const hex = createHash("sha256").update(`${namespace}:${value}`).digest("hex").slice(0, 32);
+  const versioned = `${hex.slice(0, 12)}5${hex.slice(13)}`;
+  const variant = ((Number.parseInt(versioned[16], 16) & 0x3) | 0x8).toString(16);
+  const normalized = `${versioned.slice(0, 16)}${variant}${versioned.slice(17)}`;
+  return `${normalized.slice(0, 8)}-${normalized.slice(8, 12)}-${normalized.slice(12, 16)}-${normalized.slice(16, 20)}-${normalized.slice(20, 32)}`;
 }
 
 export function generateCategorySeed(mapping) {

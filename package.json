@@ -7,7 +7,6 @@
     "test": "node --test",
     "generate:category-seed": "node scripts/generate-category-seed.mjs",
     "check:category-seed": "node scripts/generate-category-seed.mjs --check",
-    "import:transactions": "node scripts/import-transactions.mjs",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
