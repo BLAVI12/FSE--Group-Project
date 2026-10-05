@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/app/auth/actions";
 import { BankConnection } from "@/components/bank-connection";
+import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import {
   DashboardDataError,
   loadDashboardData,
@@ -83,13 +84,18 @@ export default async function DashboardPage({
   );
   const balanceCurrency =
     accountCurrencies.size === 1
-      ? (dashboardData.accounts[0]?.currency ?? "EUR")
+      ? dashboardData.accounts[0]?.currency ?? "EUR"
       : "EUR";
   const monthLabel = new Intl.DateTimeFormat("en-GB", {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${dashboardData.monthStart}T00:00:00Z`));
+  const previousMonthLabel = new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${dashboardData.previousMonthStart}T00:00:00Z`));
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -172,6 +178,13 @@ export default async function DashboardPage({
           />
         </section>
 
+        <MonthlySpending
+          currentMonthLabel={monthLabel}
+          previousMonthLabel={previousMonthLabel}
+          currentMonthTransactions={dashboardData.currentMonthTransactions}
+          previousMonthTransactions={dashboardData.previousMonthTransactions}
+        />
+
         <section className="mt-10">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -222,17 +235,12 @@ export default async function DashboardPage({
                       <th className="px-5 py-4 font-medium">Category</th>
                       <th className="px-5 py-4 font-medium">Date</th>
                       <th className="px-5 py-4 font-medium">Status</th>
-                      <th className="px-5 py-4 text-right font-medium">
-                        Amount
-                      </th>
+                      <th className="px-5 py-4 text-right font-medium">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
                     {dashboardData.recentTransactions.map((transaction) => (
-                      <TransactionRow
-                        key={transaction.id}
-                        transaction={transaction}
-                      />
+                      <TransactionRow key={transaction.id} transaction={transaction} />
                     ))}
                   </tbody>
                 </table>
@@ -262,7 +270,9 @@ function SummaryCard({
     <>
       <p className="text-sm text-slate-400">{label}</p>
       <p
-        className={`mt-2 text-2xl font-bold ${tone === "positive" ? "text-emerald-300" : "text-white"}`}
+        className={`mt-2 text-2xl font-bold ${
+          tone === "positive" ? "text-emerald-300" : "text-white"
+        }`}
       >
         {value}
       </p>
@@ -273,6 +283,7 @@ function SummaryCard({
       )}
     </>
   );
+
   if (href) {
     return (
       <Link
@@ -283,6 +294,7 @@ function SummaryCard({
       </Link>
     );
   }
+
   return (
     <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
       {content}

@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
+  type: "json",
+};
+import { countsTowardTotals } from "./totals.ts";
 
 export type DashboardAccount = {
   id: string;
@@ -21,7 +25,10 @@ export type DashboardTransaction = {
   is_transfer: boolean;
 };
 
-type TransactionAmount = Pick<DashboardTransaction, "amount" | "is_transfer">;
+type TransactionAmount = Pick<
+  DashboardTransaction,
+  "amount" | "is_transfer" | "status"
+>;
 
 export type MonthlySummary = {
   income: number;
@@ -34,7 +41,10 @@ export type DashboardData = {
   recentTransactions: DashboardTransaction[];
   transactionCount: number;
   monthlySummary: MonthlySummary;
+  currentMonthTransactions: DashboardTransaction[];
+  previousMonthTransactions: DashboardTransaction[];
   monthStart: string;
+  previousMonthStart: string;
 };
 
 export class DashboardDataError extends Error {
@@ -44,14 +54,41 @@ export class DashboardDataError extends Error {
   }
 }
 
-export function getUtcMonthRange(date: Date) {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
+// Booking dates are calendar days in Germany, where the bank and the users
+// are, while the server runs on UTC. "This month" is therefore decided on the
+// German calendar: at 00:30 on 1 November in Germany it is already November,
+// although UTC still says 31 October.
+const APP_TIME_ZONE = "Europe/Berlin";
 
+/** Year and month (0-11) of an instant on the calendar of `timeZone`. */
+function calendarMonth(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(date);
+  const part = (type: string) =>
+    Number(parts.find((candidate) => candidate.type === type)?.value);
+
+  return { year: part("year"), month: part("month") - 1 };
+}
+
+/** A month as booking dates: from its first day up to the next month's first. */
+function monthRange(year: number, month: number) {
   return {
     start: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
     end: new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10),
   };
+}
+
+export function getMonthRange(date: Date, timeZone = APP_TIME_ZONE) {
+  const { year, month } = calendarMonth(date, timeZone);
+  return monthRange(year, month);
+}
+
+export function getPreviousMonthRange(date: Date, timeZone = APP_TIME_ZONE) {
+  const { year, month } = calendarMonth(date, timeZone);
+  return monthRange(year, month - 1);
 }
 
 export function summariseTransactions(
@@ -59,7 +96,7 @@ export function summariseTransactions(
 ): MonthlySummary {
   return transactions.reduce<MonthlySummary>(
     (summary, transaction) => {
-      if (transaction.is_transfer) {
+      if (!countsTowardTotals(transaction)) {
         return summary;
       }
 
@@ -76,14 +113,58 @@ export function summariseTransactions(
   );
 }
 
+function normalizeCategoryText(value: string) {
+  return value.normalize("NFKC").toLocaleLowerCase("de-DE");
+}
+
+function categorizeTransaction(transaction: DashboardTransaction) {
+  if (transaction.category?.trim()) {
+    return transaction.category;
+  }
+
+  const description = normalizeCategoryText(transaction.description);
+  if (
+    categoryMapping.ignored_test_transactions.some((pattern) =>
+      description.includes(normalizeCategoryText(pattern)),
+    )
+  ) {
+    return "Uncategorized";
+  }
+
+  const matches = categoryMapping.categories.flatMap((category) =>
+    category.keywords.some((keyword) =>
+      description.includes(normalizeCategoryText(keyword)),
+    )
+      ? [category.name]
+      : [],
+  );
+  const matchingCategories = new Set(matches);
+
+  return matchingCategories.size === 1
+    ? matches[0]
+    : "Uncategorized";
+}
+
+export function categorizeTransactions(
+  transactions: DashboardTransaction[],
+): DashboardTransaction[] {
+  return transactions.map((transaction) => ({
+    ...transaction,
+    category: categorizeTransaction(transaction),
+  }));
+}
+
 export async function loadDashboardData(
   supabase: SupabaseClient,
   userId: string,
   now = new Date(),
 ): Promise<DashboardData> {
-  const monthRange = getUtcMonthRange(now);
+  const currentMonthRange = getMonthRange(now);
+  const previousMonthRange = getPreviousMonthRange(now);
+  const monthlyTransactionFields =
+    "id,amount,currency,description,booked_date,status,category,is_transfer";
 
-  const [accountsResult, recentResult, countResult, monthResult] =
+  const [accountsResult, recentResult, countResult, monthResult, previousMonthResult] =
     await Promise.all([
       supabase
         .from("accounts")
@@ -108,12 +189,16 @@ export async function loadDashboardData(
         .eq("user_id", userId),
       supabase
         .from("transactions")
-        .select("amount,is_transfer")
+        .select(monthlyTransactionFields)
         .eq("user_id", userId)
-        .eq("status", "BOOKED")
-        .eq("is_excluded", false)
-        .gte("booked_date", monthRange.start)
-        .lt("booked_date", monthRange.end),
+        .gte("booked_date", currentMonthRange.start)
+        .lt("booked_date", currentMonthRange.end),
+      supabase
+        .from("transactions")
+        .select(monthlyTransactionFields)
+        .eq("user_id", userId)
+        .gte("booked_date", previousMonthRange.start)
+        .lt("booked_date", previousMonthRange.end),
     ]);
 
   const firstError = [
@@ -121,6 +206,7 @@ export async function loadDashboardData(
     recentResult.error,
     countResult.error,
     monthResult.error,
+    previousMonthResult.error,
   ].find(Boolean);
 
   if (firstError) {
@@ -128,13 +214,21 @@ export async function loadDashboardData(
     throw new DashboardDataError();
   }
 
+  const currentMonthTransactions =
+    (monthResult.data ?? []) as DashboardTransaction[];
+  const previousMonthTransactions =
+    (previousMonthResult.data ?? []) as DashboardTransaction[];
+
   return {
     accounts: (accountsResult.data ?? []) as DashboardAccount[],
-    recentTransactions: (recentResult.data ?? []) as DashboardTransaction[],
-    transactionCount: countResult.count ?? 0,
-    monthlySummary: summariseTransactions(
-      (monthResult.data ?? []) as TransactionAmount[],
+    recentTransactions: categorizeTransactions(
+      (recentResult.data ?? []) as DashboardTransaction[],
     ),
-    monthStart: monthRange.start,
+    transactionCount: countResult.count ?? 0,
+    monthlySummary: summariseTransactions(currentMonthTransactions),
+    currentMonthTransactions: categorizeTransactions(currentMonthTransactions),
+    previousMonthTransactions: categorizeTransactions(previousMonthTransactions),
+    monthStart: currentMonthRange.start,
+    previousMonthStart: previousMonthRange.start,
   };
 }

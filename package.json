@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test \"tests/**/*.test.*\"",
     "generate:category-seed": "node scripts/generate-category-seed.mjs",
     "check:category-seed": "node scripts/generate-category-seed.mjs --check",
     "typecheck": "tsc -p tsconfig.json"

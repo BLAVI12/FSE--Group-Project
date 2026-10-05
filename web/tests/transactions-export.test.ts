@@ -73,3 +73,14 @@ test("CSV escapes descriptions and account names and includes an Excel-friendly 
   assert.match(csv, /"Checking, main"/);
   assert.match(csv, /-12\.34,EUR,false,false/);
 });
+
+
+test("CSV neutralises formula-like description and category text for Excel", () => {
+  const csv = transactionsToCsv(
+    [transaction({ description: "=2+2", category: "@Finance" })],
+    accounts,
+  );
+  assert.match(csv, /'=2\+2/);
+  assert.match(csv, /'@Finance/);
+  assert.match(csv, /-12\.34,EUR,false,false/);
+});

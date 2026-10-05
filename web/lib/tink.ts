@@ -22,7 +22,7 @@ import {
 import {
   exactDecimal,
   classifyDescriptions,
-} from "../../src/features/transactions/import-core.js";
+} from "../../src/features/transactions/transaction-rules.js";
 import categoryMapping from "../../supabase/seed-data/transaction-categories.json" with { type: "json" };
 
 const AUTO_INTERVAL_MS = 15 * 60_000;

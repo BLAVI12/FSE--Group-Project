@@ -18,6 +18,10 @@ function csvCell(value: string) {
   return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
 
+function spreadsheetSafeText(value: string) {
+  return /^[=+\-@]/.test(value) ? `'${value}` : value;
+}
+
 export function centsToDecimal(cents: number): string {
   if (!Number.isSafeInteger(cents)) throw new Error("Unsafe money value");
   const sign = cents < 0 ? "-" : "";
@@ -79,8 +83,8 @@ export function transactionsToCsv(
   ];
   const rows = transactions.map((transaction) => [
     transaction.booked_date ?? "",
-    transaction.description,
-    transaction.category ?? "",
+    spreadsheetSafeText(transaction.description),
+    spreadsheetSafeText(transaction.category ?? ""),
     accountNames.get(transaction.account_id) ?? "Bank account",
     transaction.status,
     centsToDecimal(transaction.amount),
