@@ -127,5 +127,7 @@ npm run generate:category-seed
 npm run check:category-seed
 ```
 
-Bank data reaches the database only through the Tink sync. See
+Bank data reaches the database only through the Tink sync, which uses the
+categorisation and exact-amount helpers in
+`src/features/transactions/transaction-rules.js`. See
 [docs/fintech-erm.md](docs/fintech-erm.md) for the data model.

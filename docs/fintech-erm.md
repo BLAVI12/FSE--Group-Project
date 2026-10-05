@@ -96,8 +96,14 @@ The dashboard applies the same list (`web/lib/data/dashboard.ts`): it compares
 the transaction's description case-insensitively with the keywords, checks the
 ignored test descriptions first, and falls back to `Uncategorized` when no
 keyword matches or keywords of several categories do. A category set by hand
-on the transaction takes precedence. The category tables are not read by the
-app yet; on the hosted database they are empty.
+on the transaction takes precedence. On the hosted database the category
+tables are empty.
+
+`src/features/transactions/transaction-rules.js` keeps the importer's
+categorisation (`classifyDescriptions`, which also applies a user's custom
+rules and exclusions) and its exact-amount conversion (`exactDecimal`), so the
+Tink sync can assign a category and fill `amount_exact` when it saves a new
+transaction.
 
 ## Local Commands
 
