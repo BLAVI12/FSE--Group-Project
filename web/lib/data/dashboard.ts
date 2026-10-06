@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
   type: "json",
 };
+import { classifyDescriptions } from "../../../src/features/transactions/transaction-rules.js";
 import { countsTowardTotals } from "./totals.ts";
 
 export type DashboardAccount = {
@@ -113,36 +114,21 @@ export function summariseTransactions(
   );
 }
 
-function normalizeCategoryText(value: string) {
-  return value.normalize("NFKC").toLocaleLowerCase("de-DE");
-}
-
-function categorizeTransaction(transaction: DashboardTransaction) {
+// Uses the Tink sync's own rules, so a chart never sorts a transaction
+// differently from the category the sync stores. Test bookings and
+// descriptions matching several categories have no category there.
+function categorizeTransaction(transaction: DashboardTransaction): string {
   if (transaction.category?.trim()) {
     return transaction.category;
   }
 
-  const description = normalizeCategoryText(transaction.description);
-  if (
-    categoryMapping.ignored_test_transactions.some((pattern) =>
-      description.includes(normalizeCategoryText(pattern)),
-    )
-  ) {
-    return "Uncategorized";
-  }
-
-  const matches = categoryMapping.categories.flatMap((category) =>
-    category.keywords.some((keyword) =>
-      description.includes(normalizeCategoryText(keyword)),
-    )
-      ? [category.name]
-      : [],
+  return (
+    classifyDescriptions(
+      transaction.description,
+      transaction.description,
+      categoryMapping,
+    ).categoryName ?? "Uncategorized"
   );
-  const matchingCategories = new Set(matches);
-
-  return matchingCategories.size === 1
-    ? matches[0]
-    : "Uncategorized";
 }
 
 export function categorizeTransactions(
