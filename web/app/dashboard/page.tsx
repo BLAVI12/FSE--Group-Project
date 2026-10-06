@@ -4,6 +4,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { BankConnection } from "@/components/bank-connection";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { BrandLink } from "@/components/brand/brand-link";
+import { missingBankSettings } from "@/lib/bank-settings";
 import {
   DashboardDataError,
   loadDashboardData,
@@ -57,13 +58,12 @@ export default async function DashboardPage({
     .eq("user_id", user.id)
     .eq("provider", "tink")
     .maybeSingle();
-  const bankConfigured = [
-    "DATABASE_URL",
-    "TINK_CLIENT_ID",
-    "TINK_CLIENT_SECRET",
-    "TINK_REDIRECT_URI",
-  ].every((name) => Boolean(process.env[name])) &&
-    process.env.TINK_TEST_MODE !== "false";
+  const missingSettings = missingBankSettings(process.env);
+  if (missingSettings.length > 0) {
+    // Names only, never values: tells whoever reads the server log what to fix.
+    console.warn("Bank connection unavailable; missing or unusable settings:", missingSettings.join(", "));
+  }
+  const bankConfigured = missingSettings.length === 0;
 
   let dashboardData;
 
