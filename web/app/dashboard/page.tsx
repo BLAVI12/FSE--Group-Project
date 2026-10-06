@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signOut } from "@/app/auth/actions";
+import { LogoutButton } from "@/components/logout-button";
 import { BankConnection } from "@/components/bank-connection";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import {
@@ -124,14 +124,7 @@ export default async function DashboardPage({
             >
               Transactions
             </Link>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
-              >
-                Log out
-              </button>
-            </form>
+            <LogoutButton className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
           </div>
         </nav>
       </header>
@@ -391,14 +384,7 @@ function DashboardError({ email }: { email: string }) {
           >
             Try again
           </Link>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold"
-            >
-              Log out
-            </button>
-          </form>
+          <LogoutButton className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
         </div>
       </div>
     </main>

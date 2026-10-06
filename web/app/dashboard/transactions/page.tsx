@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signOut } from "@/app/auth/actions";
+import { LogoutButton } from "@/components/logout-button";
 import { TransactionsExplorer } from "@/components/transactions-explorer";
 import {
   loadTransactionsData,
@@ -48,14 +48,7 @@ export default async function TransactionsPage() {
             >
               Transactions
             </Link>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="ml-2 rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
-              >
-                Log out
-              </button>
-            </form>
+            <LogoutButton className="ml-2 rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
           </div>
         </nav>
       </header>
