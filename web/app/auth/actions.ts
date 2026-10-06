@@ -12,7 +12,7 @@ export async function signOut() {
   });
 
   if (error) {
-    throw new Error("Unable to sign out. Please try again.");
+    redirect("/dashboard?error=logout_failed");
   }
 
   revalidatePath("/", "layout");
