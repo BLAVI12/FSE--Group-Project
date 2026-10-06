@@ -108,6 +108,29 @@ To check again, run `tests/database/schema-fingerprint.sql` in the SQL Editor
 and against a local rebuild, and compare: only the `data` line and
 `Mastertabelle` may differ. It only reads.
 
+**Category list, 5 October 2026.** The category tables on the hosted database
+were empty, so the Tink sync stopped with `MISSING_CATEGORY_SEED` for new
+users. With the owner's approval, `seeds/transaction-categories.sql` was run
+in the SQL Editor: an exception to the rule above, because the CLI history is
+not set up yet. It is the same file CI loads into its test database, with one
+word changed: the 2 transactions already stored with a category came from the
+Tink sync, so their history entry says `automatic` instead of `manual`.
+
+| | categories | rules | exclusions | assignments |
+|---|---|---|---|---|
+| Before | 0 | 0 | 0 | 0 |
+| After | 14 | 30 | 3 | 2 |
+
+To check again (`assignments` grows with every sync; the other three stay at
+14, 30 and 3 unless users add their own):
+
+```sql
+select (select count(*) from public.categories)           as categories,
+       (select count(*) from public.category_rules)       as rules,
+       (select count(*) from public.exclusion_rules)      as exclusions,
+       (select count(*) from public.category_assignments) as assignments;
+```
+
 Because the migrations were applied by hand, the Supabase CLI does not know
 about them. After explicit project approval, mark the verified migrations as
 applied (`supabase migration repair --status applied <versions>`), and then
