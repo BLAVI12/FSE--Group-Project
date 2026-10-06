@@ -3,6 +3,7 @@ import categoryMapping from "../../../supabase/seed-data/transaction-categories.
   type: "json",
 };
 import { classifyDescriptions } from "../../../src/features/transactions/transaction-rules.js";
+import { APP_TIME_ZONE } from "../time.ts";
 import { countsTowardTotals } from "./totals.ts";
 
 export type DashboardAccount = {
@@ -59,8 +60,6 @@ export class DashboardDataError extends Error {
 // are, while the server runs on UTC. "This month" is therefore decided on the
 // German calendar: at 00:30 on 1 November in Germany it is already November,
 // although UTC still says 31 October.
-const APP_TIME_ZONE = "Europe/Berlin";
-
 /** Year and month (0-11) of an instant on the calendar of `timeZone`. */
 function calendarMonth(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-GB", {

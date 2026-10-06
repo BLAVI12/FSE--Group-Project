@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatGermanDateTime } from "@/lib/time";
 
 type Connection = {
   status: string;
@@ -138,7 +139,7 @@ export function BankConnection({ configured, connection, outcome }: {
           <h2 className="font-semibold">{live ? "Connected bank" : "Connect your bank"}</h2>
           <p className="mt-1 text-sm text-slate-400">
             {live && connection?.last_synced
-              ? `Last saved: ${new Date(connection.last_synced).toLocaleString("en-GB", { timeZone: "UTC" })} UTC`
+              ? `Last saved: ${formatGermanDateTime(connection.last_synced)}`
               : "Connect with Tink to load your own bank data."}
           </p>
         </div>
