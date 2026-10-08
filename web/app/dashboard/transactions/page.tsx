@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { BrandLink } from "@/components/brand/brand-link";
 import { LogoutButton } from "@/components/logout-button";
 import { TransactionsExplorer } from "@/components/transactions-explorer";
 import {
@@ -23,47 +24,47 @@ export default async function TransactionsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-white/10">
+    <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
+      <header className="border-b border-slate-100 bg-white">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
-            <Link href="/" className="text-xl font-bold">
-              Student Finance Planner
-            </Link>
-            <p className="mt-1 break-all text-sm text-slate-400">
+            <BrandLink />
+            <p className="mt-1 break-all text-sm text-slate-500 sm:ml-[50px]">
               Signed in as {user.email ?? user.id}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/dashboard"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
             >
               Overview
             </Link>
             <Link
               href="/dashboard/transactions"
               aria-current="page"
-              className="rounded-lg bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-300"
+              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
             >
               Transactions
             </Link>
             <Link
               href="/dashboard/profile"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
             >
               Profile
             </Link>
-            <LogoutButton className="ml-2 rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
+            <LogoutButton className="ml-2 rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
           </div>
         </nav>
       </header>
       <div className="mx-auto max-w-6xl px-6 py-10 pb-16">
-        <p className="text-sm font-semibold uppercase tracking-wider text-emerald-300">
+        <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
           Your money, month by month
         </p>
-        <h1 className="mt-2 text-3xl font-bold">Transactions</h1>
-        <p className="mt-2 max-w-2xl text-slate-400">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+          Transactions
+        </h1>
+        <p className="mt-2 max-w-2xl text-slate-600">
           See how your spending changes over time and explore the transactions
           behind it.
         </p>
@@ -77,23 +78,23 @@ export default async function TransactionsPage() {
         ) : (
           <section
             role="alert"
-            className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/5 p-8"
+            className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-8"
           >
             <h2 className="text-xl font-semibold">Transactions unavailable</h2>
-            <p className="mt-2 text-slate-300">
+            <p className="mt-2 text-slate-700">
               We could not load all your saved transactions. Please try again in
               a moment.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
                 href="/dashboard/transactions"
-                className="rounded-lg bg-emerald-300 px-4 py-2 text-sm font-semibold text-slate-950"
+                className="rounded-full bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
               >
                 Try again
               </Link>
               <Link
                 href="/dashboard"
-                className="rounded-lg border border-white/20 px-4 py-2 text-sm"
+                className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
               >
                 Back to overview
               </Link>

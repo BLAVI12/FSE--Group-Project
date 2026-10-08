@@ -15,7 +15,7 @@ const ALL = "all";
 const UNCAT = "Uncategorised";
 const ROWS_PER_PAGE = 20;
 const control =
-  "w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20";
+  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
 
 function money(cents: number, currency: string, compact = false) {
   return new Intl.NumberFormat("en-GB", {
@@ -260,11 +260,11 @@ export function TransactionsExplorer({
 
   if (transactions.length === 0) {
     return (
-      <section className="mt-8 rounded-2xl border border-dashed border-white/20 p-10 text-center">
-        <h2 className="text-xl font-semibold">
+      <section className="mt-8 rounded-3xl border border-dashed border-emerald-200 bg-white p-10 text-center shadow-sm">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-900">
           Your spending story starts here
         </h2>
-        <p className="mt-3 text-slate-400">
+        <p className="mt-3 text-slate-600">
           Connect or sync your bank on the dashboard to see monthly spending and
           transactions.
         </p>
@@ -276,9 +276,9 @@ export function TransactionsExplorer({
     <div className="mt-8 space-y-6">
       <section
         aria-label="Trend filters"
-        className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4"
       >
-        <label className="space-y-2 text-sm text-slate-400">
+        <label className="space-y-2 text-sm font-medium text-slate-600">
           Period
           <select
             aria-label="Period"
@@ -294,7 +294,7 @@ export function TransactionsExplorer({
             <option value={ALL}>All history</option>
           </select>
         </label>
-        <label className="space-y-2 text-sm text-slate-400">
+        <label className="space-y-2 text-sm font-medium text-slate-600">
           Account
           <select
             aria-label="Account"
@@ -313,7 +313,7 @@ export function TransactionsExplorer({
             ))}
           </select>
         </label>
-        <label className="space-y-2 text-sm text-slate-400">
+        <label className="space-y-2 text-sm font-medium text-slate-600">
           Category
           <select
             aria-label="Category"
@@ -332,7 +332,7 @@ export function TransactionsExplorer({
             ))}
           </select>
         </label>
-        <label className="space-y-2 text-sm text-slate-400">
+        <label className="space-y-2 text-sm font-medium text-slate-600">
           Currency
           <select
             aria-label="Currency"
@@ -351,13 +351,13 @@ export function TransactionsExplorer({
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          Showing <span className="font-medium text-white">{rangeLabel}</span>
+        <p className="text-sm text-slate-500">
+          Showing <span className="font-semibold text-slate-900">{rangeLabel}</span>
         </p>
         {selectedMonth && (
           <button
             type="button"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-400/10 focus-visible:outline-2 focus-visible:outline-emerald-400"
+            className="rounded-full px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
             onClick={resetSelection}
           >
             Show entire period ×
@@ -390,7 +390,7 @@ export function TransactionsExplorer({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section
-          className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6"
+          className="min-w-0 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6"
           aria-labelledby="spending-heading"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -398,11 +398,11 @@ export function TransactionsExplorer({
               <h2 id="spending-heading" className="text-xl font-semibold">
                 Spending trends
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Select a month to explore its transactions.
               </p>
             </div>
-            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
               {currency} · monthly
             </span>
           </div>
@@ -418,7 +418,7 @@ export function TransactionsExplorer({
           <p className="mt-2 text-xs text-slate-500 sm:hidden">
             Swipe the chart to see more months.
           </p>
-          <p className="mt-5 text-xs leading-relaxed text-slate-400">
+          <p className="mt-5 text-xs leading-relaxed text-slate-500">
             The current month is month to date. Pending entries, internal
             transfers and excluded transactions do not count towards these
             totals.
@@ -426,13 +426,13 @@ export function TransactionsExplorer({
         </section>
 
         <section
-          className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6"
+          className="min-w-0 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6"
           aria-labelledby="categories-heading"
         >
           <h2 id="categories-heading" className="text-xl font-semibold">
             Spending by category
           </h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-600">
             Largest categories in this selection.
           </p>
           <div className="mt-6 space-y-5">
@@ -440,16 +440,16 @@ export function TransactionsExplorer({
               topCategories.map(([name, amount]) => (
                 <div key={name}>
                   <div className="flex items-start justify-between gap-3 text-sm">
-                    <span className="min-w-0 break-words text-slate-300">
+                    <span className="min-w-0 break-words text-slate-700">
                       {name}
                     </span>
                     <span className="shrink-0 font-medium tabular-nums">
                       {money(amount, currency)}
                     </span>
                   </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-emerald-400"
+                      className="h-full rounded-full bg-emerald-600"
                       style={{
                         width: `${spending ? (amount / spending) * 100 : 0}%`,
                       }}
@@ -462,7 +462,7 @@ export function TransactionsExplorer({
                 </div>
               ))
             ) : (
-              <p className="py-8 text-sm text-slate-400">
+              <p className="py-8 text-sm text-slate-500">
                 No booked spending in this selection.
               </p>
             )}
@@ -471,7 +471,7 @@ export function TransactionsExplorer({
       </div>
 
       <section
-        className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+        className="min-w-0 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm"
         aria-labelledby="transactions-heading"
       >
         <div className="space-y-4 p-5 sm:p-6">
@@ -480,17 +480,17 @@ export function TransactionsExplorer({
               <h2 id="transactions-heading" className="text-xl font-semibold">
                 Transactions
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 {rangeLabel} · includes transfers and pending entries
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-slate-400" aria-live="polite">
+              <span className="text-sm text-slate-500" aria-live="polite">
                 {rows.length.toLocaleString("en-GB")} entries
               </span>
               <a
                 href={exportHref}
-                className="rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
               >
                 Export CSV
               </a>
@@ -528,7 +528,7 @@ export function TransactionsExplorer({
             </label>
           </div>
           {editMessage && (
-            <p className="text-sm text-slate-300" role="status" aria-live="polite">
+            <p className="text-sm text-emerald-800" role="status" aria-live="polite">
               {editMessage}
             </p>
           )}
@@ -538,7 +538,7 @@ export function TransactionsExplorer({
             <caption className="sr-only">
               Transactions for {rangeLabel} in {currency}
             </caption>
-            <thead className="border-y border-white/10 bg-white/3 text-slate-400">
+            <thead className="border-y border-slate-100 bg-slate-50 text-slate-600">
               <tr>
                 <th scope="col" className="px-5 py-3 font-medium">
                   Transaction
@@ -557,9 +557,9 @@ export function TransactionsExplorer({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-slate-100">
               {visibleRows.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-white/3">
+                <tr key={transaction.id} className="hover:bg-slate-50">
                   <td className="max-w-80 px-5 py-4">
                     <p className="break-words font-medium">
                       {transaction.description}
@@ -571,13 +571,13 @@ export function TransactionsExplorer({
                       {transaction.is_excluded && " · Excluded"}
                     </p>
                   </td>
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                  <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                     {dateLabel(transaction.booked_date)}
                   </td>
-                  <td className="min-w-48 px-5 py-4 text-slate-400">
+                  <td className="min-w-48 px-5 py-4 text-slate-600">
                     <select
                       aria-label={`Category for ${transaction.description}`}
-                      className="w-full rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-400 disabled:opacity-50"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-50 disabled:opacity-50"
                       value={categoryIdByName.get(transaction.category ?? "") ?? ""}
                       disabled={savingId === transaction.id}
                       onChange={(event) =>
@@ -597,7 +597,7 @@ export function TransactionsExplorer({
                   </td>
                   <td className="px-5 py-4">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs ${transaction.status === "BOOKED" ? "bg-white/5 text-slate-300" : "bg-amber-400/10 text-amber-300"}`}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${transaction.status === "BOOKED" ? "bg-slate-100 text-slate-700" : "bg-amber-100 text-amber-900"}`}
                     >
                       {transaction.status === "BOOKED"
                         ? "Booked"
@@ -607,7 +607,7 @@ export function TransactionsExplorer({
                     </span>
                   </td>
                   <td
-                    className={`whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums ${transaction.amount > 0 ? "text-emerald-300" : "text-white"}`}
+                    className={`whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums ${transaction.amount > 0 ? "text-emerald-700" : "text-slate-900"}`}
                   >
                     {transaction.amount > 0 ? "+" : ""}
                     {money(transaction.amount, currency)}
@@ -618,7 +618,7 @@ export function TransactionsExplorer({
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-12 text-center text-slate-400"
+                    className="px-5 py-12 text-center text-slate-500"
                   >
                     No transactions match this selection.
                   </td>
@@ -627,7 +627,7 @@ export function TransactionsExplorer({
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-4 text-sm text-slate-400">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-500">
           <p>
             {rows.length
               ? `${(currentPage - 1) * ROWS_PER_PAGE + 1}–${Math.min(currentPage * ROWS_PER_PAGE, rows.length)} of ${rows.length.toLocaleString("en-GB")}`
@@ -636,7 +636,7 @@ export function TransactionsExplorer({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded-lg border border-white/15 px-3 py-2 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-full border border-slate-200 px-4 py-2 text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-30"
               disabled={currentPage === 1}
               onClick={() => setPage(currentPage - 1)}
             >
@@ -647,7 +647,7 @@ export function TransactionsExplorer({
             </span>
             <button
               type="button"
-              className="rounded-lg border border-white/15 px-3 py-2 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-full border border-slate-200 px-4 py-2 text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-30"
               disabled={currentPage === totalPages}
               onClick={() => setPage(currentPage + 1)}
             >
@@ -672,10 +672,10 @@ function Stat({
   positive?: boolean;
 }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <p className="text-sm text-slate-400">{label}</p>
+    <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <p className="text-sm text-slate-500">{label}</p>
       <p
-        className={`mt-2 text-2xl font-semibold tabular-nums ${positive ? "text-emerald-300" : "text-white"}`}
+        className={`mt-2 text-2xl font-semibold tabular-nums ${positive ? "text-emerald-700" : "text-slate-950"}`}
       >
         {value}
       </p>
@@ -718,7 +718,7 @@ function SpendingChart({
           {ticks.map((tick) => (
             <div
               key={tick}
-              className="absolute right-2 left-16 border-t border-white/10"
+              className="absolute right-2 left-16 border-t border-slate-200"
               style={{ top: `${(1 - tick) * 100}%` }}
             >
               <span className="absolute right-full -mt-2.5 pr-3 text-xs tabular-nums text-slate-500">
@@ -738,23 +738,23 @@ function SpendingChart({
                 aria-pressed={active}
                 aria-label={`${monthLabel(item.month)}: ${money(item.spending, currency)} spending. ${active ? "Show entire period" : "Show this month's transactions"}.`}
                 title={`${monthLabel(item.month)} · ${money(item.spending, currency)}`}
-                className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 ${active ? "bg-emerald-400/10" : "hover:bg-white/3"}`}
+                className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
                 onClick={() => onSelect(item.month)}
               >
                 <div className="relative h-56">
                   <span
-                    className="absolute inset-x-0 text-[11px] font-medium tabular-nums text-slate-300"
+                    className="absolute inset-x-0 text-[11px] font-medium tabular-nums text-slate-600"
                     style={{ bottom: `calc(${height}% + 7px)` }}
                   >
                     {money(item.spending, currency, true)}
                   </span>
                   <span
-                    className={`absolute right-[18%] bottom-0 left-[18%] rounded-t-md transition-colors ${active ? "bg-emerald-200" : "bg-emerald-400/75 group-hover:bg-emerald-300"}`}
+                    className={`absolute right-[18%] bottom-0 left-[18%] rounded-t-md transition-colors ${active ? "bg-emerald-700" : "bg-emerald-500 group-hover:bg-emerald-600"}`}
                     style={{ height: `${height}%` }}
                   />
                 </div>
                 <span
-                  className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-300" : "text-slate-400"}`}
+                  className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-800" : "text-slate-600"}`}
                 >
                   {monthLabel(item.month, true)}
                 </span>
