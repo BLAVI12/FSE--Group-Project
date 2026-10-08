@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateProfile } from "../lib/profile.ts";
+import {
+  USERNAME_HTML_PATTERN,
+  validateProfile,
+} from "../lib/profile.ts";
 
 const validProfile = {
   username: " Student_User ",
@@ -58,3 +61,9 @@ test("optional personal details are stored as null", () => {
   assert.equal(result.data.country_code, null);
 });
 
+test("the username HTML pattern is valid with the browser v regex flag", () => {
+  const pattern = new RegExp(`^(?:${USERNAME_HTML_PATTERN})$`, "v");
+  assert.equal(pattern.test("student-user"), true);
+  assert.equal(pattern.test("student_user"), true);
+  assert.equal(pattern.test("student user"), false);
+});

@@ -1,9 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import {
+  useActionState,
+  useState,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+} from "react";
 import { updateProfile } from "@/app/dashboard/profile/actions";
 import type { ProfileWithRole } from "@/lib/data/profile";
-import { PROFILE_LIMITS, type ProfileFormState } from "@/lib/profile";
+import {
+  PROFILE_LIMITS,
+  USERNAME_HTML_PATTERN,
+  type ProfileField,
+  type ProfileFormState,
+  type ProfileValues,
+} from "@/lib/profile";
 
 const initialState: ProfileFormState = { status: "idle", message: "" };
 
@@ -21,6 +32,27 @@ export function ProfileForm({
     updateProfile,
     initialState,
   );
+  const [values, setValues] = useState<ProfileValues>({
+    username: profile.username ?? "",
+    firstName: profile.first_name ?? "",
+    lastName: profile.last_name ?? "",
+    street: profile.street ?? "",
+    postalCode: profile.postal_code ?? "",
+    city: profile.city ?? "",
+    countryCode: profile.country_code ?? "",
+  });
+
+  function bind(field: ProfileField) {
+    return {
+      value: values[field],
+      onChange(event: ChangeEvent<HTMLInputElement>) {
+        setValues((current) => ({
+          ...current,
+          [field]: event.target.value,
+        }));
+      },
+    };
+  }
 
   return (
     <form action={formAction} className="mt-8 space-y-8">
@@ -47,10 +79,10 @@ export function ProfileForm({
           <TextField
             label="Username"
             name="username"
-            defaultValue={profile.username ?? ""}
+            {...bind("username")}
             error={state.errors?.username}
             maxLength={PROFILE_LIMITS.username}
-            pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,29}"
+            pattern={USERNAME_HTML_PATTERN}
             required
           />
         </div>
@@ -65,7 +97,7 @@ export function ProfileForm({
           <TextField
             label="First name"
             name="firstName"
-            defaultValue={profile.first_name ?? ""}
+            {...bind("firstName")}
             error={state.errors?.firstName}
             maxLength={PROFILE_LIMITS.firstName}
             autoComplete="given-name"
@@ -73,7 +105,7 @@ export function ProfileForm({
           <TextField
             label="Last name"
             name="lastName"
-            defaultValue={profile.last_name ?? ""}
+            {...bind("lastName")}
             error={state.errors?.lastName}
             maxLength={PROFILE_LIMITS.lastName}
             autoComplete="family-name"
@@ -91,7 +123,7 @@ export function ProfileForm({
             <TextField
               label="Street and house number"
               name="street"
-              defaultValue={profile.street ?? ""}
+              {...bind("street")}
               error={state.errors?.street}
               maxLength={PROFILE_LIMITS.street}
               autoComplete="street-address"
@@ -100,7 +132,7 @@ export function ProfileForm({
           <TextField
             label="Postal code"
             name="postalCode"
-            defaultValue={profile.postal_code ?? ""}
+            {...bind("postalCode")}
             error={state.errors?.postalCode}
             maxLength={PROFILE_LIMITS.postalCode}
             autoComplete="postal-code"
@@ -108,7 +140,7 @@ export function ProfileForm({
           <TextField
             label="City"
             name="city"
-            defaultValue={profile.city ?? ""}
+            {...bind("city")}
             error={state.errors?.city}
             maxLength={PROFILE_LIMITS.city}
             autoComplete="address-level2"
@@ -116,7 +148,7 @@ export function ProfileForm({
           <TextField
             label="Country code"
             name="countryCode"
-            defaultValue={profile.country_code ?? ""}
+            {...bind("countryCode")}
             error={state.errors?.countryCode}
             maxLength={2}
             pattern="[A-Za-z]{2}"
@@ -159,7 +191,7 @@ function TextField({
   label: string;
   name: string;
   error?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
+} & InputHTMLAttributes<HTMLInputElement>) {
   const errorId = `${name}-error`;
 
   return (
@@ -181,4 +213,3 @@ function TextField({
     </label>
   );
 }
-

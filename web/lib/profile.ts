@@ -7,6 +7,11 @@ export const PROFILE_LIMITS = {
   city: 100,
 } as const;
 
+// HTML compiles pattern attributes with the Unicode Sets (`v`) flag, where a
+// literal hyphen in a character class must be escaped.
+export const USERNAME_HTML_PATTERN =
+  "[A-Za-z0-9][A-Za-z0-9_\\-]{2,29}";
+
 export type ProfileValues = {
   username: string;
   firstName: string;
@@ -112,4 +117,3 @@ export function validateProfile(values: ProfileValues):
     },
   };
 }
-
