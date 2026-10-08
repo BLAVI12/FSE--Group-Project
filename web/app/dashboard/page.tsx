@@ -76,17 +76,27 @@ export default async function DashboardPage({
     return <DashboardError email={user.email ?? user.id} />;
   }
 
-  const accountCurrencies = new Set(
-    dashboardData.accounts.map((account) => account.currency),
-  );
-  const totalBalance = dashboardData.accounts.reduce(
-    (sum, account) => sum + (account.balance_booked ?? 0),
-    0,
-  );
-  const balanceCurrency =
-    accountCurrencies.size === 1
-      ? dashboardData.accounts[0]?.currency ?? "EUR"
-      : "EUR";
+  const checkingAccounts = dashboardData.accounts.filter(
+  (account) => account.type === "CHECKING",
+);
+
+const checkingCurrencies = new Set(
+  checkingAccounts.map((account) => account.currency),
+);
+
+const availableToSpend =
+  checkingAccounts.length > 0 &&
+  checkingAccounts.every((account) => account.balance_available !== null)
+    ? checkingAccounts.reduce(
+        (sum, account) => sum + (account.balance_available ?? 0),
+        0,
+      )
+    : null;
+
+const availableCurrency =
+  checkingCurrencies.size === 1
+    ? checkingAccounts[0]?.currency ?? "EUR"
+    : "EUR";
   const monthLabel = new Intl.DateTimeFormat("en-GB", {
     month: "long",
     year: "numeric",
@@ -153,13 +163,13 @@ export default async function DashboardPage({
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            label="Total balance"
-            value={
-              accountCurrencies.size <= 1
-                ? formatMoney(totalBalance, balanceCurrency)
-                : "Multiple currencies"
-            }
-          />
+           label="Available to spend"
+  value={
+    checkingCurrencies.size <= 1
+      ? formatMoney(availableToSpend, availableCurrency)
+      : "Multiple currencies"
+  }
+/>
           <SummaryCard
             label={`${monthLabel} income`}
             value={formatMoney(dashboardData.monthlySummary.income)}
