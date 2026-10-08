@@ -17,6 +17,7 @@ login. It is sandbox data with no real personal or financial information.
 | `..._fintech_import.sql` | Profiles, import batches, categories/rules, exclusions, exact amounts, and import audit fields |
 | `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
 | `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
+| `..._admin_management.sql` | Account suspension, bounded user lookup, serialized admin changes and audit log |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
@@ -84,6 +85,30 @@ After that, the admin page can change other users between `user` and `admin`.
 An administrator cannot change their own role, ensuring the acting admin does
 not accidentally remove the final admin account. Application-admin status does
 not bypass the RLS policies protecting accounts or transactions.
+
+### Account management
+
+Apply `20261008000002_admin_management.sql` before deploying the updated app.
+Existing accounts default to `active`. The admin lookup searches usernames and
+filters role/status in pages of 20; it returns registration and last sign-in
+timestamps, not addresses, emails or financial details.
+
+Suspension restricts application access; it is not an Auth ban or deletion.
+Authentication may still issue tokens, but restrictive RLS checks current
+status on each database request, including existing JWTs. The category RPC
+enforces the same check. The web app displays an access-unavailable page and
+rejects API requests. Previously downloaded data cannot be recalled. Trusted
+background imports and service-role access are outside browser RLS.
+
+`admin_manage_user` validates active admin access, forbids self-changes,
+serializes concurrent changes and records each change in the same transaction.
+Direct authenticated role/status writes are denied. Status changes require a
+reason and confirmation. Only active admins can read the audit log, which stores
+actor/target IDs, action, old/new values and reason. Reasons must not contain
+financial or sensitive personal data. This release retains records until a
+separate retention policy is agreed; no automatic purge is configured.
+The UI shows the latest 20 events. Account deletion and user-activity tracking
+are separate future features.
 
 ## Rules
 

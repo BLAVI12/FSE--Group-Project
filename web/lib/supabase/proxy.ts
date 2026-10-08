@@ -48,6 +48,21 @@ export async function updateSession(request: NextRequest) {
   const isAuthenticated = Boolean(data?.claims);
   const pathname = request.nextUrl.pathname;
 
+  if (isAuthenticated) {
+    const { data: active, error } = await supabase.rpc("is_account_active");
+    if (error || active !== true) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Account access is unavailable." }, { status: 403 });
+      }
+      if (matchesRoute(pathname, protectedRoutes) || matchesRoute(pathname, guestOnlyRoutes)) {
+        const blockedUrl = request.nextUrl.clone();
+        blockedUrl.pathname = "/account-unavailable";
+        blockedUrl.search = "";
+        return redirectWithRefreshedCookies(blockedUrl, response);
+      }
+    }
+  }
+
   if (!isAuthenticated && matchesRoute(pathname, protectedRoutes)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
