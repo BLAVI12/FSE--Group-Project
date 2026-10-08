@@ -64,7 +64,9 @@ async function signedInUser(request: NextRequest, mutation = true) {
     return null;
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
-  return error ? null : user;
+  if (error || !user) return null;
+  const { data: active, error: statusError } = await supabase.rpc("is_account_active");
+  return statusError || active !== true ? null : user;
 }
 
 function bankFailure(error: unknown) {

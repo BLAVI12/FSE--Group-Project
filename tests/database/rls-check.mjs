@@ -85,7 +85,7 @@ await check("a user can update their own profile but cannot promote themselves",
     method: "PATCH",
     body: { role: "admin" },
   });
-  assert.equal(escalation.status, 204, JSON.stringify(escalation.body));
+  assert.ok(escalation.status >= 400, "direct role writes must be denied");
   const role = await call(`/rest/v1/user_roles?user_id=eq.${demoUser.id}&select=role`, { token: demo });
   assert.deepEqual(role.body, [{ role: "user" }]);
 });

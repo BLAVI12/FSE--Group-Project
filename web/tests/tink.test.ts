@@ -143,7 +143,7 @@ before(async () => {
     grant usage on schema auth to authenticated;
     create table auth.users (id uuid primary key,instance_id uuid,aud text,role text,email text,
       encrypted_password text,email_confirmed_at timestamptz,raw_app_meta_data jsonb,raw_user_meta_data jsonb,
-      created_at timestamptz,updated_at timestamptz,confirmation_token text,recovery_token text,email_change text,email_change_token_new text);
+      created_at timestamptz,updated_at timestamptz,last_sign_in_at timestamptz,confirmation_token text,recovery_token text,email_change text,email_change_token_new text);
     create table auth.identities (id uuid primary key,provider_id text,user_id uuid,identity_data jsonb,
       provider text,created_at timestamptz,updated_at timestamptz,unique(provider_id,provider));`);
   const dir = new URL("../../supabase/migrations/", import.meta.url);
@@ -235,11 +235,6 @@ test("profiles and roles are created automatically and cannot be escalated by us
     );
     assert.equal(otherUpdate.rows.length, 0);
 
-    const escalation = await db.query(
-      "update user_roles set role='admin' where user_id=$1 returning user_id",
-      [id],
-    );
-    assert.equal(escalation.rows.length, 0);
   } finally {
     await db.exec("rollback");
   }
@@ -252,20 +247,60 @@ test("profiles and roles are created automatically and cannot be escalated by us
     const profiles = await db.query<{ id: string }>("select id from profiles");
     assert.equal(profiles.rows.some((profile) => profile.id === other), true);
 
-    const roleUpdate = await db.query<{ role: string }>(
-      "update user_roles set role='admin' where user_id=$1 returning role",
-      [other],
-    );
-    assert.equal(roleUpdate.rows[0]?.role, "admin");
-
-    const selfDemotion = await db.query(
-      "update user_roles set role='user' where user_id=$1 returning user_id",
-      [id],
-    );
-    assert.equal(selfDemotion.rows.length, 0);
+    await db.query("select admin_manage_user($1,'role','admin','Test promotion')", [other]);
+    assert.equal((await db.query<{ role: string }>("select role from user_roles where user_id=$1", [other])).rows[0].role, "admin");
   } finally {
     await db.exec("rollback");
   }
+});
+
+test("admin suspension blocks existing sessions and RPCs, logs changes, and forbids bypasses", async () => {
+  const admin = await user();
+  const target = await user();
+  const { workflow } = fake();
+  await connect(target, workflow);
+  await workflow.sync(target);
+  await db.query("update user_roles set role='admin' where user_id=$1", [admin]);
+  async function asUser<T>(id: string, fn: () => Promise<T>): Promise<T> {
+    await db.exec("begin; set local role authenticated");
+    try {
+      await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);
+      const result = await fn();
+      await db.exec("commit");
+      return result;
+    } catch (error) { await db.exec("rollback"); throw error; }
+  }
+  await assert.rejects(asUser(target, () => db.query("select admin_manage_user($1,'role','admin','Escalation')", [target])), /admin required/);
+  await assert.rejects(asUser(admin, () => db.query("select admin_manage_user($1,'status','suspended','Self')", [admin])), /self changes forbidden/);
+  await assert.rejects(asUser(admin, () => db.query("update user_roles set status='suspended' where user_id=$1", [target])), /permission denied/);
+  await assert.rejects(asUser(target, () => db.query("update user_roles set role='admin' where user_id=$1", [target])), /permission denied/);
+  await assert.rejects(asUser(target, () => db.query("select * from admin_list_users()")), /admin required/);
+  await assert.rejects(asUser(admin, () => db.query("select admin_manage_user($1,'status','suspended','   ')", [target])), /reason required/);
+  await asUser(admin, () => db.query("select admin_manage_user($1,'status','suspended','Access paused')", [target]));
+  await asUser(target, async () => {
+    assert.equal((await db.query<{ active: boolean }>("select is_account_active() as active")).rows[0].active, false);
+    for (const table of ["profiles", "user_roles", "accounts", "transactions", "categories", "admin_audit_log"]) {
+      const column = table === "user_roles" ? "user_id" : "id";
+      assert.equal((await db.query(`select ${column} from ${table}`)).rows.length, 0);
+    }
+  });
+  await assert.rejects(asUser(target, () => db.query("select set_transaction_category(gen_random_uuid(),null)")), /active account required/);
+  await assert.rejects(asUser(target, () => db.query("select set_transaction_category_internal(gen_random_uuid(),null)")), /permission denied/);
+  await asUser(admin, async () => {
+    assert.equal((await db.query("select id from transactions where user_id=$1", [target])).rows.length, 0);
+    const listed = await db.query<{ status: string; total: number }>("select * from admin_list_users('', '', 'suspended', 1)");
+    assert.ok(listed.rows.some(r => r.status === "suspended"));
+    assert.ok(listed.rows.length <= 20);
+    const audit = await db.query<{ actor_id: string; new_value: string }>("select * from admin_audit_log where target_id=$1", [target]);
+    assert.equal(audit.rows[0].actor_id, admin);
+    assert.equal(audit.rows[0].new_value, "suspended");
+  });
+  await assert.rejects(asUser(admin, () => db.query("delete from admin_audit_log where target_id=$1", [target])), /permission denied/);
+  await asUser(admin, () => db.query("select admin_manage_user($1,'status','active','Access restored')", [target]));
+  await asUser(target, async () => {
+    assert.equal((await db.query<{ active: boolean }>("select is_account_active() as active")).rows[0].active, true);
+    assert.ok((await db.query("select id from transactions")).rows.length > 0);
+  });
 });
 
 test("browser-state validation rejects absent, mismatched and malformed states", () => {

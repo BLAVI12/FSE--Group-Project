@@ -16,6 +16,15 @@ export type Profile = {
 };
 
 export type ProfileWithRole = Profile & { role: AppRole };
+export type AdminUser = {
+  id: string;
+  username: string | null;
+  role: AppRole;
+  status: "active" | "suspended";
+  registered_at: string | null;
+  last_sign_in_at: string | null;
+  total: number;
+};
 
 const profileColumns =
   "id,username,first_name,last_name,street,postal_code,city,country_code,created_at,updated_at";
@@ -44,33 +53,24 @@ export async function loadOwnProfile(
 export async function loadAdminProfiles(
   supabase: SupabaseClient,
   userId: string,
-): Promise<ProfileWithRole[] | null> {
+  filters: { search: string; role: string; status: string; page: number },
+): Promise<AdminUser[] | null> {
   const { data: ownRole, error: ownRoleError } = await supabase
     .from("user_roles")
-    .select("role")
+    .select("role,status")
     .eq("user_id", userId)
     .single();
 
-  if (ownRoleError || ownRole?.role !== "admin") {
+  if (ownRoleError || ownRole?.role !== "admin" || ownRole.status !== "active") {
     return null;
   }
 
-  const [profilesResult, rolesResult] = await Promise.all([
-    supabase.from("profiles").select(profileColumns).order("created_at"),
-    supabase.from("user_roles").select("user_id,role"),
-  ]);
-
-  if (profilesResult.error || rolesResult.error) {
+  const { data, error } = await supabase.rpc("admin_list_users", {
+    p_search: filters.search, p_role: filters.role, p_status: filters.status, p_page: filters.page,
+  });
+  if (error) {
     throw new ProfileDataError("The user list could not be loaded.");
   }
 
-  const roles = new Map(
-    rolesResult.data.map((entry) => [entry.user_id, entry.role as AppRole]),
-  );
-
-  return (profilesResult.data as Profile[]).map((profile) => ({
-    ...profile,
-    role: roles.get(profile.id) ?? "user",
-  }));
+  return (data ?? []).map((entry: Omit<AdminUser, "id"> & { user_id: string }) => ({ ...entry, id: entry.user_id }));
 }
-
