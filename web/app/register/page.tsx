@@ -10,7 +10,7 @@ import { startGoogleOAuth } from "@/lib/auth/google";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { registrationNameData } from "@/lib/auth/registration";
-import { PROFILE_LIMITS } from "@/lib/profile";
+import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
 
 function RegisterForm() {
   const router = useRouter();
@@ -163,7 +163,7 @@ function RegisterForm() {
                 name="firstName"
                 type="text"
                 autoComplete="given-name"
-                maxLength={PROFILE_LIMITS.firstName}
+                maxLength={NAME_INPUT_MAX_LENGTH}
                 value={firstName}
                 onChange={(event) =>
                   setFirstName(event.target.value)
@@ -183,7 +183,7 @@ function RegisterForm() {
                 name="lastName"
                 type="text"
                 autoComplete="family-name"
-                maxLength={PROFILE_LIMITS.lastName}
+                maxLength={NAME_INPUT_MAX_LENGTH}
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
                 required

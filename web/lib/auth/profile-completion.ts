@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { requiresProfileCompletion } from "./routes.ts";
 
 export function hasCompleteNames(profile: {
   first_name: string | null;
@@ -7,23 +8,28 @@ export function hasCompleteNames(profile: {
   return Boolean(profile?.first_name?.trim() && profile?.last_name?.trim());
 }
 
+export function hasCompleteProfile(profile: {
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+} | null) {
+  return Boolean(profile?.username?.trim() && hasCompleteNames(profile));
+}
+
 // The profile page (including its save/logout actions) must remain accessible.
 export async function profileAccessDecision(
   supabase: SupabaseClient,
   userId: string,
   pathname: string,
 ): Promise<"allow" | "complete" | "unavailable"> {
-  const needsCheck =
-    (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) &&
-    pathname !== "/dashboard/profile";
-  if (!needsCheck && pathname !== "/login" && pathname !== "/register" && !pathname.startsWith("/api/")) {
+  if (!requiresProfileCompletion(pathname)) {
     return "allow";
   }
   const { data, error } = await supabase
     .from("profiles")
-    .select("first_name,last_name")
+    .select("username,first_name,last_name")
     .eq("id", userId)
     .single();
   if (error || !data) return "unavailable";
-  return hasCompleteNames(data) ? "allow" : "complete";
+  return hasCompleteProfile(data) ? "allow" : "complete";
 }

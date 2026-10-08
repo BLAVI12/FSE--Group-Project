@@ -8,6 +8,7 @@ import {
 } from "react";
 import { updateProfile } from "@/app/dashboard/profile/actions";
 import type { ProfileWithRole } from "@/lib/data/profile";
+import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
 import {
   PROFILE_LIMITS,
   USERNAME_HTML_PATTERN,
@@ -103,7 +104,7 @@ export function ProfileForm({
             name="firstName"
             {...bind("firstName")}
             error={state.errors?.firstName}
-            maxLength={PROFILE_LIMITS.firstName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="given-name"
             required
           />
@@ -112,7 +113,7 @@ export function ProfileForm({
             name="lastName"
             {...bind("lastName")}
             error={state.errors?.lastName}
-            maxLength={PROFILE_LIMITS.lastName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="family-name"
             required
           />

@@ -1,7 +1,9 @@
+import { requiredNameError } from "../names.ts";
+
 export function registrationNameData(firstName: string, lastName: string) {
   const first = firstName.trim();
   const last = lastName.trim();
-  if (!first || !last || [...first].length > 100 || [...last].length > 100) {
+  if (requiredNameError(first, "First name") || requiredNameError(last, "Last name")) {
     return null;
   }
   return {

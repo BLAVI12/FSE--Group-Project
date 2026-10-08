@@ -2,11 +2,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { matchesRoute, protectedRoutes } from "@/lib/auth/routes";
 
 export async function proxy(request: NextRequest) {
   if (!isSupabaseConfigured()) {
     const pathname = request.nextUrl.pathname;
-    if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    if (matchesRoute(pathname, protectedRoutes)) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 

@@ -5,7 +5,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { ProfileForm } from "@/components/profile-form";
 import { loadOwnProfile, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
-import { hasCompleteNames } from "@/lib/auth/profile-completion";
+import { hasCompleteProfile } from "@/lib/auth/profile-completion";
 import { profileGreeting } from "@/lib/greeting";
 
 export default async function ProfilePage() {
@@ -102,9 +102,9 @@ export default async function ProfilePage() {
           account.
         </p>
 
-        {!hasCompleteNames(profile) && (
+        {!hasCompleteProfile(profile) && (
           <p role="status" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-            Please enter your first and last name and save your profile before continuing to the dashboard.
+            Please enter your username, first name and last name and save your profile before continuing to the dashboard.
           </p>
         )}
         <ProfileForm profile={profile} email={user.email ?? "Not available"} />

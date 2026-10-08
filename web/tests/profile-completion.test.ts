@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { hasCompleteNames, profileAccessDecision } from "../lib/auth/profile-completion.ts";
+import { hasCompleteNames, hasCompleteProfile, profileAccessDecision } from "../lib/auth/profile-completion.ts";
 
-function client(data: { first_name: string | null; last_name: string | null } | null, error: object | null = null) {
+function client(data: { username?: string | null; first_name: string | null; last_name: string | null } | null, error: object | null = null) {
   const calls: unknown[] = [];
   const query = {
     select(columns: string) { calls.push(columns); return query; },
     eq(column: string, value: string) { calls.push([column, value]); return query; },
-    async single() { return { data, error }; },
+    async single() { return { data: data ? { username: "ada", ...data } : null, error }; },
   };
   return { calls, supabase: { from(table: string) { calls.push(table); return query; } } as unknown as SupabaseClient };
 }
@@ -24,8 +24,16 @@ test("missing names gate dashboard, nested pages, guest routes and APIs", async 
   for (const path of ["/dashboard", "/dashboard/admin", "/dashboard/transactions", "/login", "/register", "/api/tink"]) {
     const { supabase, calls } = client({ first_name: "Ada", last_name: null });
     assert.equal(await profileAccessDecision(supabase, "own-user", path), "complete");
-    assert.deepEqual(calls, ["profiles", "first_name,last_name", ["id", "own-user"]]);
+    assert.deepEqual(calls, ["profiles", "username,first_name,last_name", ["id", "own-user"]]);
   }
+});
+
+test("names alone are insufficient: a username is required for dashboard access", async () => {
+  const profile = { username: null, first_name: "Ada", last_name: "Lovelace" };
+  assert.equal(hasCompleteProfile(profile), false);
+  assert.equal(hasCompleteProfile({ ...profile, username: " " }), false);
+  assert.equal(hasCompleteProfile({ ...profile, username: "ada" }), true);
+  assert.equal(await profileAccessDecision(client(profile).supabase, "own-user", "/dashboard"), "complete");
 });
 
 test("profile save/logout and public/OAuth routes do not create a redirect loop", async () => {

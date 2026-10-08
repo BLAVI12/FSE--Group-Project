@@ -2,15 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "./config";
 import { profileAccessDecision } from "../auth/profile-completion";
-
-const protectedRoutes = ["/dashboard"];
-const guestOnlyRoutes = ["/login", "/register"];
-
-function matchesRoute(pathname: string, routes: string[]) {
-  return routes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
-}
+import { protectedRoutes, guestOnlyRoutes, matchesRoute, profileRoute } from "../auth/routes";
 
 function redirectWithRefreshedCookies(url: URL, response: NextResponse) {
   const redirectResponse = NextResponse.redirect(url);
@@ -67,11 +59,11 @@ export async function updateSession(request: NextRequest) {
       if (decision !== "allow") {
         if (pathname.startsWith("/api/")) {
           return NextResponse.json({ error: decision === "complete"
-            ? "Please complete your first and last name in your profile."
+            ? "Please complete your username, first name and last name in your profile."
             : "Your profile could not be verified." }, { status: 403 });
         }
         const profileUrl = request.nextUrl.clone();
-        profileUrl.pathname = "/dashboard/profile";
+        profileUrl.pathname = profileRoute;
         profileUrl.search = "";
         return redirectWithRefreshedCookies(profileUrl, response);
       }
