@@ -18,6 +18,7 @@ login. It is sandbox data with no real personal or financial information.
 | `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
 | `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
 | `..._admin_management.sql` | Account suspension, bounded user lookup, serialized admin changes and audit log |
+| `..._bank_sync_lease.sql` | Per-user sync claims and expiry; abandoned attempts can recover without a long database transaction |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 

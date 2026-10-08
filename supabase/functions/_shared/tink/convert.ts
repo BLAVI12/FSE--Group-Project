@@ -130,7 +130,11 @@ export function toAccountValues(account: TinkAccount): AccountValues {
 export function toTransactionValues(
   transaction: TinkTransaction
 ): { values: TransactionValues; knownStatus: boolean } | null {
-  const providerTransactionId = transaction.identifiers?.providerTransactionId;
+  // The bank's reference is optional. Use the supplied Tink id as a tagged
+  // reference when needed; reconciliation still identifies rows by content.
+  const providerTransactionId =
+    transaction.identifiers?.providerTransactionId ||
+    (transaction.id ? `tink:${transaction.id}` : null);
   const amount = toCents(transaction.amount?.value);
   const bookedDate = transaction.dates?.booked;
   if (!providerTransactionId || amount === null || !bookedDate) return null;

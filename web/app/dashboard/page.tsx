@@ -62,7 +62,8 @@ export default async function DashboardPage({
     "TINK_CLIENT_ID",
     "TINK_CLIENT_SECRET",
     "TINK_REDIRECT_URI",
-  ].every((name) => Boolean(process.env[name]));
+  ].every((name) => Boolean(process.env[name])) &&
+    process.env.TINK_TEST_MODE !== "false";
 
   let dashboardData;
 

@@ -3,10 +3,10 @@ import pg from "pg";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { BankError, createBankWorkflow } from "@/lib/tink";
+import { bankErrorCode, bankErrorDetails } from "@/lib/bank-error";
 import {
   createTinkClient,
   tinkConfigFromEnv,
-  TinkError,
 } from "../../../../supabase/functions/_shared/tink/client.ts";
 
 export const runtime = "nodejs";
@@ -39,22 +39,16 @@ function bankWorkflow() {
         ? false
         : { rejectUnauthorized: true, ca: process.env.DATABASE_CA_CERT },
     });
-    database.tinkPool.on("error", () =>
-      console.error("Bank database connection failed."),
+    database.tinkPool.on("error", (error) =>
+      console.error("Bank database connection failed.", { code: bankErrorCode(error) }),
     );
   }
   // Keep external calls below the function budget so failures can still be recorded cleanly.
-  const deadline = AbortSignal.timeout(45_000);
-  const tink = createTinkClient(tinkConfigFromEnv((name) => process.env[name]), {
-    fetch: (input, init) =>
-      fetch(input, {
-        ...init,
-        cache: "no-store",
-        signal: AbortSignal.any([
-          deadline,
-          ...(init?.signal ? [init.signal] : []),
-        ]),
-      }),
+  const config = tinkConfigFromEnv((name) => process.env[name]);
+  if (!config.testMode) throw new BankError("DEMO_MODE_REQUIRED");
+  const tink = createTinkClient(config, {
+    signal: AbortSignal.timeout(45_000),
+    fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
   });
   return createBankWorkflow(database.tinkPool, tink);
 }
@@ -71,14 +65,22 @@ async function signedInUser(request: NextRequest, mutation = true) {
 
 function bankFailure(error: unknown) {
   console.error("Bank request failed.", {
-    code: error instanceof BankError || error instanceof TinkError
-      ? error.code
-      : "DATABASE_OR_CONFIGURATION_ERROR",
+    code: bankErrorCode(error),
   });
   return Response.json(
     { error: "Bank data could not be updated. Your saved data is still available." },
     { status: 502 },
   );
+}
+
+function continueSync(userId: string, claimId: string, refreshBank = false) {
+  after(async () => {
+    try {
+      await bankWorkflow().runSync(userId, claimId, refreshBank);
+    } catch (error) {
+      console.error("Background bank sync failed.", bankErrorDetails(error));
+    }
+  });
 }
 
 // POST starts Link or refreshes data; GET handles the return from Tink Link.
@@ -92,16 +94,20 @@ export async function POST(request: NextRequest) {
   try {
     const workflow = bankWorkflow();
     if (action === "sync") {
-      return Response.json(await workflow.sync(
-        user.id,
-        request.nextUrl.searchParams.get("manual") === "true",
-      ));
+      const manual = request.nextUrl.searchParams.get("manual") === "true";
+      const result = await workflow.prepareSync(user.id, manual);
+      if (result.status === "syncing") {
+        continueSync(user.id, result.claimId, manual);
+        return Response.json({
+          status: "syncing", lastSynced: result.lastSynced,
+          transactionFingerprint: result.transactionFingerprint,
+        },
+          { status: 202, headers: { "Cache-Control": "no-store" } });
+      }
+      return Response.json(result, { headers: { "Cache-Control": "no-store" } });
     }
-    const link = await workflow.startConnect(
-      user.id,
-      user.email ?? "Finance Planner user",
-      request.nextUrl.searchParams.get("renew") === "true",
-    );
+    const email = user.email ?? "Finance Planner user";
+    const link = await workflow.startConnect(user.id, email, request.nextUrl.searchParams.get("renew") === "true");
     const response = NextResponse.json({ redirectUrl: link.redirectUrl });
     response.cookies.set(STATE_COOKIE, link.state, {
       httpOnly: true,
@@ -123,7 +129,8 @@ export async function GET(request: NextRequest) {
     if (!user)
       return Response.json({ error: "Please sign in again." }, { status: 401 });
     try {
-      return Response.json(await bankWorkflow().status(user.id));
+      return Response.json(await bankWorkflow().status(user.id),
+        { headers: { "Cache-Control": "no-store" } });
     } catch (error) {
       return bankFailure(error);
     }
@@ -138,19 +145,8 @@ export async function GET(request: NextRequest) {
         request.cookies.get(STATE_COOKIE)?.value,
       );
       if (outcome === "connected") {
-        // Next keeps this request alive on Vercel until the post-response work finishes
-        // (within maxDuration), instead of relying on an unsafe fire-and-forget promise.
-        after(async () => {
-          try {
-            await bankWorkflow().sync(user.id);
-          } catch (error) {
-            console.error("Background bank sync failed.", {
-              code: error instanceof BankError || error instanceof TinkError
-                ? error.code
-                : "DATABASE_OR_CONFIGURATION_ERROR",
-            });
-          }
-        });
+        const result = await bankWorkflow().prepareSync(user.id);
+        if (result.status === "syncing") continueSync(user.id, result.claimId);
       }
     } catch (error) {
       bankFailure(error);
