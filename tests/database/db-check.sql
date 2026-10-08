@@ -2,29 +2,46 @@
 -- backend uses): demo data loaded, user_id derived from the parent, a row
 -- cannot belong to a different user than its parent, one IBAN per user, and
 -- deleting a login deletes its data. Everything runs in a transaction that is
--- rolled back, so the data is left untouched.
+-- rolled back, so the data is left untouched. Every check raises an error
+-- when it fails, so psql exits non-zero (CI runs this file).
 --
--- Against a local Supabase after `supabase db reset`:
---   docker exec -i supabase_db_<project> psql -U postgres < tests/database/db-check.sql
+-- Only against a fresh local Supabase (the counts are those of seed.sql):
+--   psql "$DB_URL" -f tests/database/db-check.sql
 \set ON_ERROR_STOP on
 begin;
 
 -- Counts and ownership.
-select 'counts' as check,
-       (select count(*) from auth.users where id = '00000000-0000-4000-8000-000000000001') as demo_login,
-       (select count(*) from accounts)     as accounts,
-       (select count(*) from transactions) as transactions,
-       (select count(*) from transactions where is_transfer) as transfers,
-       (select count(*) from transactions where user_id <> '00000000-0000-4000-8000-000000000001') as foreign_rows,
-       (select to_regclass('public.users') is null) as users_table_gone;
+do $$
+declare
+  demo_login   bigint := (select count(*) from auth.users where id = '00000000-0000-4000-8000-000000000001');
+  accounts     bigint := (select count(*) from public.accounts);
+  transactions bigint := (select count(*) from public.transactions);
+  transfers    bigint := (select count(*) from public.transactions where is_transfer);
+  profiles     bigint := (select count(*) from public.profiles);
+  roles        bigint := (select count(*) from public.user_roles);
+  foreign_rows bigint := (select count(*) from public.transactions
+                           where user_id <> '00000000-0000-4000-8000-000000000001');
+begin
+  if (demo_login, accounts, transactions, transfers, profiles, roles, foreign_rows) <> (1, 2, 3534, 152, 1, 1, 0)
+     or to_regclass('public.users') is not null then
+    raise exception 'FAIL: seed data: % demo login, % accounts, % transactions, % transfers, % profiles, % roles, % rows of another user',
+      demo_login, accounts, transactions, transfers, profiles, roles, foreign_rows;
+  end if;
+  raise notice 'PASS: seed loaded: 1 demo login, 2 accounts, 3534 transactions, 152 transfers, 1 profile, 1 role, all owned by the demo login';
+end $$;
 
 -- The trigger fills user_id from the parent, even when the caller gives a wrong one.
 insert into transactions (account_id, provider_transaction_id, amount, description, booked_date, status, user_id)
 select id, 'trigger-check', -100, 'trigger check', '2026-10-03', 'BOOKED', gen_random_uuid()
   from accounts where name = 'Girokonto';
-select 'trigger' as check,
-       (select user_id = '00000000-0000-4000-8000-000000000001'
-          from transactions where provider_transaction_id = 'trigger-check') as user_id_from_parent;
+do $$
+begin
+  if (select user_id from transactions where provider_transaction_id = 'trigger-check')
+     is distinct from '00000000-0000-4000-8000-000000000001' then
+    raise exception 'FAIL: user_id was not taken from the account';
+  end if;
+  raise notice 'PASS: user_id is filled in from the account, even when the caller gives a wrong one';
+end $$;
 
 -- A row's user_id cannot be changed to disagree with its account.
 savepoint s1;
@@ -50,9 +67,14 @@ end $$;
 
 -- Deleting the login removes all of that user's data (cascade).
 delete from auth.users where id = '00000000-0000-4000-8000-000000000001';
-select 'cascade' as check,
-       (select count(*) from connections)  as connections_left,
-       (select count(*) from accounts)     as accounts_left,
-       (select count(*) from transactions) as transactions_left;
+do $$
+begin
+  if exists (select 1 from connections) or exists (select 1 from accounts)
+     or exists (select 1 from transactions) or exists (select 1 from profiles)
+     or exists (select 1 from user_roles) then
+    raise exception 'FAIL: data was left behind after deleting the login';
+  end if;
+  raise notice 'PASS: deleting the login deletes its connection, accounts and transactions';
+end $$;
 
 rollback;

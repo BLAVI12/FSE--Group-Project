@@ -1,7 +1,9 @@
 # Runs on every pull request to main and on every push to main. A pull
-# request should only be merged when both jobs are green: the web job builds
+# request should only be merged when all jobs are green: the web job builds
 # the same Next.js app Vercel deploys, so a broken production build shows up
-# here before the merge instead of on the live site.
+# here before the merge instead of on the live site; the database job builds
+# a fresh database from the migrations, so a migration that breaks the setup
+# or the access rules shows up before it reaches the hosted project.
 
 name: CI
 
@@ -24,8 +26,8 @@ jobs:
     name: Tests, type check, seed check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24 # package.json requires Node 24 (TypeScript tests run natively)
           cache: npm
@@ -47,8 +49,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -57,3 +59,27 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run build
+
+  database:
+    name: Database (migrations, seed, security checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      # A throwaway local Supabase in Docker. Starting it applies every
+      # migration and seed file in supabase/, like a fresh setup on a laptop.
+      - run: supabase start
+      - name: Database-level checks (tests/database/db-check.sql)
+        run: |
+          eval "$(supabase status -o env)"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/database/db-check.sql
+      - name: Access rules through the real Auth and Data API (tests/database/rls-check.mjs)
+        run: |
+          eval "$(supabase status -o env)"
+          node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signOut } from "@/app/auth/actions";
+import { LogoutButton } from "@/components/logout-button";
+import { BankConnection } from "@/components/bank-connection";
+import { MonthlySpending } from "@/components/dashboard/monthly-spending";
+import { BrandLink } from "@/components/brand/brand-link";
 import {
   DashboardDataError,
   loadDashboardData,
   type DashboardAccount,
   type DashboardTransaction,
 } from "@/lib/data/dashboard";
-import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { createClient } from "@/lib/supabase/server";
 
 function formatMoney(cents: number | null, currency = "EUR") {
@@ -34,7 +36,11 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bank?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,6 +49,20 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login");
   }
+
+  const { bank } = await searchParams;
+  const { data: connection, error: connectionError } = await supabase
+    .from("connections")
+    .select("status,live_sync_enabled,last_synced")
+    .eq("user_id", user.id)
+    .eq("provider", "tink")
+    .maybeSingle();
+  const bankConfigured = [
+    "DATABASE_URL",
+    "TINK_CLIENT_ID",
+    "TINK_CLIENT_SECRET",
+    "TINK_REDIRECT_URI",
+  ].every((name) => Boolean(process.env[name]));
 
   let dashboardData;
 
@@ -79,39 +99,57 @@ export default async function DashboardPage() {
   }).format(new Date(`${dashboardData.previousMonthStart}T00:00:00Z`));
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <header className="border-b border-white/10">
+    <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
+      <header className="border-b border-slate-100 bg-white">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
-            <Link href="/" className="text-xl font-bold">
-              Student Finance Planner
-            </Link>
-            <p className="mt-1 text-sm text-slate-400">
+            <BrandLink />
+            <p className="mt-1 text-sm text-slate-500 sm:ml-[50px]">
               Signed in as {user.email ?? user.id}
             </p>
           </div>
 
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/dashboard"
+              aria-current="page"
+              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
             >
-              Log out
-            </button>
-          </form>
+              Overview
+            </Link>
+            <Link
+              href="/dashboard/transactions"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
+            >
+              Transactions
+            </Link>
+            <Link
+              href="/dashboard/profile"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
+            >
+              Profile
+            </Link>
+            <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
+          </div>
         </nav>
       </header>
 
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-emerald-300">
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">
             Financial overview
           </p>
-          <h1 className="mt-2 text-3xl font-bold">Dashboard</h1>
-          <p className="mt-2 text-slate-400">
-            Live data from your connected Supabase account.
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Dashboard</h1>
+          <p className="mt-2 text-slate-600">
+            Your saved accounts and transactions, updated from your bank.
           </p>
         </div>
+
+        <BankConnection
+          configured={!connectionError && bankConfigured}
+          connection={connection}
+          outcome={bank}
+        />
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
@@ -134,6 +172,7 @@ export default async function DashboardPage() {
           <SummaryCard
             label="Transactions"
             value={dashboardData.transactionCount.toLocaleString("en-GB")}
+            href="/dashboard/transactions"
           />
         </section>
 
@@ -148,11 +187,11 @@ export default async function DashboardPage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold">Accounts</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Booked and available bank balances.
               </p>
             </div>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-slate-500">
               {dashboardData.accounts.length} connected
             </span>
           </div>
@@ -169,18 +208,26 @@ export default async function DashboardPage() {
         </section>
 
         <section className="mt-10 pb-12">
-          <div>
-            <h2 className="text-2xl font-bold">Recent transactions</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Your eight most recent booked or pending entries.
-            </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Recent transactions</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Your eight most recent booked or pending entries.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/transactions"
+              className="rounded-full px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+            >
+              View all transactions →
+            </Link>
           </div>
 
           {dashboardData.recentTransactions.length > 0 ? (
-            <div className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+            <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-2xl text-left text-sm">
-                  <thead className="border-b border-white/10 text-slate-400">
+                  <thead className="border-b border-slate-100 bg-slate-50 text-slate-500">
                     <tr>
                       <th className="px-5 py-4 font-medium">Description</th>
                       <th className="px-5 py-4 font-medium">Category</th>
@@ -189,12 +236,9 @@ export default async function DashboardPage() {
                       <th className="px-5 py-4 text-right font-medium">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/10">
+                  <tbody className="divide-y divide-slate-100">
                     {dashboardData.recentTransactions.map((transaction) => (
-                      <TransactionRow
-                        key={transaction.id}
-                        transaction={transaction}
-                      />
+                      <TransactionRow key={transaction.id} transaction={transaction} />
                     ))}
                   </tbody>
                 </table>
@@ -213,46 +257,70 @@ function SummaryCard({
   label,
   value,
   tone = "default",
+  href,
 }: {
   label: string;
   value: string;
   tone?: "default" | "positive";
+  href?: string;
 }) {
-  return (
-    <article className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <p className="text-sm text-slate-400">{label}</p>
+  const content = (
+    <>
+      <p className="text-sm text-slate-500">{label}</p>
       <p
         className={`mt-2 text-2xl font-bold ${
-          tone === "positive" ? "text-emerald-300" : "text-white"
+          tone === "positive" ? "text-emerald-700" : "text-slate-950"
         }`}
       >
         {value}
       </p>
+      {href && (
+        <p className="mt-3 text-xs font-semibold text-emerald-800">
+          Explore spending trends →
+        </p>
+      )}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      {content}
     </article>
   );
 }
 
 function AccountCard({ account }: { account: DashboardAccount }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-slate-900 p-6">
+    <article className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-emerald-300">
+          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
             {account.type?.replaceAll("_", " ") ?? "ACCOUNT"}
           </p>
           <h3 className="mt-1 text-xl font-semibold">
             {account.name ?? "Unnamed account"}
           </h3>
         </div>
-        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400">
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
           {account.currency}
         </span>
       </div>
-      <p className="mt-6 text-sm text-slate-400">Booked balance</p>
+      <p className="mt-6 text-sm text-slate-500">Booked balance</p>
       <p className="mt-1 text-3xl font-bold">
         {formatMoney(account.balance_booked, account.currency)}
       </p>
-      <p className="mt-4 text-sm text-slate-400">
+      <p className="mt-4 text-sm text-slate-500">
         Available: {formatMoney(account.balance_available, account.currency)}
       </p>
     </article>
@@ -268,26 +336,26 @@ function TransactionRow({
 
   return (
     <tr>
-      <td className="px-5 py-4 font-medium text-white">
+      <td className="px-5 py-4 font-medium text-slate-900">
         {transaction.description}
         {transaction.is_transfer && (
           <span className="ml-2 text-xs text-slate-500">Transfer</span>
         )}
       </td>
-      <td className="px-5 py-4 text-slate-300">
+      <td className="px-5 py-4 text-slate-600">
         {transaction.category ?? "Uncategorised"}
       </td>
-      <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+      <td className="whitespace-nowrap px-5 py-4 text-slate-600">
         {formatDate(transaction.booked_date)}
       </td>
       <td className="px-5 py-4">
-        <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-slate-300">
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
           {transaction.status}
         </span>
       </td>
       <td
         className={`whitespace-nowrap px-5 py-4 text-right font-semibold ${
-          isIncome ? "text-emerald-300" : "text-white"
+          isIncome ? "text-emerald-700" : "text-slate-900"
         }`}
       >
         {isIncome ? "+" : ""}
@@ -299,7 +367,7 @@ function TransactionRow({
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-6 py-10 text-center text-slate-400">
+    <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-slate-500">
       {message}
     </div>
   );
@@ -307,28 +375,22 @@ function EmptyState({ message }: { message: string }) {
 
 function DashboardError({ email }: { email: string }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-      <div className="max-w-lg rounded-2xl border border-red-400/30 bg-red-400/10 p-8 text-center">
-        <h1 className="text-2xl font-bold">Dashboard unavailable</h1>
-        <p className="mt-3 text-slate-300">
+    <main className="flex min-h-screen items-center justify-center bg-[#fbfcfa] px-6 text-slate-900">
+      <div className="max-w-lg rounded-3xl border border-red-100 bg-white p-8 text-center shadow-[0_24px_70px_-32px_rgba(15,81,59,0.25)]">
+        <div className="mb-5 flex justify-center"><BrandLink /></div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard unavailable</h1>
+        <p className="mt-3 text-slate-600">
           We could not load the financial data for {email}. Please try again in
           a moment.
         </p>
         <div className="mt-6 flex justify-center gap-4">
           <Link
             href="/dashboard"
-            className="rounded-lg bg-white px-4 py-2 font-semibold text-slate-950"
+            className="rounded-full bg-emerald-700 px-5 py-2.5 font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
           >
             Try again
           </Link>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold"
-            >
-              Log out
-            </button>
-          </form>
+          <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
         </div>
       </div>
     </main>

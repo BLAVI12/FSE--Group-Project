@@ -2,6 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
   type: "json",
 };
+import { classifyDescriptions } from "../../../src/features/transactions/transaction-rules.js";
+import { APP_TIME_ZONE } from "../time.ts";
+import { countsTowardTotals } from "./totals.ts";
 
 export type DashboardAccount = {
   id: string;
@@ -24,7 +27,10 @@ export type DashboardTransaction = {
   is_transfer: boolean;
 };
 
-type TransactionAmount = Pick<DashboardTransaction, "amount" | "is_transfer">;
+type TransactionAmount = Pick<
+  DashboardTransaction,
+  "amount" | "is_transfer" | "status"
+>;
 
 export type MonthlySummary = {
   income: number;
@@ -50,24 +56,39 @@ export class DashboardDataError extends Error {
   }
 }
 
-export function getUtcMonthRange(date: Date) {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
+// Booking dates are calendar days in Germany, where the bank and the users
+// are, while the server runs on UTC. "This month" is therefore decided on the
+// German calendar: at 00:30 on 1 November in Germany it is already November,
+// although UTC still says 31 October.
+/** Year and month (0-11) of an instant on the calendar of `timeZone`. */
+function calendarMonth(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(date);
+  const part = (type: string) =>
+    Number(parts.find((candidate) => candidate.type === type)?.value);
 
+  return { year: part("year"), month: part("month") - 1 };
+}
+
+/** A month as booking dates: from its first day up to the next month's first. */
+function monthRange(year: number, month: number) {
   return {
     start: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
     end: new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10),
   };
 }
 
-export function getPreviousUtcMonthRange(date: Date) {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth() - 1;
+export function getMonthRange(date: Date, timeZone = APP_TIME_ZONE) {
+  const { year, month } = calendarMonth(date, timeZone);
+  return monthRange(year, month);
+}
 
-  return {
-    start: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
-    end: new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10),
-  };
+export function getPreviousMonthRange(date: Date, timeZone = APP_TIME_ZONE) {
+  const { year, month } = calendarMonth(date, timeZone);
+  return monthRange(year, month - 1);
 }
 
 export function summariseTransactions(
@@ -75,7 +96,7 @@ export function summariseTransactions(
 ): MonthlySummary {
   return transactions.reduce<MonthlySummary>(
     (summary, transaction) => {
-      if (transaction.is_transfer) {
+      if (!countsTowardTotals(transaction)) {
         return summary;
       }
 
@@ -92,36 +113,21 @@ export function summariseTransactions(
   );
 }
 
-function normalizeCategoryText(value: string) {
-  return value.normalize("NFKC").toLocaleLowerCase("de-DE");
-}
-
-function categorizeTransaction(transaction: DashboardTransaction) {
+// Uses the Tink sync's own rules, so a chart never sorts a transaction
+// differently from the category the sync stores. Test bookings and
+// descriptions matching several categories have no category there.
+function categorizeTransaction(transaction: DashboardTransaction): string {
   if (transaction.category?.trim()) {
     return transaction.category;
   }
 
-  const description = normalizeCategoryText(transaction.description);
-  if (
-    categoryMapping.ignored_test_transactions.some((pattern) =>
-      description.includes(normalizeCategoryText(pattern)),
-    )
-  ) {
-    return "Uncategorized";
-  }
-
-  const matches = categoryMapping.categories.flatMap((category) =>
-    category.keywords.some((keyword) =>
-      description.includes(normalizeCategoryText(keyword)),
-    )
-      ? [category.name]
-      : [],
+  return (
+    classifyDescriptions(
+      transaction.description,
+      transaction.description,
+      categoryMapping,
+    ).categoryName ?? "Uncategorized"
   );
-  const matchingCategories = new Set(matches);
-
-  return matchingCategories.size === 1
-    ? matches[0]
-    : "Uncategorized";
 }
 
 export function categorizeTransactions(
@@ -138,8 +144,8 @@ export async function loadDashboardData(
   userId: string,
   now = new Date(),
 ): Promise<DashboardData> {
-  const monthRange = getUtcMonthRange(now);
-  const previousMonthRange = getPreviousUtcMonthRange(now);
+  const currentMonthRange = getMonthRange(now);
+  const previousMonthRange = getPreviousMonthRange(now);
   const monthlyTransactionFields =
     "id,amount,currency,description,booked_date,status,category,is_transfer";
 
@@ -170,8 +176,8 @@ export async function loadDashboardData(
         .from("transactions")
         .select(monthlyTransactionFields)
         .eq("user_id", userId)
-        .gte("booked_date", monthRange.start)
-        .lt("booked_date", monthRange.end),
+        .gte("booked_date", currentMonthRange.start)
+        .lt("booked_date", currentMonthRange.end),
       supabase
         .from("transactions")
         .select(monthlyTransactionFields)
@@ -207,7 +213,7 @@ export async function loadDashboardData(
     monthlySummary: summariseTransactions(currentMonthTransactions),
     currentMonthTransactions: categorizeTransactions(currentMonthTransactions),
     previousMonthTransactions: categorizeTransactions(previousMonthTransactions),
-    monthStart: monthRange.start,
+    monthStart: currentMonthRange.start,
     previousMonthStart: previousMonthRange.start,
   };
 }

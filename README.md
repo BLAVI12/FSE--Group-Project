@@ -105,6 +105,19 @@ npm run typecheck   # TypeScript type check
 npm run check:category-seed
 ```
 
+CI also builds a throwaway database from the migrations and seed files and
+runs the checks in `tests/database/` against it: data, ownership and
+cascade rules in the database itself (`db-check.sql`), and the access rules
+through the real Auth and Data API (`rls-check.mjs`). Locally, with Docker and
+the Supabase CLI:
+
+```bash
+supabase start
+eval "$(supabase status -o env)"
+psql "$DB_URL" -f tests/database/db-check.sql
+node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"
+```
+
 ## AI coding agents
 
 Rules for every coding agent working in this repository, and for the people
@@ -112,38 +125,22 @@ instructing them, are in [AGENTS.md](AGENTS.md): no direct pushes to `main`,
 no secrets in Git, a person types the bank login, and the data rules learned
 from live Tink data. `CLAUDE.md` points to the same file.
 
-## Transaction imports
+## Categories
 
 Category names, keyword rules, and ignored test descriptions are maintained in
-`supabase/seed-data/transaction-categories.json`. Regenerate or verify the
-idempotent SQL seed with:
+`supabase/seed-data/transaction-categories.json`. The dashboard sorts
+transactions into categories with this list (`web/lib/data/dashboard.ts`); a
+category set by hand on the transaction takes precedence.
+
+The same list fills the category tables of migration 008 through a generated,
+idempotent SQL seed. Regenerate or verify it with:
 
 ```sh
 npm run generate:category-seed
 npm run check:category-seed
 ```
 
-The importer accepts a JSON array or an object containing `transactions`. It
-uses an external path and defaults to a local dry run; the export is never
-copied into the repository or printed:
-
-```sh
-npm run import:transactions -- /path/to/private-transactions.json
-```
-
-Applying requires an explicit `--apply`, a user UUID, and server-side Supabase
-environment variables. Use only a local Supabase URL unless a remote target
-has been explicitly approved. The service-role key is consumed only by this
-Node command and must never be added to browser configuration.
-
-```sh
-SUPABASE_URL=http://127.0.0.1:54321 \
-SUPABASE_SERVICE_ROLE_KEY="$LOCAL_SUPABASE_SERVICE_ROLE_KEY" \
-SUPABASE_USER_ID=<local-auth-user-uuid> \
-npm run import:transactions -- /path/to/private-transactions.json --apply
-```
-
-The importer keeps the exact amount in `amount_exact`; the older integer-cent
-`amount` column remains a rounded compatibility value. Pending rows are
-reconciled to booked rows only when the source transaction identity is stable.
-See [docs/fintech-erm.md](docs/fintech-erm.md) for the schema and import rules.
+Bank data reaches the database only through the Tink sync, which uses the
+categorisation and exact-amount helpers in
+`src/features/transactions/transaction-rules.js`. See
+[docs/fintech-erm.md](docs/fintech-erm.md) for the data model.

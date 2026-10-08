@@ -15,6 +15,8 @@ login. It is sandbox data with no real personal or financial information.
 | `..._enable_rls.sql` | Turns on row level security for every table |
 | `..._link_supabase_auth.sql` | Users move to Supabase Auth; `user_id` on every table; "own rows only" rules |
 | `..._fintech_import.sql` | Profiles, import batches, categories/rules, exclusions, exact amounts, and import audit fields |
+| `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
+| `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
@@ -41,6 +43,8 @@ browser may do is decided by the database itself:
 | `transactions` | nothing | read own rows; use `set_transaction_category` for audited category changes |
 | `oauth_states` | nothing | nothing |
 | `raw_payload` | nothing | nothing; service-role import context only |
+| `profiles` | nothing | read and update own profile; admins can read profiles for user management |
+| `user_roles` | nothing | read own role; admins can read roles and change another user's role |
 
 System categories and rules are readable to authenticated users. Custom
 categories and rules are scoped to their owner. Import batches and assignments
@@ -60,6 +64,26 @@ keys make it impossible for a row's `user_id` to disagree with its parent's.
 **Every new table needs RLS.** Supabase lets the publishable key reach any new
 table in `public` until RLS is enabled on it, so every migration that creates
 a table must enable RLS and add its rules in the same file.
+
+### Application administrators
+
+Every new and existing account receives the application role `user`. The app
+does not offer self-promotion. After the profile-and-role migration has been
+applied, a project owner can bootstrap the first administrator once in a
+trusted SQL session, replacing the placeholder with the chosen account:
+
+```sql
+update public.user_roles
+   set role = 'admin'
+ where user_id = (
+   select id from auth.users where email = '<ADMIN_EMAIL>'
+ );
+```
+
+After that, the admin page can change other users between `user` and `admin`.
+An administrator cannot change their own role, ensuring the acting admin does
+not accidentally remove the final admin account. Application-admin status does
+not bypass the RLS policies protecting accounts or transactions.
 
 ## Rules
 
@@ -93,11 +117,47 @@ More than 3,534 is expected once a live Tink sync has run: the seed is the
 26 September snapshot, and Demo Bank keeps adding transactions (3,545 after
 the sync on 3 October).
 
-Because the initial migrations were applied by hand, the Supabase CLI may not
-know about them. The historical notes above only establish that migrations
-001-006 were applied; the state of 007 is not verified here. After explicit
-project approval, inspect the target's migration history and schema, reconcile
-only migrations confirmed as already applied, and then use:
+**Verified state, 4 October 2026.** The hosted schema matches migrations
+001 to 008 plus `..._record_live_changes.sql` exactly: a fresh local build
+from this repository and the hosted database produce the same output from
+`tests/database/schema-fingerprint.sql` (tables, columns, constraints,
+indexes, policies, grants, functions, triggers). All of it was applied by hand
+in the SQL Editor, so the hosted project has no CLI migration history. One
+table on the hosted database belongs to no migration: `Mastertabelle`, a
+manual upload of the 3,534 Demo Bank transactions. RLS is on and it has no
+policies, so the API cannot read it; the app does not use it.
+
+To check again, run `tests/database/schema-fingerprint.sql` in the SQL Editor
+and against a local rebuild, and compare: only the `data` line and
+`Mastertabelle` may differ. It only reads.
+
+**Category list, 5 October 2026.** The category tables on the hosted database
+were empty, so the Tink sync stopped with `MISSING_CATEGORY_SEED` for new
+users. With the owner's approval, `seeds/transaction-categories.sql` was run
+in the SQL Editor: an exception to the rule above, because the CLI history is
+not set up yet. It is the same file CI loads into its test database, with one
+word changed: the 2 transactions already stored with a category came from the
+Tink sync, so their history entry says `automatic` instead of `manual`.
+
+| | categories | rules | exclusions | assignments |
+|---|---|---|---|---|
+| Before | 0 | 0 | 0 | 0 |
+| After | 14 | 30 | 3 | 2 |
+
+To check again (`assignments` grows with every sync; the other three stay at
+14, 30 and 3 unless users add their own):
+
+```sql
+select (select count(*) from public.categories)           as categories,
+       (select count(*) from public.category_rules)       as rules,
+       (select count(*) from public.exclusion_rules)      as exclusions,
+       (select count(*) from public.category_assignments) as assignments;
+```
+
+Because the migrations were applied by hand, the Supabase CLI does not know
+about them. After explicit project approval, mark the verified migrations as
+applied (`supabase migration repair --status applied <versions>`), and then
+use:
 
 ```sh
 supabase db push --project-ref <APPROVED_PROJECT_REF>

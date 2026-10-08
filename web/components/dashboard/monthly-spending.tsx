@@ -2,18 +2,19 @@
 
 import { useState, type KeyboardEvent } from "react";
 import type { DashboardTransaction } from "@/lib/data/dashboard";
+import { countsTowardTotals } from "@/lib/data/totals";
 
 const chartColors = [
-  "#34d399",
-  "#60a5fa",
-  "#fbbf24",
-  "#f472b6",
-  "#a78bfa",
-  "#fb7185",
-  "#22d3ee",
-  "#a3e635",
-  "#fb923c",
-  "#94a3b8",
+  "#047857",
+  "#2563eb",
+  "#b45309",
+  "#be185d",
+  "#6d28d9",
+  "#be123c",
+  "#0e7490",
+  "#4d7c0f",
+  "#c2410c",
+  "#64748b",
 ];
 
 function formatMoney(cents: number, currency: string) {
@@ -48,7 +49,7 @@ function MonthlySpendingPanel({
   transactions: DashboardTransaction[];
 }) {
   const spendingTransactions = transactions.filter(
-    (transaction) => transaction.amount < 0 && !transaction.is_transfer,
+    (transaction) => transaction.amount < 0 && countsTowardTotals(transaction),
   );
   const totals = new Map<string, number>();
 
@@ -66,12 +67,9 @@ function MonthlySpendingPanel({
     .sort((first, second) => second.amount - first.amount);
   const total = categories.reduce((sum, category) => sum + category.amount, 0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const selectedTransactions = transactions.filter(
+  const selectedTransactions = spendingTransactions.filter(
     (transaction) =>
-      selectedCategory !== null &&
-      transaction.amount < 0 &&
-      !transaction.is_transfer &&
-      getCategory(transaction) === selectedCategory,
+      selectedCategory !== null && getCategory(transaction) === selectedCategory,
   );
   const currency = spendingTransactions[0]?.currency ?? "EUR";
   const circumference = 2 * Math.PI * 36;
@@ -108,10 +106,10 @@ function MonthlySpendingPanel({
   };
 
   return (
-    <article className="rounded-2xl border border-white/10 bg-slate-900 p-5 sm:p-6">
+    <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
       <div>
         <h3 className="text-lg font-semibold">{monthLabel}</h3>
-        <p className="mt-1 text-sm text-slate-400">Spending by category</p>
+        <p className="mt-1 text-sm text-slate-600">Spending by category</p>
       </div>
 
       {categories.length > 0 ? (
@@ -129,7 +127,7 @@ function MonthlySpendingPanel({
                   cy="50"
                   fill="none"
                   r="36"
-                  stroke="#334155"
+                  stroke="#e2e8f0"
                   strokeWidth="24"
                 />
                 <g transform="rotate(-90 50 50)">
@@ -137,7 +135,7 @@ function MonthlySpendingPanel({
                     <circle
                       aria-label={`${segment.name}, ${formatMoney(segment.amount, currency)}. Select to see ${monthLabel} transactions.`}
                       aria-pressed={selectedCategory === segment.name}
-                      className="cursor-pointer outline-none focus-visible:stroke-white"
+                      className="cursor-pointer outline-none focus-visible:stroke-slate-900"
                       cx="50"
                       cy="50"
                       fill="none"
@@ -157,8 +155,8 @@ function MonthlySpendingPanel({
                   ))}
                 </g>
               </svg>
-              <div className="pointer-events-none absolute inset-5 flex flex-col items-center justify-center rounded-full bg-slate-900 text-center">
-                <span className="text-xs text-slate-400">Total spent</span>
+              <div               className="pointer-events-none absolute inset-5 flex flex-col items-center justify-center rounded-full bg-white text-center">
+                <span className="text-xs text-slate-500">Total spent</span>
                 <span className="mt-1 text-lg font-bold">
                   {formatMoney(total, currency)}
                 </span>
@@ -170,9 +168,9 @@ function MonthlySpendingPanel({
                 <li key={category.name}>
                   <button
                     aria-pressed={selectedCategory === category.name}
-                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-white/10 ${
+                    className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-50 ${
                       selectedCategory === category.name
-                        ? "bg-white/10"
+                        ? "bg-emerald-50 text-emerald-950"
                         : "bg-transparent"
                     }`}
                     onClick={() => selectCategory(category.name)}
@@ -186,7 +184,7 @@ function MonthlySpendingPanel({
                       />
                       <span className="truncate">{category.name}</span>
                     </span>
-                    <span className="shrink-0 text-slate-300">
+                    <span className="shrink-0 text-slate-600">
                       {formatMoney(category.amount, currency)}
                     </span>
                   </button>
@@ -196,14 +194,14 @@ function MonthlySpendingPanel({
           </div>
 
           {selectedCategory ? (
-            <div className="mt-6 border-t border-white/10 pt-5">
+            <div className="mt-6 border-t border-slate-100 pt-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h4 className="font-semibold">{selectedCategory} transactions</h4>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500">
                   {selectedTransactions.length} in {monthLabel}
                 </span>
               </div>
-              <div className="mt-3 divide-y divide-white/10">
+              <div className="mt-3 divide-y divide-slate-100">
                 {selectedTransactions.map((transaction) => (
                   <div
                     className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 text-sm"
@@ -211,13 +209,13 @@ function MonthlySpendingPanel({
                   >
                     <div className="min-w-0">
                       <p className="truncate font-medium">{transaction.description}</p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-slate-500">
                         {formatDate(transaction.booked_date)} · {transaction.status}
                       </p>
                     </div>
                     <span
                       className={`font-semibold ${
-                        transaction.amount > 0 ? "text-emerald-300" : "text-white"
+                        transaction.amount > 0 ? "text-emerald-700" : "text-slate-900"
                       }`}
                     >
                       {transaction.amount > 0 ? "+" : transaction.amount < 0 ? "-" : ""}
@@ -228,13 +226,13 @@ function MonthlySpendingPanel({
               </div>
             </div>
           ) : (
-            <p className="mt-5 border-t border-white/10 pt-4 text-sm text-slate-400">
+            <p className="mt-5 border-t border-slate-100 pt-4 text-sm text-slate-500">
               Select a category to see its transactions for {monthLabel}.
             </p>
           )}
         </>
       ) : (
-        <div className="mt-6 rounded-xl border border-dashed border-white/15 px-4 py-8 text-center text-sm text-slate-400">
+        <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
           No spending recorded for {monthLabel}.
         </div>
       )}
@@ -257,7 +255,7 @@ export function MonthlySpending({
     <section className="mt-10">
       <div>
         <h2 className="text-2xl font-bold">Monthly spending</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-slate-600">
           Compare this month with last month. Select a category to see its
           transactions.
         </p>
