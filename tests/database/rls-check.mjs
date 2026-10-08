@@ -48,8 +48,8 @@ async function currentUser(token) {
   return r.body;
 }
 
-async function count(table, token) {
-  const r = await call(`/rest/v1/${table}?select=id`, {
+async function count(table, token, column = "id") {
+  const r = await call(`/rest/v1/${table}?select=${column}`, {
     token,
     headers: { prefer: "count=exact", range: "0-0" },
   });
@@ -64,7 +64,7 @@ await check("demo login works and sees exactly its own data (1 connection, 2 acc
   assert.equal((await count("connections", demo)).total, 1);
   assert.equal((await count("accounts", demo)).total, 2);
   assert.equal((await count("profiles", demo)).total, 1);
-  assert.equal((await count("user_roles", demo)).total, 1);
+  assert.equal((await count("user_roles", demo, "user_id")).total, 1);
   assert.equal((await count("categories", demo)).total, 14);
   const t = await count("transactions", demo);
   assert.ok(t.total >= 3534, `transactions: ${t.total}`);
@@ -170,7 +170,7 @@ await check("a new user sees no one else's data", async () => {
   assert.equal((await count("accounts", other)).total, 0);
   assert.equal((await count("transactions", other)).total, 0);
   assert.equal((await count("profiles", other)).total, 1);
-  assert.equal((await count("user_roles", other)).total, 1);
+  assert.equal((await count("user_roles", other, "user_id")).total, 1);
   assert.equal((await count("import_batches", other)).total, 0);
   const hiddenProfile = await call(`/rest/v1/profiles?id=eq.${demoUser.id}&select=id`, { token: other });
   assert.equal(hiddenProfile.status, 200);
