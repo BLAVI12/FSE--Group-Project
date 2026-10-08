@@ -64,9 +64,30 @@ await check("demo login works and sees exactly its own data (1 connection, 2 acc
   assert.equal((await count("connections", demo)).total, 1);
   assert.equal((await count("accounts", demo)).total, 2);
   assert.equal((await count("profiles", demo)).total, 1);
+  assert.equal((await count("user_roles", demo)).total, 1);
   assert.equal((await count("categories", demo)).total, 14);
   const t = await count("transactions", demo);
   assert.ok(t.total >= 3534, `transactions: ${t.total}`);
+});
+
+await check("a user can update their own profile but cannot promote themselves", async () => {
+  const profile = await call(`/rest/v1/profiles?id=eq.${demoUser.id}`, {
+    token: demo,
+    method: "PATCH",
+    body: { username: "demo_student", city: "Berlin", country_code: "DE" },
+  });
+  assert.equal(profile.status, 204, JSON.stringify(profile.body));
+  const saved = await call(`/rest/v1/profiles?id=eq.${demoUser.id}&select=username,city,country_code`, { token: demo });
+  assert.deepEqual(saved.body, [{ username: "demo_student", city: "Berlin", country_code: "DE" }]);
+
+  const escalation = await call(`/rest/v1/user_roles?user_id=eq.${demoUser.id}`, {
+    token: demo,
+    method: "PATCH",
+    body: { role: "admin" },
+  });
+  assert.equal(escalation.status, 204, JSON.stringify(escalation.body));
+  const role = await call(`/rest/v1/user_roles?user_id=eq.${demoUser.id}&select=role`, { token: demo });
+  assert.deepEqual(role.body, [{ role: "user" }]);
 });
 
 await check("demo can set the category of its own transaction", async () => {
@@ -149,6 +170,7 @@ await check("a new user sees no one else's data", async () => {
   assert.equal((await count("accounts", other)).total, 0);
   assert.equal((await count("transactions", other)).total, 0);
   assert.equal((await count("profiles", other)).total, 1);
+  assert.equal((await count("user_roles", other)).total, 1);
   assert.equal((await count("import_batches", other)).total, 0);
   const hiddenProfile = await call(`/rest/v1/profiles?id=eq.${demoUser.id}&select=id`, { token: other });
   assert.equal(hiddenProfile.status, 200);
@@ -192,7 +214,7 @@ await check("a new user cannot categorise someone else's transaction", async () 
 });
 
 await check("without logging in, nothing is readable", async () => {
-  for (const table of ["connections", "accounts", "transactions", "oauth_states", "profiles", "import_batches", "category_assignments"]) {
+  for (const table of ["connections", "accounts", "transactions", "oauth_states", "profiles", "user_roles", "import_batches", "category_assignments"]) {
     const r = await call(`/rest/v1/${table}?select=id`);
     assert.ok(r.status >= 400 || (Array.isArray(r.body) && r.body.length === 0), `${table}: status ${r.status}`);
   }

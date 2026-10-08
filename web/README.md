@@ -41,7 +41,7 @@ The existing `convert.ts`, `reconcile.ts` and transaction classification are reu
 2. Register `http://localhost:3000/api/tink` as a redirect URI in Tink Console.
    Leave `TINK_TEST_MODE=true` for Demo Bank. For deployment, use the deployed
    app URL ending in `/api/tink` in both places.
-3. The database needs migrations 001–009 and the category seed. Follow
+3. The database needs all committed migrations and the category seed. Follow
    `../supabase/README.md` to check the existing schema and reconcile migration
    history first. After the team has confirmed the target project:
 
@@ -111,6 +111,8 @@ npm run build
 | `/login` | Email/password login, or "Continue with Google" |
 | `/auth/callback` | Server route that finishes Google login (`exchangeCodeForSession`) and redirects to a checked internal path |
 | `/dashboard` | Logged-in users only |
+| `/dashboard/profile` | Edit the signed-in user's username, personal details and optional address |
+| `/dashboard/admin` | Admin-only role management; it does not expose other users' financial data |
 
 `proxy.ts` runs before every page: it refreshes the Supabase session cookies,
 sends logged-out visitors from `/dashboard` to `/login`, and sends logged-in

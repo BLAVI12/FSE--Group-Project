@@ -204,6 +204,70 @@ test("authenticated database reads expose only the signed-in user's rows and blo
   }
 });
 
+test("profiles and roles are created automatically and cannot be escalated by users", async () => {
+  const id = await user();
+  const other = await user();
+
+  const createdProfile = (
+    await db.query<{ id: string }>("select id from profiles where id=$1", [id])
+  ).rows[0];
+  const createdRole = (
+    await db.query<{ role: string }>(
+      "select role from user_roles where user_id=$1",
+      [id],
+    )
+  ).rows[0];
+  assert.equal(createdProfile?.id, id);
+  assert.equal(createdRole?.role, "user");
+
+  await db.exec("begin; set local role authenticated");
+  try {
+    await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);
+    const ownUpdate = await db.query<{ username: string }>(
+      "update profiles set username='student_one' where id=$1 returning username",
+      [id],
+    );
+    assert.equal(ownUpdate.rows[0]?.username, "student_one");
+
+    const otherUpdate = await db.query(
+      "update profiles set username='stolen_name' where id=$1 returning id",
+      [other],
+    );
+    assert.equal(otherUpdate.rows.length, 0);
+
+    const escalation = await db.query(
+      "update user_roles set role='admin' where user_id=$1 returning user_id",
+      [id],
+    );
+    assert.equal(escalation.rows.length, 0);
+  } finally {
+    await db.exec("rollback");
+  }
+
+  await db.query("update user_roles set role='admin' where user_id=$1", [id]);
+
+  await db.exec("begin; set local role authenticated");
+  try {
+    await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);
+    const profiles = await db.query<{ id: string }>("select id from profiles");
+    assert.equal(profiles.rows.some((profile) => profile.id === other), true);
+
+    const roleUpdate = await db.query<{ role: string }>(
+      "update user_roles set role='admin' where user_id=$1 returning role",
+      [other],
+    );
+    assert.equal(roleUpdate.rows[0]?.role, "admin");
+
+    const selfDemotion = await db.query(
+      "update user_roles set role='user' where user_id=$1 returning user_id",
+      [id],
+    );
+    assert.equal(selfDemotion.rows.length, 0);
+  } finally {
+    await db.exec("rollback");
+  }
+});
+
 test("browser-state validation rejects absent, mismatched and malformed states", () => {
   assert.equal(validBrowserState("a".repeat(64), "a".repeat(64)), true);
   assert.equal(validBrowserState("a".repeat(64), "b".repeat(64)), false);

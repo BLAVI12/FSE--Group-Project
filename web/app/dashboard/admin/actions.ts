@@ -1,0 +1,66 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { AppRole } from "@/lib/data/profile";
+import { createClient } from "@/lib/supabase/server";
+
+export type RoleFormState = {
+  status: "idle" | "success" | "error";
+  message: string;
+};
+
+export async function updateUserRole(
+  targetUserId: string,
+  _previousState: RoleFormState,
+  formData: FormData,
+): Promise<RoleFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?next=/dashboard/admin");
+  }
+
+  const role = String(formData.get("role") ?? "") as AppRole;
+  if (role !== "user" && role !== "admin") {
+    return { status: "error", message: "Choose a valid role." };
+  }
+
+  if (targetUserId === user.id) {
+    return {
+      status: "error",
+      message: "You cannot change your own admin role.",
+    };
+  }
+
+  const { data: ownRole, error: ownRoleError } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (ownRoleError || ownRole?.role !== "admin") {
+    return { status: "error", message: "Admin access is required." };
+  }
+
+  const { data, error } = await supabase
+    .from("user_roles")
+    .update({ role })
+    .eq("user_id", targetUserId)
+    .select("user_id")
+    .maybeSingle();
+
+  if (error || !data) {
+    return {
+      status: "error",
+      message: "The role could not be updated.",
+    };
+  }
+
+  revalidatePath("/dashboard/admin");
+  return { status: "success", message: "Role updated." };
+}
+

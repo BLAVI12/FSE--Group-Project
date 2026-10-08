@@ -17,15 +17,17 @@ declare
   accounts     bigint := (select count(*) from public.accounts);
   transactions bigint := (select count(*) from public.transactions);
   transfers    bigint := (select count(*) from public.transactions where is_transfer);
+  profiles     bigint := (select count(*) from public.profiles);
+  roles        bigint := (select count(*) from public.user_roles);
   foreign_rows bigint := (select count(*) from public.transactions
                            where user_id <> '00000000-0000-4000-8000-000000000001');
 begin
-  if (demo_login, accounts, transactions, transfers, foreign_rows) <> (1, 2, 3534, 152, 0)
+  if (demo_login, accounts, transactions, transfers, profiles, roles, foreign_rows) <> (1, 2, 3534, 152, 1, 1, 0)
      or to_regclass('public.users') is not null then
-    raise exception 'FAIL: seed data: % demo login, % accounts, % transactions, % transfers, % rows of another user',
-      demo_login, accounts, transactions, transfers, foreign_rows;
+    raise exception 'FAIL: seed data: % demo login, % accounts, % transactions, % transfers, % profiles, % roles, % rows of another user',
+      demo_login, accounts, transactions, transfers, profiles, roles, foreign_rows;
   end if;
-  raise notice 'PASS: seed loaded: 1 demo login, 2 accounts, 3534 transactions, 152 transfers, all owned by the demo login';
+  raise notice 'PASS: seed loaded: 1 demo login, 2 accounts, 3534 transactions, 152 transfers, 1 profile, 1 role, all owned by the demo login';
 end $$;
 
 -- The trigger fills user_id from the parent, even when the caller gives a wrong one.
@@ -68,7 +70,8 @@ delete from auth.users where id = '00000000-0000-4000-8000-000000000001';
 do $$
 begin
   if exists (select 1 from connections) or exists (select 1 from accounts)
-     or exists (select 1 from transactions) then
+     or exists (select 1 from transactions) or exists (select 1 from profiles)
+     or exists (select 1 from user_roles) then
     raise exception 'FAIL: data was left behind after deleting the login';
   end if;
   raise notice 'PASS: deleting the login deletes its connection, accounts and transactions';
