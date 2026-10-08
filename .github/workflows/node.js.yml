@@ -1,31 +1,85 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# Runs on every pull request to main and on every push to main. A pull
+# request should only be merged when all jobs are green: the web job builds
+# the same Next.js app Vercel deploys, so a broken production build shows up
+# here before the merge instead of on the live site; the database job builds
+# a fresh database from the migrations, so a migration that breaks the setup
+# or the access rules shows up before it reaches the hosted project.
 
-name: Node.js CI
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the older, now pointless run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-
+  checks:
+    name: Tests, type check, seed check
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24 # package.json requires Node 24 (TypeScript tests run natively)
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run check:category-seed
+
+  web:
+    name: Web app (test, lint, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      # The build only needs these to exist; it does not contact Supabase.
+      # Placeholders keep CI independent of any real project.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+
+  database:
+    name: Database (migrations, seed, security checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      # A throwaway local Supabase in Docker. Starting it applies every
+      # migration and seed file in supabase/, like a fresh setup on a laptop.
+      - run: supabase start
+      - name: Database-level checks (tests/database/db-check.sql)
+        run: |
+          eval "$(supabase status -o env)"
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f tests/database/db-check.sql
+      - name: Access rules through the real Auth and Data API (tests/database/rls-check.mjs)
+        run: |
+          eval "$(supabase status -o env)"
+          node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"

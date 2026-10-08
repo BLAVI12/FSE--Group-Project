@@ -25,7 +25,7 @@ Copy `.env.example` to `.env.local` and add your Supabase project URL and publis
 
 The framework-neutral authentication service lives in
 `src/features/auth/auth-service.js`. It supports email/password and Google
-login, local logout, verified current-user lookup and auth-state subscriptions.
+authentication, local logout, verified current-user lookup and auth-state subscriptions.
 Google login uses the PKCE flow; `src/features/auth/oauth-callback.js` exchanges
 the returned authorization code for a session.
 
@@ -51,22 +51,39 @@ The environment access shown above is an integration placeholder. Replace it
 with the selected frontend framework's public-environment mechanism when the UI
 stack is chosen.
 
+The web app in `web/` does not use this service yet: it logs in with
+`@supabase/ssr` directly (`web/app/login/page.tsx`) and finishes Google login
+on the server in `web/app/auth/callback/route.ts`. See `web/README.md`.
+
 ### Google OAuth configuration
 
-1. In Google Auth Platform, create an OAuth client of type **Web application**.
-2. Add the app origin (for example `http://localhost:5173`) as an authorized
-   JavaScript origin.
-3. Add the Supabase callback shown in **Authentication > Providers > Google**
-   as an authorized Google redirect URI. It has the form
-   `https://<project-ref>.supabase.co/auth/v1/callback`.
-4. Enable Google in **Supabase > Authentication > Providers** and enter the
-   Google client ID and secret there. Never add the client secret to this repo.
-5. In **Supabase > Authentication > URL Configuration**, add the local and
-   production app callbacks, for example
-   `http://localhost:5173/auth/callback`.
+The web app runs on `http://localhost:3000` locally. Google sends the user back
+to **Supabase**, and Supabase then sends them to the app's `/auth/callback`.
 
-The eventual `/auth/callback` page should call `completeOAuthCallback` with the
-current URL and navigate only to the returned internal `redirectTo` path.
+1. In **Google Auth Platform**, set up branding (app name, support email) and
+   choose the **External** audience.
+2. Create an OAuth client of type **Web application**:
+   - Authorized JavaScript origins: `http://localhost:3000` (plus the Vercel
+     URL once deployed).
+   - Authorized redirect URIs: the Supabase callback shown in
+     **Authentication > Sign In / Providers > Google**, of the form
+     `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. Enable Google in **Supabase > Authentication > Sign In / Providers** and
+   enter the Google client ID and secret there. Never add the client secret to
+   this repo.
+4. In **Supabase > Authentication > URL Configuration**, set the Site URL to
+   the app's address and add the app to the Redirect URLs, for example
+   `http://localhost:3000/**` (plus `https://<vercel-app>.vercel.app/**` once
+   deployed). Use the wildcard form: the app asks to return to
+   `/auth/callback?next=/dashboard`, with a query string attached.
+5. While the Google app is in **Testing** mode, only the Google accounts listed
+   under **Audience > Test users** can log in. Add the team (and the examiners
+   for the presentation), or publish the app; with only the basic sign-in
+   scopes, Google does not require a review.
+
+The same Google OAuth flow handles both login and registration. A first-time
+Google user is registered in Supabase Auth; an existing user is logged in. The
+web app exposes this flow on both `/login` and `/register`.
 
 ## Bank data (Tink)
 
@@ -88,38 +105,42 @@ npm run typecheck   # TypeScript type check
 npm run check:category-seed
 ```
 
-## Transaction imports
+CI also builds a throwaway database from the migrations and seed files and
+runs the checks in `tests/database/` against it: data, ownership and
+cascade rules in the database itself (`db-check.sql`), and the access rules
+through the real Auth and Data API (`rls-check.mjs`). Locally, with Docker and
+the Supabase CLI:
+
+```bash
+supabase start
+eval "$(supabase status -o env)"
+psql "$DB_URL" -f tests/database/db-check.sql
+node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"
+```
+
+## AI coding agents
+
+Rules for every coding agent working in this repository, and for the people
+instructing them, are in [AGENTS.md](AGENTS.md): no direct pushes to `main`,
+no secrets in Git, a person types the bank login, and the data rules learned
+from live Tink data. `CLAUDE.md` points to the same file.
+
+## Categories
 
 Category names, keyword rules, and ignored test descriptions are maintained in
-`supabase/seed-data/transaction-categories.json`. Regenerate or verify the
-idempotent SQL seed with:
+`supabase/seed-data/transaction-categories.json`. The dashboard sorts
+transactions into categories with this list (`web/lib/data/dashboard.ts`); a
+category set by hand on the transaction takes precedence.
+
+The same list fills the category tables of migration 008 through a generated,
+idempotent SQL seed. Regenerate or verify it with:
 
 ```sh
 npm run generate:category-seed
 npm run check:category-seed
 ```
 
-The importer accepts a JSON array or an object containing `transactions`. It
-uses an external path and defaults to a local dry run; the export is never
-copied into the repository or printed:
-
-```sh
-npm run import:transactions -- /path/to/private-transactions.json
-```
-
-Applying requires an explicit `--apply`, a user UUID, and server-side Supabase
-environment variables. Use only a local Supabase URL unless a remote target
-has been explicitly approved. The service-role key is consumed only by this
-Node command and must never be added to browser configuration.
-
-```sh
-SUPABASE_URL=http://127.0.0.1:54321 \
-SUPABASE_SERVICE_ROLE_KEY="$LOCAL_SUPABASE_SERVICE_ROLE_KEY" \
-SUPABASE_USER_ID=<local-auth-user-uuid> \
-npm run import:transactions -- /path/to/private-transactions.json --apply
-```
-
-The importer keeps the exact amount in `amount_exact`; the older integer-cent
-`amount` column remains a rounded compatibility value. Pending rows are
-reconciled to booked rows only when the source transaction identity is stable.
-See [docs/fintech-erm.md](docs/fintech-erm.md) for the schema and import rules.
+Bank data reaches the database only through the Tink sync, which uses the
+categorisation and exact-amount helpers in
+`src/features/transactions/transaction-rules.js`. See
+[docs/fintech-erm.md](docs/fintech-erm.md) for the data model.

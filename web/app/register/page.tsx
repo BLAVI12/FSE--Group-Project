@@ -1,12 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { SupabaseSetupNotice } from "@/components/auth/supabase-setup-notice";
+import { startGoogleOAuth } from "@/lib/auth/google";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabaseConfigured = isSupabaseConfigured();
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,7 +21,14 @@ export default function RegisterPage() {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMethod, setLoadingMethod] = useState<
+    "password" | "google" | null
+  >(null);
+  const callbackError =
+    searchParams.get("error") === "oauth_callback_failed"
+      ? "Google registration could not be completed. Please try again."
+      : "";
+  const visibleError = errorMessage || callbackError;
 
   async function handleRegistration(
     event: FormEvent<HTMLFormElement>,
@@ -37,38 +50,63 @@ export default function RegisterPage() {
       return;
     }
 
-    setIsLoading(true);
+    setLoadingMethod("password");
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName,
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            display_name: displayName.trim(),
+          },
+          emailRedirectTo: `${window.location.origin}/login`,
         },
-        emailRedirectTo: `${window.location.origin}/login`,
-      },
-    });
+      });
 
-    if (error) {
-      setErrorMessage(error.message);
-      setIsLoading(false);
-      return;
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      setSuccessMessage(
+        "Account created. Check your email to confirm your account.",
+      );
+    } catch {
+      setErrorMessage("Registration is currently unavailable. Please try again.");
+    } finally {
+      setLoadingMethod(null);
     }
+  }
 
-    if (data.session) {
-      router.push("/dashboard");
-      router.refresh();
-      return;
+  async function handleGoogleRegistration() {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoadingMethod("google");
+
+    try {
+      const { error } = await startGoogleOAuth("register");
+
+      if (error) {
+        setErrorMessage(
+          "Google registration is currently unavailable. Please try again.",
+        );
+        setLoadingMethod(null);
+      }
+    } catch {
+      setErrorMessage(
+        "Google registration is currently unavailable. Please try again.",
+      );
+      setLoadingMethod(null);
     }
-
-    setSuccessMessage(
-      "Account created. Check your email to confirm your account.",
-    );
-
-    setIsLoading(false);
   }
 
   return (
@@ -89,6 +127,8 @@ export default function RegisterPage() {
           <p className="mt-2 text-slate-400">
             Start managing your student finances.
           </p>
+
+          {!supabaseConfigured && <SupabaseSetupNotice />}
 
           <form
             onSubmit={handleRegistration}
@@ -178,9 +218,12 @@ export default function RegisterPage() {
               />
             </div>
 
-            {errorMessage && (
-              <p className="rounded-lg bg-red-400/10 p-3 text-sm text-red-300">
-                {errorMessage}
+            {visibleError && (
+              <p
+                role="alert"
+                className="rounded-lg bg-red-400/10 p-3 text-sm text-red-300"
+              >
+                {visibleError}
               </p>
             )}
 
@@ -192,14 +235,29 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full rounded-lg bg-emerald-400 px-4 py-3 font-semibold text-slate-950 hover:bg-emerald-300 disabled:opacity-60"
+              disabled={loadingMethod !== null || !supabaseConfigured}
+              className="w-full rounded-lg bg-emerald-400 px-4 py-3 font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoading
+              {loadingMethod === "password"
                 ? "Creating account..."
                 : "Create account"}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3" aria-hidden="true">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-xs uppercase tracking-wider text-slate-500">
+              or
+            </span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <GoogleAuthButton
+            mode="register"
+            onClick={handleGoogleRegistration}
+            disabled={loadingMethod !== null || !supabaseConfigured}
+            loading={loadingMethod === "google"}
+          />
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Already have an account?{" "}
@@ -215,6 +273,11 @@ export default function RegisterPage() {
     </main>
   );
 }
-<h1 className="text-3xl font-bold">
-  REGISTER PAGE TEST 123
-</h1>
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}

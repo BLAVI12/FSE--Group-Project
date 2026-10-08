@@ -1,0 +1,21 @@
+# Text files use LF line endings in the repository and in every checkout,
+# Windows included. Without this, Git on Windows (core.autocrlf=true) checks
+# files out with CRLF, so byte-for-byte checks such as
+# `npm run check:category-seed` fail and diffs fill with line-ending noise.
+* text=auto eol=lf
+
+# Never touch binary files.
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+
+# Sample data produced by scripts, not hand-written code: GitHub leaves these
+# out of the repository's language statistics and collapses them in pull
+# requests. seed.sql holds the 3,534 Demo Bank transactions; the category
+# seed comes from scripts/generate-category-seed.mjs.
+supabase/seed.sql linguist-generated
+supabase/seeds/transaction-categories.sql linguist-generated
