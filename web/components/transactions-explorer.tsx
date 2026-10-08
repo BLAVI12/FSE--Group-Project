@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { SelectMenu } from "@/components/ui/select-menu";
 import {
   aggregateSpendingMonths,
   countsTowardsTrend,
@@ -14,7 +15,7 @@ import {
 const ALL = "all";
 const UNCAT = "Uncategorised";
 const ROWS_PER_PAGE = 20;
-const control =
+const inputControl =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
 
 function money(cents: number, currency: string, compact = false) {
@@ -278,76 +279,70 @@ export function TransactionsExplorer({
         aria-label="Trend filters"
         className="grid gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4"
       >
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Period
-          <select
-            aria-label="Period"
-            className={control}
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Period</span>
+          <SelectMenu
+            ariaLabel="Period"
             value={period}
-            onChange={(event) => {
-              setPeriod(event.target.value);
+            options={[
+              { value: "6", label: "Last 6 months" },
+              { value: "12", label: "Last 12 months" },
+              { value: ALL, label: "All history" },
+            ]}
+            onValueChange={(nextPeriod) => {
+              setPeriod(nextPeriod);
               resetSelection();
             }}
-          >
-            <option value="6">Last 6 months</option>
-            <option value="12">Last 12 months</option>
-            <option value={ALL}>All history</option>
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Account
-          <select
-            aria-label="Account"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Account</span>
+          <SelectMenu
+            ariaLabel="Account"
             value={account}
-            onChange={(event) => {
-              setAccount(event.target.value);
+            options={[
+              { value: ALL, label: "All accounts" },
+              ...accounts.map((item) => ({
+                value: item.id,
+                label: item.name ?? "Unnamed account",
+              })),
+            ]}
+            onValueChange={(nextAccount) => {
+              setAccount(nextAccount);
               resetSelection();
             }}
-          >
-            <option value={ALL}>All accounts</option>
-            {accounts.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name ?? "Unnamed account"}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Category
-          <select
-            aria-label="Category"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Category</span>
+          <SelectMenu
+            ariaLabel="Category"
             value={category}
-            onChange={(event) => {
-              setCategory(event.target.value);
+            options={[
+              { value: ALL, label: "All categories" },
+              ...filterCategories.map((item) => ({ value: item, label: item })),
+            ]}
+            onValueChange={(nextCategory) => {
+              setCategory(nextCategory);
               resetSelection();
             }}
-          >
-            <option value={ALL}>All categories</option>
-            {filterCategories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Currency
-          <select
-            aria-label="Currency"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Currency</span>
+          <SelectMenu
+            ariaLabel="Currency"
             value={currency}
-            onChange={(event) => {
-              setCurrency(event.target.value);
+            options={(currencies.length ? currencies : ["EUR"]).map((item) => ({
+              value: item,
+              label: item,
+            }))}
+            onValueChange={(nextCurrency) => {
+              setCurrency(nextCurrency);
               resetSelection();
             }}
-          >
-            {(currencies.length ? currencies : ["EUR"]).map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -501,7 +496,7 @@ export function TransactionsExplorer({
               <span className="sr-only">Search transactions</span>
               <input
                 type="search"
-                className={control}
+                className={inputControl}
                 placeholder="Search description, category or account…"
                 value={search}
                 onChange={(event) => {
@@ -510,22 +505,21 @@ export function TransactionsExplorer({
                 }}
               />
             </label>
-            <label className="sm:w-44">
-              <span className="sr-only">Entry type</span>
-              <select
-                aria-label="Entry type"
-                className={control}
+            <div className="sm:w-44">
+              <SelectMenu
+                ariaLabel="Entry type"
                 value={entryType}
-                onChange={(event) => {
-                  setEntryType(event.target.value);
+                options={[
+                  { value: ALL, label: "All entries" },
+                  { value: "spending", label: "Money out" },
+                  { value: "income", label: "Money in" },
+                ]}
+                onValueChange={(nextEntryType) => {
+                  setEntryType(nextEntryType);
                   setPage(1);
                 }}
-              >
-                <option value={ALL}>All entries</option>
-                <option value="spending">Money out</option>
-                <option value="income">Money in</option>
-              </select>
-            </label>
+              />
+            </div>
           </div>
           {editMessage && (
             <p className="text-sm text-emerald-800" role="status" aria-live="polite">
@@ -575,25 +569,25 @@ export function TransactionsExplorer({
                     {dateLabel(transaction.booked_date)}
                   </td>
                   <td className="min-w-48 px-5 py-4 text-slate-600">
-                    <select
-                      aria-label={`Category for ${transaction.description}`}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-50 disabled:opacity-50"
+                    <SelectMenu
+                      ariaLabel={`Category for ${transaction.description}`}
                       value={categoryIdByName.get(transaction.category ?? "") ?? ""}
                       disabled={savingId === transaction.id}
-                      onChange={(event) =>
+                      compact
+                      options={[
+                        { value: "", label: UNCAT },
+                        ...availableCategories.map((item) => ({
+                          value: item.id,
+                          label: item.name,
+                        })),
+                      ]}
+                      onValueChange={(nextCategoryId) =>
                         void saveCategory(
                           transaction,
-                          event.target.value || null,
+                          nextCategoryId || null,
                         )
                       }
-                    >
-                      <option value="">{UNCAT}</option>
-                      {availableCategories.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </td>
                   <td className="px-5 py-4">
                     <span
