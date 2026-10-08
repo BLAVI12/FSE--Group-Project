@@ -19,7 +19,7 @@ export function GoogleAuthButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group grid h-12 w-full grid-cols-[24px_1fr_24px] items-center gap-2.5 rounded-lg border border-[#8e918f] bg-[#131314] px-3 text-sm font-medium text-[#e3e3e3] shadow-sm transition hover:bg-[#202124] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8ab4f8] disabled:cursor-not-allowed disabled:opacity-60"
+      className="group grid h-12 w-full grid-cols-[24px_1fr_24px] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-white">
         <GoogleLogo />

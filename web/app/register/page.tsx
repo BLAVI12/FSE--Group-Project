@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandLink } from "@/components/brand/brand-link";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { SupabaseSetupNotice } from "@/components/auth/supabase-setup-notice";
 import { startGoogleOAuth } from "@/lib/auth/google";
@@ -110,21 +111,29 @@ function RegisterForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-12 text-white">
-      <div className="w-full max-w-md">
+    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[#fbfcfa] px-6 py-12 text-slate-900">
+      <span className="absolute left-[12%] top-[12%] -rotate-12 text-6xl font-bold text-emerald-100" aria-hidden="true">$</span>
+      <span className="absolute bottom-[12%] right-[10%] rotate-12 text-5xl font-bold text-amber-200" aria-hidden="true">$</span>
+      <div className="relative w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <BrandLink />
+        </div>
         <Link
           href="/"
-          className="mb-8 inline-block text-sm text-slate-400 hover:text-white"
+          className="mb-5 inline-block rounded-lg text-sm font-medium text-slate-500 transition hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
         >
           ← Back to home
         </Link>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
-          <h1 className="text-3xl font-bold">
+        <div className="rounded-3xl border border-slate-100 bg-white p-7 shadow-[0_24px_70px_-32px_rgba(15,81,59,0.25)] sm:p-9">
+          <p className="text-sm font-semibold text-emerald-700">
+            A fresh start for your finances
+          </p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
             Create your account
           </h1>
 
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-slate-600">
             Start managing your student finances.
           </p>
 
@@ -137,7 +146,7 @@ function RegisterForm() {
             <div>
               <label
                 htmlFor="displayName"
-                className="mb-2 block text-sm font-medium"
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Name
               </label>
@@ -151,14 +160,14 @@ function RegisterForm() {
                 }
                 required
                 placeholder="Your name"
-                className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-400"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>
 
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block text-sm font-medium"
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Email
               </label>
@@ -170,14 +179,14 @@ function RegisterForm() {
                 onChange={(event) => setEmail(event.target.value)}
                 required
                 placeholder="student@example.com"
-                className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-400"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-medium"
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Password
               </label>
@@ -192,14 +201,14 @@ function RegisterForm() {
                 required
                 minLength={8}
                 placeholder="At least 8 characters"
-                className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-400"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>
 
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-2 block text-sm font-medium"
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Confirm password
               </label>
@@ -214,21 +223,21 @@ function RegisterForm() {
                 required
                 minLength={8}
                 placeholder="Enter the password again"
-                className="w-full rounded-lg border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-emerald-400"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>
 
             {visibleError && (
               <p
                 role="alert"
-                className="rounded-lg bg-red-400/10 p-3 text-sm text-red-300"
+                className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"
               >
                 {visibleError}
               </p>
             )}
 
             {successMessage && (
-              <p className="rounded-lg bg-emerald-400/10 p-3 text-sm text-emerald-300">
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
                 {successMessage}
               </p>
             )}
@@ -236,7 +245,7 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={loadingMethod !== null || !supabaseConfigured}
-              className="w-full rounded-lg bg-emerald-400 px-4 py-3 font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loadingMethod === "password"
                 ? "Creating account..."
@@ -245,11 +254,11 @@ function RegisterForm() {
           </form>
 
           <div className="my-6 flex items-center gap-3" aria-hidden="true">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="text-xs uppercase tracking-wider text-slate-500">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs uppercase tracking-wider text-slate-400">
               or
             </span>
-            <div className="h-px flex-1 bg-white/10" />
+            <div className="h-px flex-1 bg-slate-200" />
           </div>
 
           <GoogleAuthButton
@@ -259,11 +268,11 @@ function RegisterForm() {
             loading={loadingMethod === "google"}
           />
 
-          <p className="mt-6 text-center text-sm text-slate-400">
+          <p className="mt-6 text-center text-sm text-slate-600">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-semibold text-emerald-300"
+              className="rounded-sm font-semibold text-emerald-800 hover:text-emerald-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
             >
               Log in
             </Link>
