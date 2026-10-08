@@ -5,6 +5,8 @@ import { LogoutButton } from "@/components/logout-button";
 import { ProfileForm } from "@/components/profile-form";
 import { loadOwnProfile, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
+import { hasCompleteNames } from "@/lib/auth/profile-completion";
+import { profileGreeting } from "@/lib/greeting";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -51,8 +53,8 @@ export default async function ProfilePage() {
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <BrandLink />
-            <p className="mt-1 break-all text-sm text-slate-500 sm:ml-[50px]">
-              Signed in as {user.email ?? user.id}
+            <p className="mt-1 break-words text-sm text-slate-500 sm:ml-[50px]">
+              {profileGreeting(profile.first_name)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -100,6 +102,11 @@ export default async function ProfilePage() {
           account.
         </p>
 
+        {!hasCompleteNames(profile) && (
+          <p role="status" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            Please enter your first and last name and save your profile before continuing to the dashboard.
+          </p>
+        )}
         <ProfileForm profile={profile} email={user.email ?? "Not available"} />
       </div>
     </main>

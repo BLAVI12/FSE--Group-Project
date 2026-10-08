@@ -95,7 +95,7 @@ export function ProfileForm({
           Personal details
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Only add information you want to keep with this account.
+          First and last name are required. Address details remain optional.
         </p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <TextField
@@ -105,6 +105,7 @@ export function ProfileForm({
             error={state.errors?.firstName}
             maxLength={PROFILE_LIMITS.firstName}
             autoComplete="given-name"
+            required
           />
           <TextField
             label="Last name"
@@ -113,6 +114,7 @@ export function ProfileForm({
             error={state.errors?.lastName}
             maxLength={PROFILE_LIMITS.lastName}
             autoComplete="family-name"
+            required
           />
         </div>
       </section>

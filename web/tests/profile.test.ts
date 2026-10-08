@@ -44,11 +44,11 @@ test("profile validation rejects unsafe usernames and country codes", () => {
   assert.match(result.errors.countryCode ?? "", /two-letter/);
 });
 
-test("optional personal details are stored as null", () => {
+test("optional address details are stored as null", () => {
   const result = validateProfile({
     username: "student",
-    firstName: " ",
-    lastName: "",
+    firstName: "Ada",
+    lastName: "Lovelace",
     street: "",
     postalCode: "",
     city: "",
@@ -57,8 +57,16 @@ test("optional personal details are stored as null", () => {
   assert.equal(result.ok, true);
   if (!result.ok) return;
 
-  assert.equal(result.data.first_name, null);
+  assert.equal(result.data.street, null);
   assert.equal(result.data.country_code, null);
+});
+
+test("profile saves require both names, including when HTML validation is bypassed", () => {
+  const result = validateProfile({ ...validProfile, firstName: " ", lastName: "" });
+  assert.equal(result.ok, false);
+  if (result.ok) return;
+  assert.equal(result.errors.firstName, "First name is required.");
+  assert.equal(result.errors.lastName, "Last name is required.");
 });
 
 test("the username HTML pattern is valid with the browser v regex flag", () => {

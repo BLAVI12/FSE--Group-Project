@@ -72,6 +72,9 @@ export function validateProfile(values: ProfileValues):
   const countryCode = optional(values.countryCode)?.toUpperCase() ?? null;
   const errors: Partial<Record<ProfileField, string>> = {};
 
+  if (!firstName) errors.firstName = "First name is required.";
+  if (!lastName) errors.lastName = "Last name is required.";
+
   if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(username)) {
     errors.username =
       "Use 3–30 lowercase letters, numbers, underscores or hyphens.";

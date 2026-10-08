@@ -190,6 +190,24 @@ supabase db push --project-ref <APPROVED_PROJECT_REF>
 
 ## Rebuilding locally
 
+### Names at registration
+
+Migration `20261008000003_registration_names.sql` copies `first_name` and
+`last_name` from signup metadata into each new profile. Google metadata can
+instead provide `given_name` and `family_name`. Missing, non-string, empty or
+overlength values remain null and can be edited in the Profile tab. No names
+are guessed from a display name, and existing profiles are not backfilled.
+Email/password registration requires separate first and last name fields.
+The web app checks persisted profile names after either login method. Users
+with incomplete names (including existing accounts) must complete the Profile
+tab before accessing other dashboard pages or web API routes. Profile saving
+requires both names server-side; address fields remain optional. This is an
+application onboarding check, not a new database privilege or RLS restriction.
+The database trigger works even when email confirmation means signup does not
+immediately return a session. Apply this migration through the approved
+migration process before relying on signup names in the hosted project.
+
+
 With the Supabase CLI and Docker: `supabase start`, then `supabase db reset`
 applies every migration and configured seed file. **`supabase db reset`
 destroys the local Supabase database**, so use it only for a disposable local
