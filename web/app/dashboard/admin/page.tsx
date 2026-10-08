@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AdminRoleForm } from "@/components/admin-role-form";
+import { AdminStatusForm } from "@/components/admin-status-form";
 import { BrandLink } from "@/components/brand/brand-link";
 import { LogoutButton } from "@/components/logout-button";
 import { loadAdminProfiles, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const value = (key: string) => typeof params[key] === "string" ? params[key] as string : "";
+  const filters = {
+    search: value("q").slice(0, 100),
+    role: ["user", "admin"].includes(value("role")) ? value("role") : "",
+    status: ["active", "suspended"].includes(value("status")) ? value("status") : "",
+    page: Math.min(100000, Math.max(1, Number.parseInt(value("page"), 10) || 1)),
+  };
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,7 +29,7 @@ export default async function AdminPage() {
 
   let profiles;
   try {
-    profiles = await loadAdminProfiles(supabase, user.id);
+    profiles = await loadAdminProfiles(supabase, user.id, filters);
   } catch (error) {
     if (!(error instanceof ProfileDataError)) {
       throw error;
@@ -47,6 +58,14 @@ export default async function AdminPage() {
   if (!profiles) {
     notFound();
   }
+
+  const { data: audit, error: auditError } = await supabase.from("admin_audit_log")
+    .select("id,actor_id,target_id,action,old_value,new_value,reason,created_at")
+    .order("created_at", { ascending: false }).order("id").limit(20);
+  const pageUrl = (page: number) => `/dashboard/admin?${new URLSearchParams({
+    q: filters.search, role: filters.role, status: filters.status, page: String(page),
+  })}`;
+  const formatDate = (date: string | null) => date ? new Date(date).toLocaleString("en-GB", { timeZone: "Europe/Berlin" }) : "Not available";
 
   return (
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
@@ -101,6 +120,13 @@ export default async function AdminPage() {
           users&apos; bank accounts or transactions.
         </p>
 
+        <form className="mt-6 flex flex-wrap items-end gap-3">
+          <label className="text-sm">Username<input name="q" defaultValue={filters.search} maxLength={100} className="mt-1 block rounded-lg border border-slate-300 p-2" /></label>
+          <label className="text-sm">Role<select name="role" defaultValue={filters.role} className="mt-1 block rounded-lg border border-slate-300 p-2"><option value="">All roles</option><option value="user">User</option><option value="admin">Admin</option></select></label>
+          <label className="text-sm">Status<select name="status" defaultValue={filters.status} className="mt-1 block rounded-lg border border-slate-300 p-2"><option value="">All statuses</option><option value="active">Active</option><option value="suspended">Suspended</option></select></label>
+          <button className="rounded-full bg-emerald-700 px-5 py-2 text-white">Search</button>
+          <Link href="/dashboard/admin" className="px-3 py-2 text-sm text-emerald-800">Reset</Link>
+        </form>
         <div className="mt-8 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
@@ -109,13 +135,11 @@ export default async function AdminPage() {
                   <th className="px-5 py-3 font-medium">User</th>
                   <th className="px-5 py-3 font-medium">User ID</th>
                   <th className="px-5 py-3 font-medium">Role</th>
+                  <th className="px-5 py-3 font-medium">Account</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {profiles.map((profile) => {
-                  const fullName = [profile.first_name, profile.last_name]
-                    .filter(Boolean)
-                    .join(" ");
                   const isCurrentUser = profile.id === user.id;
 
                   return (
@@ -124,9 +148,8 @@ export default async function AdminPage() {
                         <p className="font-medium text-slate-900">
                           {profile.username ?? "Username not set"}
                         </p>
-                        {fullName ? (
-                          <p className="mt-1 text-slate-500">{fullName}</p>
-                        ) : null}
+                        <p className="mt-1 text-xs text-slate-500">Registered: {formatDate(profile.registered_at)}</p>
+                        <p className="mt-1 text-xs text-slate-500">Last sign-in: {formatDate(profile.last_sign_in_at)} (Berlin)</p>
                       </td>
                       <td className="px-5 py-4 font-mono text-xs text-slate-500">
                         {profile.id}
@@ -137,11 +160,15 @@ export default async function AdminPage() {
                             {profile.role} · you
                           </span>
                         ) : (
-                          <AdminRoleForm
+                          <AdminRoleForm key={profile.role}
                             userId={profile.id}
                             role={profile.role}
                           />
                         )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <p className="mb-2 text-sm capitalize">{profile.status}</p>
+                        {!isCurrentUser && <AdminStatusForm key={profile.status} userId={profile.id} status={profile.status} />}
                       </td>
                     </tr>
                   );
@@ -150,6 +177,26 @@ export default async function AdminPage() {
             </table>
           </div>
         </div>
+        {profiles.length === 0 && <p className="mt-4">No matching users on this page.</p>}
+        <nav aria-label="User list pages" className="mt-4 flex items-center gap-4 text-sm">
+          {filters.page > 1 && <Link href={pageUrl(filters.page - 1)}>Previous</Link>}
+          <span>Page {filters.page}</span>
+          {profiles.length > 0 && filters.page * 20 < Number(profiles[0].total) && <Link href={pageUrl(filters.page + 1)}>Next</Link>}
+        </nav>
+        <section className="mt-10">
+          <h2 className="text-xl font-bold">Latest admin actions</h2>
+          <p className="mt-2 text-sm text-slate-600">Latest 20 actions. Times shown in Berlin time. Financial data is excluded.</p>
+          {auditError ? <p role="alert">The admin log could not be loaded.</p> : (
+            <ul className="mt-4 space-y-3">
+              {(audit ?? []).map(entry => <li key={entry.id} className="rounded-xl border border-slate-200 bg-white p-4 text-sm break-words">
+                <p>{entry.action}: {entry.old_value} → {entry.new_value} · {formatDate(entry.created_at)}</p>
+                <p className="mt-1">Actor: {entry.actor_id} · User: {entry.target_id}</p>
+                <p className="mt-1">Reason: {entry.reason}</p>
+              </li>)}
+              {audit?.length === 0 && <li>No admin actions recorded yet.</li>}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
