@@ -28,7 +28,7 @@ export function AdminRoleForm({
         id={`role-${userId}`}
         name="role"
         defaultValue={role}
-        className="rounded-lg border border-white/15 bg-slate-900 px-3 py-2 text-sm text-white"
+        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
       >
         <option value="user">User</option>
         <option value="admin">Admin</option>
@@ -36,7 +36,7 @@ export function AdminRoleForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-60"
+        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving…" : "Update"}
       </button>
@@ -45,8 +45,8 @@ export function AdminRoleForm({
           role={state.status === "error" ? "alert" : "status"}
           className={
             state.status === "error"
-              ? "w-full text-xs text-red-300"
-              : "w-full text-xs text-emerald-300"
+              ? "w-full text-xs text-rose-700"
+              : "w-full text-xs text-emerald-700"
           }
         >
           {state.message}
@@ -55,4 +55,3 @@ export function AdminRoleForm({
     </form>
   );
 }
-

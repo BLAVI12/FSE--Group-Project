@@ -19,7 +19,7 @@ import {
 const initialState: ProfileFormState = { status: "idle", message: "" };
 
 const inputClass =
-  "mt-2 w-full rounded-lg border border-white/15 bg-slate-900 px-3 py-2 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400";
+  "mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
 
 export function ProfileForm({
   profile,
@@ -56,15 +56,17 @@ export function ProfileForm({
 
   return (
     <form action={formAction} className="mt-8 space-y-8">
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Account</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              Account
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
               Your email is managed by Supabase Authentication.
             </p>
           </div>
-          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-sm font-semibold capitalize text-emerald-300">
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold capitalize text-emerald-800">
             {profile.role}
           </span>
         </div>
@@ -88,9 +90,11 @@ export function ProfileForm({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <h2 className="text-xl font-semibold">Personal details</h2>
-        <p className="mt-1 text-sm text-slate-400">
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+          Personal details
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
           Only add information you want to keep with this account.
         </p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -113,9 +117,11 @@ export function ProfileForm({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <h2 className="text-xl font-semibold">Address</h2>
-        <p className="mt-1 text-sm text-slate-400">
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+          Address
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
           Address details are optional.
         </p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -162,7 +168,7 @@ export function ProfileForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-emerald-400 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full bg-emerald-700 px-5 py-2.5 font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save profile"}
         </button>
@@ -171,7 +177,7 @@ export function ProfileForm({
             role={state.status === "error" ? "alert" : "status"}
             aria-live="polite"
             className={
-              state.status === "error" ? "text-red-300" : "text-emerald-300"
+              state.status === "error" ? "text-rose-700" : "text-emerald-700"
             }
           >
             {state.message}
@@ -195,7 +201,7 @@ function TextField({
   const errorId = `${name}-error`;
 
   return (
-    <label className="block text-sm font-medium text-slate-300">
+    <label className="block text-sm font-medium text-slate-700">
       {label}
       <input
         {...props}
@@ -203,10 +209,10 @@ function TextField({
         name={name}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
-        className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-slate-500`}
+        className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`}
       />
       {error ? (
-        <span id={errorId} className="mt-1 block text-sm text-red-300">
+        <span id={errorId} className="mt-1 block text-sm text-rose-700">
           {error}
         </span>
       ) : null}
