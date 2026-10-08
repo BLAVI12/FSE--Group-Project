@@ -123,6 +123,12 @@ export default async function DashboardPage({
             >
               Transactions
             </Link>
+            <Link
+              href="/dashboard/profile"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
+            >
+              Profile
+            </Link>
             <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
           </div>
         </nav>

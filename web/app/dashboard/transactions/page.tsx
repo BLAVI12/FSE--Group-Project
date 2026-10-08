@@ -48,6 +48,12 @@ export default async function TransactionsPage() {
             >
               Transactions
             </Link>
+            <Link
+              href="/dashboard/profile"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+            >
+              Profile
+            </Link>
             <LogoutButton className="ml-2 rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
           </div>
         </nav>
