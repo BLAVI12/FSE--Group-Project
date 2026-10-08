@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { LogoutButton } from "@/components/logout-button";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 
 const features = [
   {
@@ -18,30 +21,32 @@ const features = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  let isAuthenticated = false;
+  let userLabel: string | null = null;
+
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    isAuthenticated = Boolean(user);
+    userLabel = user?.email ?? user?.id ?? null;
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-white/10">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <Link href="/" className="text-xl font-bold">
             Student Finance Planner
           </Link>
 
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="rounded-lg border border-white/20 px-6 py-3 font-semibold transition hover:bg-white/10"
-            >
-              I already have an account
-            </Link>
-
-            <Link
-              href="/register"
-              className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
-            >
-              Create account
-            </Link>
-          </div>
+          <HomeNavigation
+            isAuthenticated={isAuthenticated}
+            userLabel={userLabel}
+          />
         </nav>
       </header>
 
@@ -60,21 +65,7 @@ export default function HomePage() {
             monthly budget from one secure dashboard.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/register"
-              className="rounded-lg bg-emerald-400 px-6 py-3 font-semibold text-slate-950 hover:bg-emerald-300"
-            >
-              Start planning
-            </Link>
-
-            <Link
-              href="/login"
-              className="rounded-lg border border-white/20 px-6 py-3 font-semibold hover:bg-white/10"
-            >
-              Log in
-            </Link>
-          </div>
+          <HomeHeroActions isAuthenticated={isAuthenticated} />
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl">
@@ -134,20 +125,7 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-6 py-20 text-center">
-        <h2 className="text-3xl font-bold">
-          Ready to understand your spending?
-        </h2>
-
-        <p className="mt-4 text-slate-300">
-          Create an account and start planning your monthly finances.
-        </p>
-
-        <Link
-          href="/register"
-          className="mt-8 inline-block rounded-lg bg-emerald-400 px-6 py-3 font-semibold text-slate-950 hover:bg-emerald-300"
-        >
-          Create account
-        </Link>
+        <HomeFinalCallToAction isAuthenticated={isAuthenticated} />
       </section>
 
       <footer className="border-t border-white/10">
@@ -157,6 +135,113 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function HomeNavigation({
+  isAuthenticated,
+  userLabel,
+}: {
+  isAuthenticated: boolean;
+  userLabel: string | null;
+}) {
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-wrap items-center gap-4">
+        <Link
+          href="/login"
+          className="rounded-lg border border-white/20 px-6 py-3 font-semibold transition hover:bg-white/10"
+        >
+          I already have an account
+        </Link>
+
+        <Link
+          href="/register"
+          className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+        >
+          Create account
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      <span className="text-sm text-slate-400">
+        Signed in as <span className="text-slate-200">{userLabel}</span>
+      </span>
+
+      <Link
+        href="/dashboard"
+        className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+      >
+        Open dashboard
+      </Link>
+
+      <LogoutButton className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/10" />
+    </div>
+  );
+}
+
+function HomeHeroActions({ isAuthenticated }: { isAuthenticated: boolean }) {
+  if (isAuthenticated) {
+    return (
+      <div className="mt-8">
+        <Link
+          href="/dashboard"
+          className="inline-block rounded-lg bg-emerald-400 px-6 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300"
+        >
+          Open dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 flex flex-wrap gap-4">
+      <Link
+        href="/register"
+        className="rounded-lg bg-emerald-400 px-6 py-3 font-semibold text-slate-950 hover:bg-emerald-300"
+      >
+        Start planning
+      </Link>
+
+      <Link
+        href="/login"
+        className="rounded-lg border border-white/20 px-6 py-3 font-semibold hover:bg-white/10"
+      >
+        Log in
+      </Link>
+    </div>
+  );
+}
+
+function HomeFinalCallToAction({
+  isAuthenticated,
+}: {
+  isAuthenticated: boolean;
+}) {
+  return (
+    <>
+      <h2 className="text-3xl font-bold">
+        {isAuthenticated
+          ? "Continue managing your finances."
+          : "Ready to understand your spending?"}
+      </h2>
+
+      <p className="mt-4 text-slate-300">
+        {isAuthenticated
+          ? "Your accounts, transactions and monthly overview are ready."
+          : "Create an account and start planning your monthly finances."}
+      </p>
+
+      <Link
+        href={isAuthenticated ? "/dashboard" : "/register"}
+        className="mt-8 inline-block rounded-lg bg-emerald-400 px-6 py-3 font-semibold text-slate-950 hover:bg-emerald-300"
+      >
+        {isAuthenticated ? "Open dashboard" : "Create account"}
+      </Link>
+    </>
   );
 }
 
