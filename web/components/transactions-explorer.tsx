@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
 import {
@@ -391,17 +392,26 @@ export function TransactionsExplorer({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 id="spending-heading" className="text-xl font-semibold">
-                Spending trends
+                Monthly cash flow
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Select a month to explore its transactions.
+                Compare money in and money out, month by month.
               </p>
             </div>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-              {currency} · monthly
-            </span>
+            <div className="-mt-4 flex shrink-0 flex-col items-center gap-1">
+              <Image
+                src="/images/irish-finance-mascot.png"
+                alt=""
+                width={126}
+                height={128}
+                className="h-24 w-24 object-contain drop-shadow-md sm:h-28 sm:w-28"
+              />
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                {currency} · monthly
+              </span>
+            </div>
           </div>
-          <SpendingChart
+          <CashFlowChart
             summaries={summaries}
             currency={currency}
             selectedMonth={selectedMonth}
@@ -678,7 +688,7 @@ function Stat({
   );
 }
 
-function SpendingChart({
+function CashFlowChart({
   summaries,
   currency,
   selectedMonth,
@@ -689,72 +699,96 @@ function SpendingChart({
   selectedMonth: string | null;
   onSelect: (month: string) => void;
 }) {
-  const max = Math.max(100, ...summaries.map((item) => item.spending));
+  const max = Math.max(
+    100,
+    ...summaries.flatMap((item) => [item.income, item.spending]),
+  );
   const magnitude = 10 ** Math.floor(Math.log10(max));
   const ceiling =
     [1, 2, 5, 10].find((step) => step * magnitude >= max)! * magnitude;
   const ticks = [1, 0.75, 0.5, 0.25, 0];
+  const hasActivity = summaries.some(
+    (item) => item.income > 0 || item.spending > 0,
+  );
 
   return (
-    <div
-      className="mt-4 overflow-x-auto pt-6 pb-2"
-      tabIndex={0}
-      aria-label="Monthly spending chart; scroll horizontally for more months"
-    >
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-slate-600">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          Money in
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+          Money out
+        </span>
+      </div>
       <div
-        className="relative pr-2 pl-16"
-        style={{ minWidth: Math.max(480, summaries.length * 62 + 64) }}
+        className="mt-2 overflow-x-auto pt-6 pb-2"
+        tabIndex={0}
+        aria-label="Monthly cash flow chart; green bars show money in and red bars show money out. Scroll horizontally for more months"
       >
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-56"
+          className="relative pr-2 pl-16"
+          style={{ minWidth: Math.max(480, summaries.length * 68 + 64) }}
         >
-          {ticks.map((tick) => (
-            <div
-              key={tick}
-              className="absolute right-2 left-16 border-t border-slate-200"
-              style={{ top: `${(1 - tick) * 100}%` }}
-            >
-              <span className="absolute right-full -mt-2.5 pr-3 text-xs tabular-nums text-slate-500">
-                {money(ceiling * tick, currency, true)}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="relative flex gap-2">
-          {summaries.map((item) => {
-            const height = (item.spending / ceiling) * 100;
-            const active = selectedMonth === item.month;
-            return (
-              <button
-                key={item.month}
-                type="button"
-                aria-pressed={active}
-                aria-label={`${monthLabel(item.month)}: ${money(item.spending, currency)} spending. ${active ? "Show entire period" : "Show this month's transactions"}.`}
-                title={`${monthLabel(item.month)} · ${money(item.spending, currency)}`}
-                className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
-                onClick={() => onSelect(item.month)}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-56"
+          >
+            {ticks.map((tick) => (
+              <div
+                key={tick}
+                className="absolute right-2 left-16 border-t border-slate-200"
+                style={{ top: `${(1 - tick) * 100}%` }}
               >
-                <div className="relative h-56">
-                  <span
-                    className="absolute inset-x-0 text-[11px] font-medium tabular-nums text-slate-600"
-                    style={{ bottom: `calc(${height}% + 7px)` }}
-                  >
-                    {money(item.spending, currency, true)}
-                  </span>
-                  <span
-                    className={`absolute right-[18%] bottom-0 left-[18%] rounded-t-md transition-colors ${active ? "bg-emerald-700" : "bg-emerald-500 group-hover:bg-emerald-600"}`}
-                    style={{ height: `${height}%` }}
-                  />
-                </div>
-                <span
-                  className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-800" : "text-slate-600"}`}
-                >
-                  {monthLabel(item.month, true)}
+                <span className="absolute right-full -mt-2.5 pr-3 text-xs tabular-nums text-slate-500">
+                  {money(ceiling * tick, currency, true)}
                 </span>
-              </button>
-            );
-          })}
+              </div>
+            ))}
+          </div>
+          {!hasActivity ? (
+            <p className="pointer-events-none absolute top-24 right-4 left-16 z-10 text-center text-sm font-medium text-slate-500">
+              No money in or out for this selection.
+            </p>
+          ) : null}
+          <div className="relative flex gap-2">
+            {summaries.map((item) => {
+              const incomeHeight = (item.income / ceiling) * 100;
+              const spendingHeight = (item.spending / ceiling) * 100;
+              const active = selectedMonth === item.month;
+              return (
+                <button
+                  key={item.month}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={`${monthLabel(item.month)}: ${money(item.income, currency)} money in and ${money(item.spending, currency)} money out. ${active ? "Show entire period" : "Show this month's transactions"}.`}
+                  title={`${monthLabel(item.month)} · In ${money(item.income, currency)} · Out ${money(item.spending, currency)}`}
+                  className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
+                  onClick={() => onSelect(item.month)}
+                >
+                  <div className="flex h-56 items-end justify-center gap-1 px-[18%]">
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-emerald-700" : "bg-emerald-500 group-hover:bg-emerald-600"}`}
+                      style={{ height: `${incomeHeight}%` }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-rose-700" : "bg-rose-500 group-hover:bg-rose-600"}`}
+                      style={{ height: `${spendingHeight}%` }}
+                    />
+                  </div>
+                  <span
+                    className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-800" : "text-slate-600"}`}
+                  >
+                    {monthLabel(item.month, true)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
