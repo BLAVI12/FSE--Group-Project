@@ -34,39 +34,33 @@ parts: the shared Tink client, `lib/tink.ts` for the workflow, one
 `app/api/tink/route.ts` endpoint, and the `BankConnection` component.
 The existing `convert.ts`, `reconcile.ts` and transaction classification are reused.
 
-1. Add `DATABASE_URL`, `TINK_CLIENT_ID`, `TINK_CLIENT_SECRET` and
-   `TINK_REDIRECT_URI` to `web/.env.local` using `.env.example`.
+1. Add `DATABASE_URL`, `DATABASE_CA_CERT`, `TINK_CLIENT_ID`,
+   `TINK_CLIENT_SECRET` and `TINK_REDIRECT_URI` to `web/.env.local` using
+   `.env.example`.
    Use the **transaction pooler** URL from Supabase **Connect**, pointing to
    the same project as the login. Keep these server values without `NEXT_PUBLIC_`.
+   For the hosted database, download its SSL certificate in Supabase Project
+   Settings and put the complete PEM file in `DATABASE_CA_CERT`, in double quotes.
 2. Register `http://localhost:3000/api/tink` as a redirect URI in Tink Console.
    Keep `TINK_TEST_MODE=true`; this app supports Demo Bank only.
    `TINK_DEMO_PROVIDER=de-demobank-password` preselects the German Demo Bank
    login instead of showing the bank picker. For deployment, use the deployed
    app URL ending in `/api/tink` in both places.
 3. The database needs all committed migrations and the category seed. Follow
-   `../supabase/README.md` to check the existing schema and reconcile migration
-   history first. After the team has confirmed the target project:
+   `../supabase/README.md` to check the existing schema. The hosted project was
+   built manually and has no CLI migration history, so do not run a remote
+   `supabase db push` against it.
 
-   ```bash
-   supabase link --project-ref <PROJECT_REF>
-   supabase migration list --linked
-   supabase db push --linked --dry-run
-   supabase db push --linked
-   ```
-
-   Do not use `--include-seed` on the hosted project: the configured seed
-   includes sample users and transactions. Existing category data is retained.
+   The configured seed includes sample users and transactions. Existing
+   category data is retained.
    Fresh local databases load the seeds through `supabase start` / `db reset`.
    The existing migration rule still applies: add a migration instead of editing
    applied migrations. Migration 009 adds sync status and keeps cents-only seed
    inserts compatible. Its default leaves existing demo rows as sample data.
-   `20261009000001_bank_sync_lease.sql` adds the sync claim and expiry fields;
-   apply it before deploying this workflow. It also accepts existing lease
-   columns from the local prototype. It does not require reseeding.
-   For the live release, follow the bank-sync deployment steps in
-   [`../supabase/README.md`](../supabase/README.md#bank-sync-deployment).
-   Apply and verify the migration before the merged app version is deployed;
-   a GitHub merge or Vercel deployment does not apply it automatically.
+   `20261009000001_bank_sync_lease.sql` records the sync claim and expiry fields
+   already added by hand to the hosted project and verified on 9 October 2026.
+   It also accepts existing lease columns from the local prototype and does not
+   require reseeding.
 4. Start the app, sign in and click **Add bank**. Enter the Tink Demo Bank user's
    credentials in the hosted Tink Link login. The first sync starts automatically
    after returning. **Refresh data** refreshes the existing bank login in the
@@ -116,7 +110,7 @@ within 30 seconds, before transactions are fetched. A bank asking for renewed
 authentication shows **Reconnect Demo Bank**; the app never supplies bank
 credentials itself. Dashboard visits import the available Tink snapshot;
 they do not start an on-demand bank refresh. An unchanged complete snapshot
-shows **Keine neuen Transaktionen**. Refresh cannot create new bank transactions.
+shows **No new transactions**. Refresh cannot create new bank transactions.
 Failed refreshes request Tink's `detailedError` and log only an allowlisted
 machine-readable `reason` alongside the error code; messages and bank data
 are never logged.

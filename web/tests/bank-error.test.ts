@@ -14,6 +14,10 @@ test("bank logs retain database and TLS codes without exposing error content", (
   }
 });
 
+test("a missing hosted database certificate has a safe actionable log code", () => {
+  assert.equal(bankErrorCode({ code: "MISSING_DATABASE_CA_CERT" }), "MISSING_DATABASE_CA_CERT");
+});
+
 test("bank logs identify missing Tink settings and invalid timeout through the actual config reader", () => {
   const values: Record<string, string> = {
     TINK_CLIENT_ID: "fake-client", TINK_CLIENT_SECRET: "fake-secret",

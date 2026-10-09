@@ -1,7 +1,7 @@
 // Log only known codes. Error messages, URLs, SQL details and upstream bodies
 // can contain credentials or bank data and must never reach the log.
 const knownCodes = new Set([
-  "NOT_CONFIGURED", "UNSAFE_AMOUNT", "DEMO_MODE_REQUIRED",
+  "NOT_CONFIGURED", "MISSING_DATABASE_CA_CERT", "UNSAFE_AMOUNT", "DEMO_MODE_REQUIRED",
   "MISSING_CATEGORY_SEED", "NOT_CONNECTED", "NOTHING_TO_RENEW",
   "INVALID_STATE", "RECONNECT_REQUIRED", "LINK_FAILED", "INVALID_CALLBACK",
   "NO_ACCOUNTS", "TINK_TIMEOUT", "TINK_UNREACHABLE", "TINK_USER_NOT_FOUND", "EMPTY_RESPONSE", "UNEXPECTED_RESPONSE",

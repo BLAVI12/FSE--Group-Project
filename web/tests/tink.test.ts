@@ -629,6 +629,28 @@ test("a missing Tink user requests reconnect and restores the owned bank login w
   assert.deepEqual(await workflow.status(other), otherStatus);
 });
 
+test("a Tink user with no remaining accounts is asked to reconnect without losing saved history", async () => {
+  const id = await user();
+  const { workflow, snapshot } = fake();
+  await connect(id, workflow);
+  await workflow.sync(id);
+  const saved = (await db.query(
+    "select id,account_id,amount,status,category from transactions where user_id=$1", [id],
+  )).rows;
+  snapshot.accounts = [];
+  snapshot.transactions = [];
+  snapshot.consents = [];
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "expired");
+  assert.equal((await workflow.status(id)).state, "expired");
+  assert.deepEqual(
+    (await db.query(
+      "select id,account_id,amount,status,category from transactions where user_id=$1", [id],
+    )).rows,
+    saved,
+  );
+});
+
 test("automatic and manual refreshes are limited; sample connections never call Tink", async () => {
   const id = await user();
   const { workflow, snapshot } = fake();

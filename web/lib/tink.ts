@@ -671,7 +671,7 @@ export function createBankWorkflow(
         // No bank data or another user's state is changed by a failed fetch.
         const expired = (error instanceof TinkError &&
           ["BANK_RECONNECT_REQUIRED", "TINK_USER_NOT_FOUND"].includes(error.code)) ||
-          (error instanceof BankError && error.code === "RECONNECT_REQUIRED");
+          (error instanceof BankError && ["RECONNECT_REQUIRED", "NO_ACCOUNTS"].includes(error.code));
         await pool.query(
           `update public.connections set status=$4,sync_complete=false,
            sync_claim_id=null,sync_expires_at=null where id=$1 and user_id=$2 and sync_claim_id=$3`,
