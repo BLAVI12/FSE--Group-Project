@@ -19,11 +19,38 @@ const ROWS_PER_PAGE = 20;
 const inputControl =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
 
+function compactMoney(cents: number, currency: string) {
+  const currencyMarks: Record<string, string> = {
+    EUR: "€",
+    GBP: "£",
+    USD: "$",
+    JPY: "¥",
+    CNY: "¥",
+  };
+  const mark = currencyMarks[currency] ?? `${currency} `;
+  const sign = cents < 0 ? "-" : "";
+  const amount = Math.abs(cents) / 100;
+  const units = [
+    { threshold: 1_000_000_000, suffix: "b" },
+    { threshold: 1_000_000, suffix: "m" },
+    { threshold: 1_000, suffix: "k" },
+  ];
+  const unit = units.find(({ threshold }) => amount >= threshold);
+  const scaled = unit ? amount / unit.threshold : amount;
+  const fractionDigits = scaled >= 100 ? 0 : scaled >= 1 ? 1 : 2;
+  const value = scaled
+    .toFixed(fractionDigits)
+    .replace(/\.0+$|(?<=\.[0-9])0+$/, "");
+
+  return `${sign}${mark}${value}${unit?.suffix ?? ""}`;
+}
+
 function money(cents: number, currency: string, compact = false) {
+  if (compact) return compactMoney(cents, currency);
+
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
-    ...(compact ? { notation: "compact", maximumFractionDigits: 1 } : {}),
   }).format(cents / 100);
 }
 
