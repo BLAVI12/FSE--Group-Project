@@ -334,16 +334,22 @@ export function createBankWorkflow(
             [connection.id, userId],
           )
         ).rows.map((a) => a.provider_account_id);
-        const token = await tink.userAccessToken(externalId);
-        const consents = await tink.fetchProviderConsents(token);
-        credentialsId = credentialsToRenew(consents, ids, now());
-        // A silent refresh can require authentication before provider-consents
-        // reports expiry. The user explicitly chose Reconnect for this login.
-        if (!credentialsId && connection.status === "EXPIRED")
-          credentialsId = consents.find((consent) =>
-            consent.credentialsId && consent.accountIds?.some((id) => ids.includes(id)),
-          )?.credentialsId ?? null;
-        if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
+        try {
+          const token = await tink.userAccessToken(externalId);
+          const consents = await tink.fetchProviderConsents(token);
+          credentialsId = credentialsToRenew(consents, ids, now());
+          // A silent refresh can require authentication before provider-consents
+          // reports expiry. The user explicitly chose Reconnect for this login.
+          if (!credentialsId && connection.status === "EXPIRED")
+            credentialsId = consents.find((consent) =>
+              consent.credentialsId && consent.accountIds?.some((id) => ids.includes(id)),
+            )?.credentialsId ?? null;
+          if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
+        } catch (error) {
+          if (!(error instanceof TinkError && error.code === "TINK_USER_NOT_FOUND")) throw error;
+          // The user explicitly chose Reconnect. Let Link create an owned Tink
+          // user and request a fresh bank login; keep all local history intact.
+        }
       }
       const code = await tink.tinkLinkCode(externalId, email);
       if (!renew) {
@@ -663,7 +669,8 @@ export function createBankWorkflow(
       } catch (error) {
         // Release only our claim. A newer sync or reconnect may already own it.
         // No bank data or another user's state is changed by a failed fetch.
-        const expired = (error instanceof TinkError && error.code === "BANK_RECONNECT_REQUIRED") ||
+        const expired = (error instanceof TinkError &&
+          ["BANK_RECONNECT_REQUIRED", "TINK_USER_NOT_FOUND"].includes(error.code)) ||
           (error instanceof BankError && error.code === "RECONNECT_REQUIRED");
         await pool.query(
           `update public.connections set status=$4,sync_complete=false,

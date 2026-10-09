@@ -121,6 +121,16 @@ Failed refreshes request Tink's `detailedError` and log only an allowlisted
 machine-readable `reason` alongside the error code; messages and bank data
 are never logged.
 
+A missing connected Tink user (404 from the authorization grant) requires
+**Reconnect Demo Bank**. Refresh preserves saved data and does not create an
+empty replacement user. Reconnect creates a user for the same app login and
+starts a new Tink Link bank login, retaining local transaction history.
+Check the application's permanent-user entitlement in Tink when this happens
+the day after connection: Tink documents a 24-hour persistence limit without
+permanent users. This limit is external to the database migration; enabling
+long-lived access depends on the application's Tink permissions.
+See [Tink's persistence prerequisites](https://docs.tink.com/entries/articles/ingest-accounts-and-transactions).
+
 Known issue before release: the current Demo Bank background refresh has
 returned `BANK_REFRESH_FAILED` with reason `UNKNOWN_ERROR` in manual testing.
 Its cause remains unresolved; unchanged transactions alone do not explain a

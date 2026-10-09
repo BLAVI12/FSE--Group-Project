@@ -46,10 +46,16 @@ test("bank logs redact arbitrary upstream codes, messages and non-error values",
     assert.equal(bankErrorCode(error), "TINK_ERROR");
   }
   for (const code of ["EMPTY_RESPONSE", "UNEXPECTED_RESPONSE"])
-    assert.deepEqual(bankErrorDetails(new TinkError("fake-secret", 502, code)), { code });
+    assert.deepEqual(bankErrorDetails(new TinkError("fake-secret", 502, code)), { code, status: 502 });
   assert.equal(bankErrorCode(new TinkError("fake-token", 401, "HTTP_401")), "HTTP_401");
   assert.deepEqual(bankErrorDetails(new TinkError("fake-token", 503, "BANK_REFRESH_FAILED", undefined, "fake-secret")),
-    { code: "BANK_REFRESH_FAILED" });
+    { code: "BANK_REFRESH_FAILED", status: 503 });
   assert.deepEqual(bankErrorDetails(new TinkError("fake-token", 503, "BANK_REFRESH_FAILED", undefined, "LICENSED_PARTY_REJECTED")),
-    { code: "BANK_REFRESH_FAILED", reason: "LICENSED_PARTY_REJECTED" });
+    { code: "BANK_REFRESH_FAILED", reason: "LICENSED_PARTY_REJECTED", status: 503 });
+  assert.deepEqual(bankErrorDetails(new TinkError("fake-token", 400, "invalid_grant", undefined, undefined, "oauth-token")),
+    { code: "invalid_grant", status: 400, operation: "oauth-token" });
+  const malformed = Object.assign(new TinkError("fake-token", NaN, "fake-secret"), {
+    operation: "https://example.invalid/?token=fake-secret",
+  });
+  assert.deepEqual(bankErrorDetails(malformed), { code: "TINK_ERROR" });
 });

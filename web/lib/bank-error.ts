@@ -4,8 +4,12 @@ const knownCodes = new Set([
   "NOT_CONFIGURED", "UNSAFE_AMOUNT", "DEMO_MODE_REQUIRED",
   "MISSING_CATEGORY_SEED", "NOT_CONNECTED", "NOTHING_TO_RENEW",
   "INVALID_STATE", "RECONNECT_REQUIRED", "LINK_FAILED", "INVALID_CALLBACK",
-  "NO_ACCOUNTS", "TINK_TIMEOUT", "TINK_UNREACHABLE", "EMPTY_RESPONSE", "UNEXPECTED_RESPONSE",
+  "NO_ACCOUNTS", "TINK_TIMEOUT", "TINK_UNREACHABLE", "TINK_USER_NOT_FOUND", "EMPTY_RESPONSE", "UNEXPECTED_RESPONSE",
   "NO_REFRESHABLE_BANK", "BANK_RECONNECT_REQUIRED", "BANK_REFRESH_FAILED", "BANK_REFRESH_NOT_ALLOWED",
+  "invalid_client", "invalid_grant", "invalid_scope", "invalid_request", "unauthorized_client",
+  "access_denied", "unsupported_grant_type", "temporarily_unavailable", "server_error",
+  "INVALID_STATE_CREDENTIALS", "INVALID_STATE_CREDENTIALS_IS_AWAITING_THIRD_PARTY",
+  "INVALID_STATE_REFRESH_CREDENTIALS_RATE_LIMITED", "INVALID_STATE_SCOPE",
   "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN",
   "ERR_INVALID_URL", "ERR_INVALID_PROTOCOL",
   "SELF_SIGNED_CERT_IN_CHAIN", "DEPTH_ZERO_SELF_SIGNED_CERT",
@@ -31,10 +35,26 @@ const bankReasons = new Set([
   "SESSION_EXPIRED", "USER_ACTION_REQUIRED_UNSIGNED_AGREEMENT", "USER_ACTION_REQUIRED", "NO_ACCOUNTS",
 ]);
 
-export function bankErrorDetails(error: unknown): { code: string; reason?: string } {
+const tinkOperations = new Set([
+  "oauth-token", "authorization-grant", "provider-consents", "credentials-status",
+  "credentials-refresh", "accounts", "transactions",
+]);
+
+export function bankErrorDetails(error: unknown): {
+  code: string; reason?: string; status?: number; operation?: string;
+} {
   const code = bankErrorCode(error);
-  const reason = typeof error === "object" && error !== null && "reason" in error ? error.reason : undefined;
-  return typeof reason === "string" && bankReasons.has(reason) ? { code, reason } : { code };
+  if (typeof error !== "object" || error === null) return { code };
+  const record = error as { name?: unknown; reason?: unknown; status?: unknown; operation?: unknown };
+  return {
+    code,
+    ...(typeof record.reason === "string" && bankReasons.has(record.reason) ? { reason: record.reason } : {}),
+    ...(record.name === "TinkError" && typeof record.status === "number" &&
+      Number.isInteger(record.status) && record.status >= 400 && record.status <= 599
+      ? { status: record.status } : {}),
+    ...(record.name === "TinkError" && typeof record.operation === "string" && tinkOperations.has(record.operation)
+      ? { operation: record.operation } : {}),
+  };
 }
 
 /** A safe, actionable server-log code, including wrapped network errors. */

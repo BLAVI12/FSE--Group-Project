@@ -82,11 +82,15 @@ interface Credentials {
   detailedError?: { details?: { reason?: string } };
 }
 
+type TinkOperation = "oauth-token" | "authorization-grant" | "provider-consents" |
+  "credentials-status" | "credentials-refresh" | "accounts" | "transactions";
+
 export class TinkError extends Error {
   readonly status: number;
   readonly code: string;
   readonly trackingId: string | undefined;
   readonly reason: string | undefined;
+  readonly operation: TinkOperation | undefined;
 
   constructor(
     message: string,
@@ -94,6 +98,7 @@ export class TinkError extends Error {
     code: string,
     trackingId?: string,
     reason?: string,
+    operation?: TinkOperation,
   ) {
     super(message);
     this.name = "TinkError";
@@ -101,6 +106,7 @@ export class TinkError extends Error {
     this.code = code;
     this.trackingId = trackingId;
     this.reason = reason;
+    this.operation = operation;
   }
 }
 
@@ -196,7 +202,7 @@ export function createTinkClient(
     }
   }
 
-  async function responseJson<T>(response: Response): Promise<T> {
+  async function responseJson<T>(response: Response, operation?: TinkOperation): Promise<T> {
     const text = await response.text();
     let body: unknown = null;
     try {
@@ -223,13 +229,14 @@ export function createTinkClient(
       );
       const trackingId =
         typeof record.tracking_id === "string" ? record.tracking_id : undefined;
-      throw new TinkError(message, response.status, code, trackingId);
+      throw new TinkError(message, response.status, code, trackingId, undefined, operation);
     }
     if (body === null)
       throw new TinkError(
         "Tink returned an empty response",
         502,
         "EMPTY_RESPONSE",
+        undefined, undefined, operation,
       );
     return body as T;
   }
@@ -247,7 +254,8 @@ export function createTinkClient(
       },
       body: new URLSearchParams(values),
     });
-    return responseJson<T>(response);
+    return responseJson<T>(response, path === "/api/v1/oauth/token" ? "oauth-token" :
+      path.startsWith("/api/v1/oauth/authorization-grant") ? "authorization-grant" : undefined);
   }
 
   /** Our application's own token (client credentials), cached until a minute before expiry. */
@@ -315,11 +323,19 @@ export function createTinkClient(
     externalUserId: string,
     scope: string,
   ): Promise<string> {
-    const { code } = await postForm<CodeResponse>(
-      "/api/v1/oauth/authorization-grant",
-      { external_user_id: externalUserId, scope },
-      await clientToken(),
-    );
+    let code: string;
+    try {
+      ({ code } = await postForm<CodeResponse>(
+        "/api/v1/oauth/authorization-grant",
+        { external_user_id: externalUserId, scope },
+        await clientToken(),
+      ));
+    } catch (error) {
+      if (error instanceof TinkError && error.status === 404 && error.operation === "authorization-grant")
+        throw new TinkError("The connected Tink user cannot be found", 404,
+          "TINK_USER_NOT_FOUND", error.trackingId, undefined, error.operation);
+      throw error;
+    }
     return (await exchangeAuthorizationCode(code)).access_token;
   }
 
@@ -328,7 +344,12 @@ export function createTinkClient(
       headers: { authorization: `Bearer ${userToken}` },
       signal,
     });
-    return responseJson<T>(response);
+    const operation: TinkOperation | undefined =
+      path.startsWith("/api/v1/credentials/") ? "credentials-status" :
+      path.startsWith("/api/v1/provider-consents") ? "provider-consents" :
+      path.startsWith("/data/v2/accounts") ? "accounts" :
+      path.startsWith("/data/v2/transactions") ? "transactions" : undefined;
+    return responseJson<T>(response, operation);
   }
 
   /** Follows nextPageToken to the end, refusing to loop or run away. */
@@ -433,7 +454,7 @@ export function createTinkClient(
       body: JSON.stringify({ productNames: ["PRODUCT_ACCOUNT_AGGREGATION"] }),
       signal,
     });
-    if (!response.ok) await responseJson<unknown>(response);
+    if (!response.ok) await responseJson<unknown>(response, "credentials-refresh");
     let progressed = false;
     for (;;) {
       const credentials = await read();

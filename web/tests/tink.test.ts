@@ -9,6 +9,7 @@ import type {
   TinkTransaction,
 } from "../../supabase/functions/_shared/tink/convert.ts";
 import { createBankWorkflow, validBrowserState } from "../lib/tink.ts";
+import { bankErrorDetails } from "../lib/bank-error.ts";
 
 // Real PostgreSQL SQL semantics, with an in-memory database and fake Tink only.
 const db = new PGlite({ parsers: { 20: Number, 1082: (value) => value } });
@@ -82,6 +83,8 @@ function fake() {
     refreshStatus: "UPDATED",
     credentialUpdated: 1,
     credentialStatus: "UPDATED",
+    missingUser: null as string | null,
+    createdUsers: [] as string[],
     calls: 0,
   };
   const tink = createTinkClient(
@@ -104,9 +107,17 @@ function fake() {
           body = { access_token: "opaque-test-token", expires_in: 1800 };
         else if (url.pathname.includes("authorization-grant")) {
           const form = init?.body as URLSearchParams;
+          if (form.get("external_user_id") === snapshot.missingUser)
+            return Response.json({ errorCode: "USER_NOT_FOUND" }, { status: 404 });
           if (form.get("scope")?.includes("credentials:refresh") && !form.has("actor_client_id"))
             snapshot.refreshUsers.push(form.get("external_user_id")!);
           body = { code: "fake-code" };
+        }
+        else if (url.pathname === "/api/v1/user/create") {
+          const externalId = JSON.parse(String(init?.body)).external_user_id as string;
+          snapshot.createdUsers.push(externalId);
+          if (snapshot.missingUser === externalId) snapshot.missingUser = null;
+          body = { id: "new-tink-user" };
         }
         else if (url.pathname === "/api/v1/provider-consents")
           body = { providerConsents: snapshot.consents };
@@ -588,6 +599,34 @@ test("bank authentication requested during background refresh preserves data and
   const link = await workflow.startConnect(id, "student@example.com", true);
   assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/update-consent");
   assert.equal(new URL(link.redirectUrl).searchParams.get("credentials_id"), "cred");
+});
+
+test("a missing Tink user requests reconnect and restores the owned bank login without losing local history", async () => {
+  const id = await user();
+  const other = await user();
+  const { workflow, snapshot } = fake();
+  await connect(id, workflow);
+  await workflow.sync(id);
+  await connect(other, workflow);
+  await workflow.sync(other);
+  const saved = (await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows;
+  const otherStatus = await workflow.status(other);
+  snapshot.missingUser = id;
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "expired");
+  assert.equal((await workflow.status(id)).state, "expired");
+  assert.equal(snapshot.refreshes.length, 0, "a missing user cannot reach the bank refresh endpoint");
+  assert.equal(snapshot.createdUsers.length, 0, "Refresh never silently creates an empty user");
+  assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
+  assert.deepEqual(await workflow.status(other), otherStatus);
+  const link = await workflow.startConnect(id, "student@example.com", true);
+  assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
+  assert.deepEqual(snapshot.createdUsers, [id]);
+  assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
+  await workflow.finishConnect(id, new URLSearchParams({ state: link.state, credentials_id: "cred" }), link.state);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
+  assert.deepEqual(await workflow.status(other), otherStatus);
 });
 
 test("automatic and manual refreshes are limited; sample connections never call Tink", async () => {
@@ -1174,6 +1213,27 @@ test("silent refresh requests only refresh scopes and waits past cached UPDATED 
   assert.equal(grant?.form?.get("external_user_id"), "user-1");
   assert.equal(grant?.form?.get("scope"), "provider-consents:read,credentials:read,credentials:refresh");
   assert.ok(calls.every((call) => !call.path.includes("delegate")));
+});
+
+test("a rejected silent refresh identifies its HTTP status and operation without logging upstream secrets", async () => {
+  handler = (url) => {
+    const auth = tinkAuth(url);
+    if (auth) return auth;
+    if (url.pathname === "/api/v1/oauth/authorization-grant") return json(200, { code: "refresh-code" });
+    if (url.pathname === "/api/v1/provider-consents") return json(200, { providerConsents: [
+      { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    ] });
+    if (url.pathname.endsWith("/refresh")) return json(429, {
+      errorCode: "fake-upstream-secret", message: "fake-password and account information",
+    });
+    return json(200, { id: "cred", status: "UPDATED", updated: 1 });
+  };
+  await assert.rejects(client.refreshBank("user-1", ["giro"]), (error) => {
+    assert.deepEqual(bankErrorDetails(error), {
+      code: "TINK_ERROR", status: 429, operation: "credentials-refresh",
+    });
+    return true;
+  });
 });
 
 test("a previous TEMPORARY_ERROR and its cached status do not prevent a new background refresh", async () => {
