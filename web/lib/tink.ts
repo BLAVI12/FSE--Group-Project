@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
 import {
   type TinkClient,
@@ -27,6 +27,7 @@ import categoryMapping from "../../supabase/seed-data/transaction-categories.jso
 
 const AUTO_INTERVAL_MS = 15 * 60_000;
 const MANUAL_INTERVAL_MS = 60_000;
+const SYNC_LEASE_MS = 90_000;
 
 export class BankError extends Error {
   readonly code: string;
@@ -45,6 +46,8 @@ interface Connection {
   sync_complete: boolean;
   last_synced: Date | null;
   sync_attempted_at: Date | null;
+  sync_claim_id: string | null;
+  sync_expires_at: Date | null;
 }
 
 export interface SyncResult {
@@ -58,6 +61,13 @@ export interface SyncResult {
     | "retry_later";
   lastSynced?: string | null;
   skippedTransactions?: number;
+}
+
+export interface SyncClaim {
+  status: "syncing";
+  claimId: string;
+  lastSynced: string | null;
+  transactionFingerprint: string;
 }
 
 export interface BankStatus {
@@ -74,6 +84,32 @@ export interface BankStatus {
   syncComplete?: boolean;
   lastSynced?: string | null;
   syncAttemptedAt?: string | null;
+  transactionFingerprint?: string;
+}
+
+/** Compare bank-visible data, ignoring Tink's shifting ids and user categories. */
+async function transactionFingerprint(db: Pick<Pool, "query">, userId: string) {
+  const result = await db.query<{ fingerprint: string }>(
+    `select md5(coalesce(string_agg(jsonb_build_array(
+      id,account_id,amount,trim_scale(amount_exact)::text,currency,description,
+      booked_date,status,is_transfer
+    )::text, ',' order by id), '')) as fingerprint
+    from public.transactions where user_id=$1`,
+    [userId],
+  );
+  return result.rows[0]!.fingerprint;
+}
+
+async function saveLinkState(pool: Pick<Pool, "query">, userId: string) {
+  const state = randomBytes(32).toString("hex");
+  await pool.query(
+    "delete from public.oauth_states where user_id=$1 and expires_at < now()", [userId],
+  );
+  await pool.query(
+    `insert into public.oauth_states (state,user_id,tink_external_user_id,expires_at)
+     values ($1,$2,$3,now()+interval '10 minutes')`, [state, userId, userId],
+  );
+  return state;
 }
 
 /** Both the signed-in user and the browser that started Link must match. */
@@ -227,7 +263,7 @@ async function applyPlan(
   }
 }
 
-/** Uses the existing tables and reconciliation rules; no background worker. */
+/** Uses the existing reconciliation rules with short, user-scoped sync claims. */
 export function createBankWorkflow(
   pool: Pick<Pool, "connect" | "query">,
   tink: TinkClient,
@@ -251,7 +287,10 @@ export function createBankWorkflow(
           connection.sync_attempted_at &&
           connection.last_synced.valueOf() >= connection.sync_attempted_at.valueOf(),
       );
-      const state: BankStatus["state"] =
+      const leaseActive = Boolean(connection.sync_claim_id && connection.sync_expires_at &&
+        connection.sync_expires_at.valueOf() > now());
+      const abandoned = Boolean(connection.sync_claim_id && !leaseActive);
+      const state: BankStatus["state"] = leaseActive ? "syncing" : abandoned ? "error" :
         connection.status === "EXPIRED"
           ? "expired"
           : connection.status === "ERROR"
@@ -269,6 +308,9 @@ export function createBankWorkflow(
         syncComplete: connection.sync_complete,
         lastSynced,
         syncAttemptedAt,
+        ...(state === "synced"
+          ? { transactionFingerprint: await transactionFingerprint(pool, userId) }
+          : {}),
       };
     },
 
@@ -279,9 +321,11 @@ export function createBankWorkflow(
           [userId],
         )
       ).rows[0];
-      const externalId = connection?.tink_external_user_id ?? userId;
+      // The app login owns the Tink user. Demo Bank usernames are never used
+      // as a shared application identity, even for older imported connections.
+      const externalId = userId;
       let credentialsId: string | null = null;
-      if (renew) {
+      if (renew && connection?.tink_external_user_id === userId) {
         if (!connection?.live_sync_enabled)
           throw new BankError("NOT_CONNECTED");
         const ids = (
@@ -290,13 +334,22 @@ export function createBankWorkflow(
             [connection.id, userId],
           )
         ).rows.map((a) => a.provider_account_id);
-        const token = await tink.userAccessToken(externalId);
-        credentialsId = credentialsToRenew(
-          await tink.fetchProviderConsents(token),
-          ids,
-          now(),
-        );
-        if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
+        try {
+          const token = await tink.userAccessToken(externalId);
+          const consents = await tink.fetchProviderConsents(token);
+          credentialsId = credentialsToRenew(consents, ids, now());
+          // A silent refresh can require authentication before provider-consents
+          // reports expiry. The user explicitly chose Reconnect for this login.
+          if (!credentialsId && connection.status === "EXPIRED")
+            credentialsId = consents.find((consent) =>
+              consent.credentialsId && consent.accountIds?.some((id) => ids.includes(id)),
+            )?.credentialsId ?? null;
+          if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
+        } catch (error) {
+          if (!(error instanceof TinkError && error.code === "TINK_USER_NOT_FOUND")) throw error;
+          // The user explicitly chose Reconnect. Let Link create an owned Tink
+          // user and request a fresh bank login; keep all local history intact.
+        }
       }
       const code = await tink.tinkLinkCode(externalId, email);
       if (!renew) {
@@ -306,16 +359,7 @@ export function createBankWorkflow(
           /* New users and unavailable cleanup must not block Link. */
         }
       }
-      const state = randomBytes(32).toString("hex");
-      await pool.query(
-        "delete from public.oauth_states where user_id=$1 and expires_at < now()",
-        [userId],
-      );
-      await pool.query(
-        `insert into public.oauth_states (state,user_id,tink_external_user_id,expires_at)
-        values ($1,$2,$3,now()+interval '10 minutes')`,
-        [state, userId, externalId],
-      );
+      const state = await saveLinkState(pool, userId);
       return {
         state,
         redirectUrl: credentialsId
@@ -341,10 +385,25 @@ export function createBankWorkflow(
         )
       ).rows[0];
       if (!saved) throw new BankError("INVALID_STATE");
+      if (saved.tink_external_user_id !== userId)
+        throw new BankError("RECONNECT_REQUIRED");
       const error = params.get("error") ?? params.get("error_reason");
       if (error === "USER_CANCELLED") return "cancelled";
-      if (error) throw new BankError("LINK_FAILED");
-      if (!params.get("credentials_id"))
+      const duplicate = params.get("error_reason") === "INVALID_STATE_DUPLICATE_CREDENTIALS";
+      if (error && !duplicate) throw new BankError("LINK_FAILED");
+      if (duplicate) {
+        const existing = (await pool.query<Connection>(
+          "select * from public.connections where user_id=$1 and provider='tink'",
+          [userId],
+        )).rows[0];
+        // A rejected duplicate is not a new connection. Preserve the existing
+        // sync state and any worker already updating this user's bank data.
+        if (existing?.live_sync_enabled && existing.tink_external_user_id === saved.tink_external_user_id)
+          return "already_connected";
+      }
+      // An already-connected login may be reused for this verified Tink user.
+      // Never delete its credentials or borrow another app user's connection.
+      if (!duplicate && !params.get("credentials_id"))
         throw new BankError("INVALID_CALLBACK");
       // Always grant for the saved user; never trust a callback code to choose ownership.
       const token = await tink.userAccessToken(saved.tink_external_user_id);
@@ -360,7 +419,7 @@ export function createBankWorkflow(
           values ($1,'tink',$2,$3,'ACTIVE',false,true)
           on conflict (user_id,provider) do update set tink_user_id=coalesce(excluded.tink_user_id,connections.tink_user_id),
           tink_external_user_id=excluded.tink_external_user_id,status='ACTIVE',sync_complete=false,
-          live_sync_enabled=true,sync_attempted_at=null returning id`,
+          live_sync_enabled=true,sync_attempted_at=null,sync_claim_id=null,sync_expires_at=null returning id`,
             [userId, jwtSubject(token), saved.tink_external_user_id],
           )
         ).rows[0]!;
@@ -376,68 +435,105 @@ export function createBankWorkflow(
       }
     },
 
-    async sync(userId: string, manual = false): Promise<SyncResult> {
+    /** Claim quickly, then release the database connection before contacting Tink. */
+    async prepareSync(userId: string, manual = false): Promise<SyncResult | SyncClaim> {
       const db = await pool.connect();
       try {
         await db.query("begin");
-        // PostgreSQL coordinates all app instances; concurrent clicks do not start another fetch.
-        const connection = (
-          await db.query<Connection>(
-            `select * from public.connections
-          where user_id=$1 and provider='tink' and live_sync_enabled for update skip locked`,
-            [userId],
-          )
-        ).rows[0];
+        const connection = (await db.query<Connection>(
+          `select * from public.connections
+           where user_id=$1 and provider='tink' and live_sync_enabled for update skip locked`,
+          [userId],
+        )).rows[0];
         if (!connection) {
-          const exists = (
-            await db.query(
-              "select id from public.connections where user_id=$1 and provider='tink' and live_sync_enabled",
-              [userId],
-            )
-          ).rows.length;
+          const exists = (await db.query(
+            "select id from public.connections where user_id=$1 and provider='tink' and live_sync_enabled", [userId],
+          )).rows.length;
           await db.query("commit");
           return { status: exists ? "busy" : "not_connected" };
         }
+        const lastSynced = connection.last_synced?.toISOString() ?? null;
+        if (connection.tink_external_user_id !== userId) {
+          await db.query("update public.connections set status='EXPIRED',sync_claim_id=null,sync_expires_at=null where id=$1", [connection.id]);
+          await db.query("commit");
+          return { status: "expired", lastSynced };
+        }
+        if (connection.sync_claim_id && connection.sync_expires_at && connection.sync_expires_at.valueOf() > now()) {
+          await db.query("commit");
+          return { status: "busy", lastSynced };
+        }
         if (connection.status === "EXPIRED") {
           await db.query("commit");
-          return { status: "expired" };
+          return { status: "expired", lastSynced };
         }
-        const lastSynced = connection.last_synced?.toISOString() ?? null;
-        const sinceAttempt =
-          now() - (connection.sync_attempted_at?.valueOf() ?? 0);
+        const abandoned = Boolean(connection.sync_claim_id);
         const interval = manual ? MANUAL_INTERVAL_MS : AUTO_INTERVAL_MS;
-        if (
-          sinceAttempt < interval ||
-          (!manual &&
-            connection.sync_complete &&
-            connection.last_synced &&
-            now() - connection.last_synced.valueOf() < interval)
-        ) {
+        const sinceAttempt = now() - (connection.sync_attempted_at?.valueOf() ?? 0);
+        if (!abandoned && (sinceAttempt < interval || (!manual && connection.sync_complete &&
+            connection.last_synced && now() - connection.last_synced.valueOf() < interval))) {
           await db.query("commit");
-          return {
-            status: connection.status === "ERROR"
-              ? "retry_later"
-              : !connection.sync_complete && connection.last_synced
-                ? "partial"
-                : "current",
-            lastSynced,
-          };
+          return { status: connection.status === "ERROR" ? "retry_later" :
+            !connection.sync_complete && connection.last_synced ? "partial" : "current", lastSynced };
         }
+        const beforeTransactions = await transactionFingerprint(db, userId);
+        const claimId = randomUUID();
         await db.query(
-          "update public.connections set sync_attempted_at=now() where id=$1",
-          [connection.id],
+          `update public.connections set sync_attempted_at=$2,status='ACTIVE',sync_complete=false,
+           sync_claim_id=$3,sync_expires_at=$4 where id=$1`,
+          [connection.id, new Date(now()), claimId, new Date(now() + SYNC_LEASE_MS)],
         );
-        await db.query("savepoint bank_data");
-        try {
-          const token = await tink.userAccessToken(
-            connection.tink_external_user_id,
-          );
+        await db.query("commit");
+        return { status: "syncing", claimId, lastSynced, transactionFingerprint: beforeTransactions };
+      } catch (error) {
+        await db.query("rollback");
+        throw error;
+      } finally { db.release(); }
+    },
+
+    /** Fetch outside a database transaction, then save a complete snapshot atomically. */
+    async runSync(userId: string, claimId: string, refreshBank = false): Promise<SyncResult> {
+      const connection = (await pool.query<Connection>(
+        `select * from public.connections where user_id=$1 and provider='tink'
+         and sync_claim_id=$2 and sync_expires_at>$3`,
+        [userId, claimId, new Date(now())],
+      )).rows[0];
+      if (!connection) return { status: "busy" };
+      try {
+        if (connection.tink_external_user_id !== userId)
+          throw new BankError("RECONNECT_REQUIRED");
+        if (refreshBank) {
+          const accounts = (await pool.query<{ provider_account_id: string }>(
+            "select provider_account_id from public.accounts where connection_id=$1 and user_id=$2",
+            [connection.id, userId],
+          )).rows.map((account) => account.provider_account_id);
+          await tink.refreshBank(userId, accounts);
+        }
+        const fetchSnapshot = async () => {
+          const token = await tink.userAccessToken(connection.tink_external_user_id);
           const [accounts, transactions, consents] = await Promise.all([
-            tink.fetchAccounts(token),
-            tink.fetchAllTransactions(token),
-            tink.fetchProviderConsents(token),
+            tink.fetchAccounts(token), tink.fetchAllTransactions(token), tink.fetchProviderConsents(token),
           ]);
-          if (!accounts.length) throw new BankError("NO_ACCOUNTS");
+          return { accounts, transactions, consents };
+        };
+        let snapshot;
+        try { snapshot = await fetchSnapshot(); }
+        catch (error) {
+          // An expired API token is not evidence that the bank consent expired.
+          // Mint a fresh token once, while still respecting the function budget.
+          if (!(error instanceof TinkError) || error.status !== 401) throw error;
+          snapshot = await fetchSnapshot();
+        }
+        const { accounts, transactions, consents } = snapshot;
+        if (!accounts.length) throw new BankError("NO_ACCOUNTS");
+        const db = await pool.connect();
+        try {
+          await db.query("begin");
+          const owned = (await db.query(
+            `select id from public.connections where id=$1 and user_id=$2
+             and sync_claim_id=$3 and sync_expires_at>$4 for update`,
+            [connection.id, userId, claimId, new Date(now())],
+          )).rows.length;
+          if (!owned) { await db.query("rollback"); return { status: "busy" }; }
           const providerToLocal = new Map<string, string>();
           for (const account of accounts)
             providerToLocal.set(
@@ -464,7 +560,7 @@ export function createBankWorkflow(
             // Usable rows may still be saved; pending deletion is disabled below.
             if (!converted) {
               skippedTransactions++;
-              if (!transaction.identifiers?.providerTransactionId)
+              if (!transaction.identifiers?.providerTransactionId && !transaction.id)
                 skippedReasons.missingProviderId++;
               if (!transaction.dates?.booked)
                 skippedReasons.missingBookedDate++;
@@ -503,6 +599,7 @@ export function createBankWorkflow(
               [userId],
             )
           ).rows;
+          const changes = { insertedTransactions: 0, changedTransactions: 0, removedPendingTransactions: 0 };
           for (const accountId of new Set(providerToLocal.values())) {
             const stored = (
               await db.query<StoredTransaction>(
@@ -516,6 +613,9 @@ export function createBankWorkflow(
             // A skipped row may be a stored pending transaction. Its absence
             // from the usable subset must never be treated as a bank deletion.
             if (skippedTransactions > 0) plan.deletes = [];
+            changes.insertedTransactions += plan.inserts.length;
+            changes.changedTransactions += plan.updates.filter((update) => update.kind === "changed").length;
+            changes.removedPendingTransactions += plan.deletes.length;
             await applyPlan(
               db,
               userId,
@@ -536,7 +636,7 @@ export function createBankWorkflow(
           const updated = (
             await db.query<{ last_synced: Date }>(
               `update public.connections set status=$2,
-            sync_complete=$3,sync_cursor=null,last_synced=now() where id=$1 returning last_synced`,
+            sync_complete=$3,sync_cursor=null,last_synced=now(),sync_claim_id=null,sync_expires_at=null where id=$1 returning last_synced`,
               [connection.id, expired ? "EXPIRED" : "ACTIVE", complete],
             )
           ).rows[0]!;
@@ -548,6 +648,13 @@ export function createBankWorkflow(
               usableTransactions: transactions.length - skippedTransactions,
               skippedTransactions,
               skippedReasons,
+              ...changes,
+            });
+          } else {
+            console.info("Bank sync saved a complete snapshot.", {
+              receivedTransactions: transactions.length,
+              usableTransactions: transactions.length,
+              ...changes,
             });
           }
           return {
@@ -556,26 +663,29 @@ export function createBankWorkflow(
             ...(complete ? {} : { skippedTransactions }),
           };
         } catch (error) {
-          // Roll back every bank-data change, but retain the attempt time to limit retries.
-          await db.query("rollback to savepoint bank_data");
-          await db.query(
-            "update public.connections set status=$2,sync_complete=false where id=$1",
-            [
-              connection.id,
-              error instanceof TinkError && error.status === 401
-                ? "EXPIRED"
-                : "ERROR",
-            ],
-          );
-          await db.query("commit");
+          await db.query("rollback");
           throw error;
-        }
+        } finally { db.release(); }
       } catch (error) {
-        await db.query("rollback");
+        // Release only our claim. A newer sync or reconnect may already own it.
+        // No bank data or another user's state is changed by a failed fetch.
+        const expired = (error instanceof TinkError &&
+          ["BANK_RECONNECT_REQUIRED", "TINK_USER_NOT_FOUND"].includes(error.code)) ||
+          (error instanceof BankError && error.code === "RECONNECT_REQUIRED");
+        await pool.query(
+          `update public.connections set status=$4,sync_complete=false,
+           sync_claim_id=null,sync_expires_at=null where id=$1 and user_id=$2 and sync_claim_id=$3`,
+          [connection.id, userId, claimId, expired ? "EXPIRED" : "ERROR"],
+        );
+        if (expired) return { status: "expired", lastSynced: connection.last_synced?.toISOString() ?? null };
         throw error;
-      } finally {
-        db.release();
       }
+    },
+
+    /** Synchronous convenience for tests and non-serverless callers. */
+    async sync(userId: string, manual = false): Promise<SyncResult> {
+      const request = await this.prepareSync(userId, manual);
+      return request.status === "syncing" ? this.runSync(userId, request.claimId, manual) : request;
     },
   };
 }

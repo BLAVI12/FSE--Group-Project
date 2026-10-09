@@ -96,7 +96,11 @@ test("rows Tink sends incomplete are skipped, not guessed", () => {
     identifiers: { providerTransactionId: "1" },
     descriptions: { original: "EDEKA SAGT DANKE" },
   };
-  assert.equal(toTransactionValues({ ...base, identifiers: {} }), null);
+  assert.equal(
+    toTransactionValues({ ...base, identifiers: {} })?.values.providerTransactionId,
+    "tink:x",
+  );
+  assert.equal(toTransactionValues({ ...base, id: "", identifiers: {} }), null);
   assert.equal(toTransactionValues({ ...base, amount: undefined }), null);
   assert.equal(toTransactionValues({ ...base, dates: {} }), null);
   // No display text: the bank's original is used. No status: provisional.

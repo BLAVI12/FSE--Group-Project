@@ -18,6 +18,7 @@ login. It is sandbox data with no real personal or financial information.
 | `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
 | `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
 | `..._admin_management.sql` | Account suspension, bounded user lookup, serialized admin changes and audit log |
+| `..._bank_sync_lease.sql` | Per-user sync claims and expiry; abandoned attempts can recover without a long database transaction |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
@@ -127,6 +128,39 @@ The hosted setup below is historical documentation of work applied manually
 before this repository had CLI migration tracking. Do not apply new migrations
 or seeds through the Dashboard. New changes belong in migration/seed files and
 must be applied through the Supabase CLI only after the target is approved.
+
+### Bank-sync deployment
+
+The pending bank-sync migration is `20261009000001_bank_sync_lease.sql`.
+Versions `20261008000003` and `20261008000004` are reserved for the
+registration migrations in PR #33. The bank-sync SQL is unchanged; only its
+pending version was moved to avoid a collision. Its hosted application status
+has not been verified by this change.
+
+Apply this migration to the approved live project before deploying the app
+version containing the bank-sync changes. The code requires
+`public.connections.sync_claim_id` and `sync_expires_at`; without them,
+connection status and imports fail. GitHub CI builds a disposable database,
+and merging or deploying the web app does not migrate the hosted database.
+
+After verifying the target and reconciling only verified migration history:
+
+```sh
+supabase link --project-ref <APPROVED_PROJECT_REF>
+supabase migration list --linked
+supabase db push --linked --dry-run
+supabase db push --linked
+```
+
+Review the dry run and apply only the pending migrations approved for this
+release. Do not use `--include-seed` or reset the hosted database. Before
+enabling the new app version, verify both lease columns, the
+`connections_sync_claim_check` constraint, and migration version
+`20261009000001` in the hosted history. Record the actual application date and
+command here after verification. If a prototype lease migration is already
+recorded under an older version, verify the schema and reconcile that history
+before pushing; never mark another migration as applied based on its number
+alone.
 
 Then check the existing hosted seed with:
 
