@@ -89,7 +89,7 @@ export function BankConnection({ configured, connection, outcome }: {
       const unchanged = status.state === "synced" && beforeTransactions !== undefined &&
         status.transactionFingerprint === beforeTransactions;
       setMessage(unchanged
-        ? "Keine neuen Transaktionen. Die Bank hat dieselben Transaktionsdaten geliefert."
+        ? "No new transactions. The bank returned the same data as before."
         : status.state === "error" ? syncFailure : messages[status.state] ?? syncFailure);
       if (["synced", "partial", "expired"].includes(status.state)) router.refresh();
     } catch (error) {

@@ -22,6 +22,8 @@ function bankWorkflow() {
   if (!database.tinkPool) {
     const url = new URL(process.env.DATABASE_URL);
     const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    const ca = process.env.DATABASE_CA_CERT;
+    if (!local && !ca) throw new BankError("MISSING_DATABASE_CA_CERT");
     url.searchParams.delete("sslmode");
     pg.types.setTypeParser(20, (value) => {
       const amount = Number(value);
@@ -37,7 +39,7 @@ function bankWorkflow() {
       statement_timeout: 10_000,
       ssl: local
         ? false
-        : { rejectUnauthorized: true, ca: process.env.DATABASE_CA_CERT },
+        : { rejectUnauthorized: true, ca },
     });
     database.tinkPool.on("error", (error) =>
       console.error("Bank database connection failed.", { code: bankErrorCode(error) }),

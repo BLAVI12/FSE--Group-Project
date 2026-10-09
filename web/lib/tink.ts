@@ -344,7 +344,6 @@ export function createBankWorkflow(
             credentialsId = consents.find((consent) =>
               consent.credentialsId && consent.accountIds?.some((id) => ids.includes(id)),
             )?.credentialsId ?? null;
-          if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
         } catch (error) {
           if (!(error instanceof TinkError && error.code === "TINK_USER_NOT_FOUND")) throw error;
           // The user explicitly chose Reconnect. Let Link create an owned Tink
@@ -670,8 +669,8 @@ export function createBankWorkflow(
         // Release only our claim. A newer sync or reconnect may already own it.
         // No bank data or another user's state is changed by a failed fetch.
         const expired = (error instanceof TinkError &&
-          ["BANK_RECONNECT_REQUIRED", "TINK_USER_NOT_FOUND"].includes(error.code)) ||
-          (error instanceof BankError && error.code === "RECONNECT_REQUIRED");
+          ["BANK_RECONNECT_REQUIRED", "TINK_USER_NOT_FOUND", "NO_REFRESHABLE_BANK"].includes(error.code)) ||
+          (error instanceof BankError && ["RECONNECT_REQUIRED", "NO_ACCOUNTS"].includes(error.code));
         await pool.query(
           `update public.connections set status=$4,sync_complete=false,
            sync_claim_id=null,sync_expires_at=null where id=$1 and user_id=$2 and sync_claim_id=$3`,
