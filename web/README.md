@@ -49,17 +49,24 @@ The existing `convert.ts`, `reconcile.ts` and transaction classification are reu
 
    ```bash
    supabase link --project-ref <PROJECT_REF>
-   supabase db push --linked --include-seed --dry-run
-   supabase db push --linked --include-seed
+   supabase migration list --linked
+   supabase db push --linked --dry-run
+   supabase db push --linked
    ```
 
-   `--include-seed` loads the configured sample data and category seed as well.
+   Do not use `--include-seed` on the hosted project: the configured seed
+   includes sample users and transactions. Existing category data is retained.
+   Fresh local databases load the seeds through `supabase start` / `db reset`.
    The existing migration rule still applies: add a migration instead of editing
    applied migrations. Migration 009 adds sync status and keeps cents-only seed
    inserts compatible. Its default leaves existing demo rows as sample data.
-   `20261008000003_bank_sync_lease.sql` adds the sync claim and expiry fields;
+   `20261009000001_bank_sync_lease.sql` adds the sync claim and expiry fields;
    apply it before deploying this workflow. It also accepts existing lease
    columns from the local prototype. It does not require reseeding.
+   For the live release, follow the bank-sync deployment steps in
+   [`../supabase/README.md`](../supabase/README.md#bank-sync-deployment).
+   Apply and verify the migration before the merged app version is deployed;
+   a GitHub merge or Vercel deployment does not apply it automatically.
 4. Start the app, sign in and click **Add bank**. Enter the Tink Demo Bank user's
    credentials in the hosted Tink Link login. The first sync starts automatically
    after returning. **Refresh data** refreshes the existing bank login in the

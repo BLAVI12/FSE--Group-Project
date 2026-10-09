@@ -4,7 +4,7 @@ const knownCodes = new Set([
   "NOT_CONFIGURED", "UNSAFE_AMOUNT", "DEMO_MODE_REQUIRED",
   "MISSING_CATEGORY_SEED", "NOT_CONNECTED", "NOTHING_TO_RENEW",
   "INVALID_STATE", "RECONNECT_REQUIRED", "LINK_FAILED", "INVALID_CALLBACK",
-  "NO_ACCOUNTS", "TINK_TIMEOUT", "TINK_UNREACHABLE",
+  "NO_ACCOUNTS", "TINK_TIMEOUT", "TINK_UNREACHABLE", "EMPTY_RESPONSE", "UNEXPECTED_RESPONSE",
   "NO_REFRESHABLE_BANK", "BANK_RECONNECT_REQUIRED", "BANK_REFRESH_FAILED", "BANK_REFRESH_NOT_ALLOWED",
   "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN",
   "ERR_INVALID_URL", "ERR_INVALID_PROTOCOL",
@@ -53,6 +53,9 @@ export function bankErrorCode(error: unknown): string {
       if (record.name === "TinkError" && /^HTTP_[1-5][0-9]{2}$/.test(record.code))
         return record.code;
     }
+    // An unrecognised Tink code is still a Tink failure. Never label it as a
+    // database/configuration error or copy its arbitrary upstream text.
+    if (record.name === "TinkError") return "TINK_ERROR";
     if (typeof record.message === "string") {
       const configCode = configMessages.get(record.message);
       if (configCode) return configCode;

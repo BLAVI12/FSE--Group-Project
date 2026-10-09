@@ -37,11 +37,16 @@ test("bank logs unwrap network causes and stop at cyclic errors", () => {
 
 test("bank logs redact arbitrary upstream codes, messages and non-error values", () => {
   for (const error of [null, "fake-secret", new Error("fake-secret"),
-    { code: "fake-token", detail: "bank data" },
-    new TinkError("fake-password", 502, "fake-token"),
-    new TinkError("fake-password", 502, "ABCDE")]) {
+    { code: "fake-token", detail: "bank data" }]) {
     assert.equal(bankErrorCode(error), "DATABASE_OR_CONFIGURATION_ERROR");
   }
+  for (const error of [
+    new TinkError("fake-password", 502, "fake-token"),
+    new TinkError("fake-password", 502, "ABCDE")]) {
+    assert.equal(bankErrorCode(error), "TINK_ERROR");
+  }
+  for (const code of ["EMPTY_RESPONSE", "UNEXPECTED_RESPONSE"])
+    assert.deepEqual(bankErrorDetails(new TinkError("fake-secret", 502, code)), { code });
   assert.equal(bankErrorCode(new TinkError("fake-token", 401, "HTTP_401")), "HTTP_401");
   assert.deepEqual(bankErrorDetails(new TinkError("fake-token", 503, "BANK_REFRESH_FAILED", undefined, "fake-secret")),
     { code: "BANK_REFRESH_FAILED" });
