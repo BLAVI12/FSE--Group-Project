@@ -649,6 +649,8 @@ test("a Tink user with no remaining accounts is asked to reconnect without losin
     )).rows,
     saved,
   );
+  const link = await workflow.startConnect(id, "student@example.com", true);
+  assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
 });
 
 test("automatic and manual refreshes are limited; sample connections never call Tink", async () => {

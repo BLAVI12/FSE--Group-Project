@@ -128,6 +128,8 @@ The hosted setup below is historical documentation of work applied manually
 before this repository had CLI migration tracking. New changes still belong in
 migration or seed files, but do not run a remote CLI migration command against
 this project until its missing migration history has been reconciled separately.
+Apply a new migration to the hosted project by running its file in the SQL
+Editor after the team agrees, then record the date and a schema check here.
 
 ### Bank-sync deployment
 

@@ -344,7 +344,6 @@ export function createBankWorkflow(
             credentialsId = consents.find((consent) =>
               consent.credentialsId && consent.accountIds?.some((id) => ids.includes(id)),
             )?.credentialsId ?? null;
-          if (!credentialsId) throw new BankError("NOTHING_TO_RENEW");
         } catch (error) {
           if (!(error instanceof TinkError && error.code === "TINK_USER_NOT_FOUND")) throw error;
           // The user explicitly chose Reconnect. Let Link create an owned Tink
