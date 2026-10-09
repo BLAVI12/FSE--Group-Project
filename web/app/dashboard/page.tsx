@@ -4,6 +4,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { BankConnection } from "@/components/bank-connection";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { BrandLink } from "@/components/brand/brand-link";
+import { UserGreeting } from "@/components/user-greeting";
 import {
   DashboardDataError,
   loadDashboardData,
@@ -104,9 +105,7 @@ export default async function DashboardPage({
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <BrandLink />
-            <p className="mt-1 text-sm text-slate-500 sm:ml-[50px]">
-              Signed in as {user.email ?? user.id}
-            </p>
+            <UserGreeting supabase={supabase} userId={user.id} />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

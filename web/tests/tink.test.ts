@@ -204,6 +204,43 @@ test("authenticated database reads expose only the signed-in user's rows and blo
   }
 });
 
+test("signup metadata populates separate profile names without an authenticated session", async () => {
+  const beforeCount = (await db.query<{ count: number }>("select count(*) from auth.users")).rows[0]!.count;
+  const cases = [
+    { metadata: { first_name: " Ada ", last_name: " van Lovelace ", role: "admin" }, first: "Ada", last: "van Lovelace" },
+    { metadata: { given_name: "María", family_name: "García" }, first: "María", last: "García" },
+    { metadata: { display_name: "Do not split this name" }, first: null, last: null },
+    { metadata: { first_name: " ", last_name: "x".repeat(101) }, first: null, last: null },
+    { metadata: { first_name: { invalid: true }, last_name: 42 }, first: null, last: null },
+    { metadata: { first_name: null, last_name: null, given_name: "Ada", family_name: "Lovelace" }, first: "Ada", last: "Lovelace" },
+    { metadata: { name: "Ada Lovelace", full_name: "Ada Lovelace" }, first: null, last: null },
+    { metadata: { first_name: "𠮷".repeat(100), last_name: "😀".repeat(100) }, first: "𠮷".repeat(100), last: "😀".repeat(100) },
+    { metadata: { first_name: "𠮷".repeat(101), last_name: "😀".repeat(101) }, first: null, last: null },
+  ];
+  for (const entry of cases) {
+    await db.exec("begin");
+    try {
+      const id = crypto.randomUUID();
+      await db.query("insert into auth.users (id, raw_user_meta_data) values ($1,$2::jsonb)", [id, JSON.stringify(entry.metadata)]);
+      const profile = (await db.query<{ first_name: string | null; last_name: string | null }>(
+        "select first_name,last_name from profiles where id=$1", [id],
+      )).rows[0];
+      assert.equal(profile?.first_name, entry.first);
+      assert.equal(profile?.last_name, entry.last);
+      assert.equal((await db.query<{ role: string }>("select role from user_roles where user_id=$1", [id])).rows[0]?.role, "user");
+      // These are the same persisted columns the Profile tab loads and edits.
+      await db.exec("set local role authenticated");
+      await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);
+      assert.equal((await db.query<{ first_name: string | null }>("select first_name from profiles where id=$1", [id])).rows[0]?.first_name, entry.first);
+      await db.query("update profiles set first_name='Updated',last_name='Name' where id=$1", [id]);
+      assert.equal((await db.query<{ first_name: string }>("select first_name from profiles where id=$1", [id])).rows[0]?.first_name, "Updated");
+    } finally {
+      await db.exec("rollback");
+    }
+  }
+  assert.equal((await db.query<{ count: number }>("select count(*) from auth.users")).rows[0]!.count, beforeCount);
+});
+
 test("profiles and roles are created automatically and cannot be escalated by users", async () => {
   const id = await user();
   const other = await user();

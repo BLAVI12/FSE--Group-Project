@@ -120,6 +120,23 @@ are separate future features.
 
 ## Hosted project
 
+### 8 October 2026 migration record
+
+At the last verified application in this project's work log, migrations
+`20261008000001_profiles_and_roles` and `20261008000002_admin_management`
+were present on hosted. Admin management was applied with the linked Supabase
+CLI (`db push --linked`) after backup and verification; its incorrect history
+entry was first repaired with `migration repair --status reverted`.
+The original application event for `...0001` is not reconstructed here.
+
+The registration review reports `20261008000003_registration_names` as **not
+yet applied**. `20261008000004_registration_name_fallback` is a new, local
+follow-up fixing JSON-null metadata. Neither registration migration has been
+applied by this review-fix task. Recheck history **and the actual trigger**
+before deployment, apply only the approved pending migrations through the CLI,
+then replace this pending status with the verified date and command. Do not
+run `seed.sql` on hosted to complete the demo profile.
+
 The hosted project `FSE--Group-Project` was set up on 3 October 2026 by
 running the first six migrations and `seed.sql` in the SQL Editor.
 
@@ -189,6 +206,35 @@ supabase db push --project-ref <APPROVED_PROJECT_REF>
 ```
 
 ## Rebuilding locally
+
+### Names at registration
+
+Migration `20261008000003_registration_names.sql` copies `first_name` and
+`last_name` from signup metadata into each new profile. Google metadata can
+instead provide `given_name` and `family_name` if those keys are present;
+Google OAuth is not guaranteed to retain them (Supabase commonly stores
+`name`/`full_name`). Full names are never split automatically. Missing, non-string, empty or
+overlength values remain null and can be edited in the Profile tab. No names
+are guessed from a display name, and existing profiles are not backfilled.
+Email/password registration requires separate first and last name fields.
+The web app checks persisted profile names after either login method. Users
+with an incomplete username or names (including existing accounts) must complete the Profile
+tab before accessing other dashboard pages or web API routes. Profile saving
+requires a username and both names server-side; address fields remain optional. This is an
+application onboarding check, not a new database privilege or RLS restriction.
+The database trigger works even when email confirmation means signup does not
+immediately return a session. Apply this migration through the approved
+migration process before relying on signup names in the hosted project.
+
+Migration `20261008000004_registration_name_fallback.sql` treats JSON null as
+missing when falling back to `given_name`/`family_name`. It replaces only the
+trigger function and does not backfill any existing profiles. Apply both
+pending registration migrations in order. Web validation counts up to 100
+Unicode codepoints, matching PostgreSQL length; HTML maxlength allows up to
+200 UTF-16 units so supplementary characters are not blocked prematurely.
+The local demo seed fills missing username and names with `demo_student`,
+`Demo`, `Student`, while retaining already saved values.
+
 
 With the Supabase CLI and Docker: `supabase start`, then `supabase db reset`
 applies every migration and configured seed file. **`supabase db reset`

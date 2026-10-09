@@ -17,11 +17,20 @@ insert into auth.users (instance_id, id, aud, role, email, encrypted_password,
 values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-000000000001',
         'authenticated', 'authenticated', 'demo@example.com',
         extensions.crypt('demo-planner-2026', extensions.gen_salt('bf')), now(),
-        '{"provider": "email", "providers": ["email"]}', '{}', now(), now(),
+        '{"provider": "email", "providers": ["email"]}', '{"first_name":"Demo","last_name":"Student"}', now(), now(),
         '', '', '', '')
 on conflict (id) do update
    set encrypted_password = excluded.encrypted_password,
        email_confirmed_at = coalesce(auth.users.email_confirmed_at, excluded.email_confirmed_at);
+
+-- Complete only missing demo profile fields. Local seed only: never rerun the
+-- full seed on hosted just to update the demo user's personal details.
+update public.profiles
+   set username = coalesce(username, 'demo_student'),
+       first_name = coalesce(first_name, 'Demo'),
+       last_name = coalesce(last_name, 'Student')
+ where id = '00000000-0000-4000-8000-000000000001'
+   and (username is null or first_name is null or last_name is null);
 
 insert into auth.identities (id, provider_id, user_id, identity_data, provider,
                              created_at, updated_at)
