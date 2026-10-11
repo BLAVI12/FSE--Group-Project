@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   updateUserRole,
   type RoleFormState,
 } from "@/app/dashboard/admin/actions";
+import { SelectMenu } from "@/components/ui/select-menu";
 import type { AppRole } from "@/lib/data/profile";
 
 const initialState: RoleFormState = { status: "idle", message: "" };
@@ -18,21 +19,20 @@ export function AdminRoleForm({
 }) {
   const action = updateUserRole.bind(null, userId);
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [selectedRole, setSelectedRole] = useState(role);
 
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">
-      <label className="sr-only" htmlFor={`role-${userId}`}>
-        Role
-      </label>
-      <select
-        id={`role-${userId}`}
+      <SelectMenu
+        ariaLabel="Role"
         name="role"
-        defaultValue={role}
-        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
-      >
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
+        value={selectedRole}
+        options={[
+          { value: "user", label: "User" },
+          { value: "admin", label: "Admin" },
+        ]}
+        onValueChange={(nextRole) => setSelectedRole(nextRole as AppRole)}
+      />
       <button
         type="submit"
         disabled={pending}

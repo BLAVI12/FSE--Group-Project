@@ -18,6 +18,7 @@ login. It is sandbox data with no real personal or financial information.
 | `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
 | `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
 | `..._admin_management.sql` | Account suspension, bounded user lookup, serialized admin changes and audit log |
+| `..._bank_sync_lease.sql` | Per-user sync claims and expiry; abandoned attempts can recover without a long database transaction |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
@@ -141,9 +142,21 @@ The hosted project `FSE--Group-Project` was set up on 3 October 2026 by
 running the first six migrations and `seed.sql` in the SQL Editor.
 
 The hosted setup below is historical documentation of work applied manually
-before this repository had CLI migration tracking. Do not apply new migrations
-or seeds through the Dashboard. New changes belong in migration/seed files and
-must be applied through the Supabase CLI only after the target is approved.
+before this repository had CLI migration tracking. New changes still belong in
+migration or seed files, but do not run a remote CLI migration command against
+this project until its missing migration history has been reconciled separately.
+Apply a new migration to the hosted project by running its file in the SQL
+Editor after the team agrees, then record the date and a schema check here.
+
+### Bank-sync deployment
+
+`20261009000001_bank_sync_lease.sql` records the lease schema used by the
+prototype. It was added to the hosted project by hand from that prototype and
+verified identical to the committed migration on 9 October 2026: both
+`public.connections.sync_claim_id` and `sync_expires_at` are present, the
+`connections_sync_claim_check` constraint matches, and browsers retain SELECT
+only. The hosted project has no CLI migration record for this manual change, so
+there is nothing to apply and `supabase db push --linked` must not be run for it.
 
 Then check the existing hosted seed with:
 
@@ -197,13 +210,10 @@ select (select count(*) from public.categories)           as categories,
 ```
 
 Because the migrations were applied by hand, the Supabase CLI does not know
-about them. After explicit project approval, mark the verified migrations as
-applied (`supabase migration repair --status applied <versions>`), and then
-use:
-
-```sh
-supabase db push --project-ref <APPROVED_PROJECT_REF>
-```
+about them. Do not infer or repair migration history from version numbers alone.
+Any future move to CLI-managed hosted migrations needs its own approved,
+verified baseline procedure; this repository intentionally gives no remote push
+command while that history is absent.
 
 ## Rebuilding locally
 
@@ -243,11 +253,6 @@ instance. The migrations need Supabase's `auth` schema, so plain PostgreSQL is
 not sufficient. The repository config runs `seed.sql` followed by the
 generated transaction-category seed.
 
-The hosted project has migration history from manual SQL Editor application;
-the CLI's migration history must be reconciled before a future approved remote
-push. Do not run a remote command until the target project is explicitly
-approved. Once approved and linked, the migration application command is:
-
-```sh
-supabase db push --project-ref <APPROVED_PROJECT_REF>
-```
+The hosted schema reflects changes applied manually in the SQL Editor, but it
+has no corresponding CLI migration history. The rebuild commands above are for
+the disposable local database only; do not use them against the hosted project.

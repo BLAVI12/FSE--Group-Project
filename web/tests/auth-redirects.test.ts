@@ -29,6 +29,14 @@ test("builds a Google registration callback URL", () => {
   );
 });
 
+
+test("builds a Google login callback URL that requests a bank refresh", () => {
+  assert.equal(
+    googleOAuthCallbackUrl("http://localhost:3000", "login"),
+    "http://localhost:3000/auth/callback?next=%2Fdashboard%3Fbank%3Dlogin&flow=login",
+  );
+});
+
 test("returns Google registration failures to registration", () => {
   assert.equal(oauthErrorPath("register"), "/register");
 });

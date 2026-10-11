@@ -34,43 +34,104 @@ parts: the shared Tink client, `lib/tink.ts` for the workflow, one
 `app/api/tink/route.ts` endpoint, and the `BankConnection` component.
 The existing `convert.ts`, `reconcile.ts` and transaction classification are reused.
 
-1. Add `DATABASE_URL`, `TINK_CLIENT_ID`, `TINK_CLIENT_SECRET` and
-   `TINK_REDIRECT_URI` to `web/.env.local` using `.env.example`.
+1. Add `DATABASE_URL`, `DATABASE_CA_CERT`, `TINK_CLIENT_ID`,
+   `TINK_CLIENT_SECRET` and `TINK_REDIRECT_URI` to `web/.env.local` using
+   `.env.example`.
    Use the **transaction pooler** URL from Supabase **Connect**, pointing to
    the same project as the login. Keep these server values without `NEXT_PUBLIC_`.
+   For the hosted database, download its SSL certificate in Supabase Project
+   Settings and put the complete PEM file in `DATABASE_CA_CERT`, in double quotes.
 2. Register `http://localhost:3000/api/tink` as a redirect URI in Tink Console.
-   Leave `TINK_TEST_MODE=true` for Demo Bank. For deployment, use the deployed
+   Keep `TINK_TEST_MODE=true`; this app supports Demo Bank only.
+   `TINK_DEMO_PROVIDER=de-demobank-password` preselects the German Demo Bank
+   login instead of showing the bank picker. For deployment, use the deployed
    app URL ending in `/api/tink` in both places.
 3. The database needs all committed migrations and the category seed. Follow
-   `../supabase/README.md` to check the existing schema and reconcile migration
-   history first. After the team has confirmed the target project:
+   `../supabase/README.md` to check the existing schema. The hosted project was
+   built manually and has no CLI migration history, so do not run a remote
+   `supabase db push` against it.
 
-   ```bash
-   supabase link --project-ref <PROJECT_REF>
-   supabase db push --linked --include-seed --dry-run
-   supabase db push --linked --include-seed
-   ```
-
-   `--include-seed` loads the configured sample data and category seed as well.
+   The configured seed includes sample users and transactions. Existing
+   category data is retained.
+   Fresh local databases load the seeds through `supabase start` / `db reset`.
    The existing migration rule still applies: add a migration instead of editing
    applied migrations. Migration 009 adds sync status and keeps cents-only seed
    inserts compatible. Its default leaves existing demo rows as sample data.
-4. Start the app, sign in and click **Connect bank**. After completing Tink Link,
-   the first sync starts automatically. **Refresh** runs a manual check;
-   **Renew bank permission** handles an expired consent.
+   `20261009000001_bank_sync_lease.sql` records the sync claim and expiry fields
+   already added by hand to the hosted project and verified on 9 October 2026.
+   It also accepts existing lease columns from the local prototype and does not
+   require reseeding.
+4. Start the app, sign in and click **Add bank**. Enter the Tink Demo Bank user's
+   credentials in the hosted Tink Link login. The first sync starts automatically
+   after returning. **Refresh data** refreshes the existing bank login in the
+   background, waits for Tink to finish, then imports the new snapshot and
+   updates the dashboard without opening Tink Link;
+   **Reconnect Demo Bank** handles an expired bank permission.
 
 Automatic checks happen on dashboard visits, at most once every 15 minutes.
-Manual checks are limited to once a minute. There is no sync with the app closed.
-The workflow fetches all pages before saving and writes in one transaction;
-failed fetches preserve saved balances, transactions and categories.
+Manual checks are limited to once a minute. A started sync continues after the
+response; there is no scheduled sync while the app is closed. The workflow
+claims a 90-second lease for the signed-in user, releases the database, fetches
+all pages, and then saves in one transaction. An expired lease can be retried;
+a late worker cannot overwrite a newer attempt. Failed fetches preserve saved
+balances, transactions and categories. Tink calls share a 45-second budget,
+and browser requests also time out so a failed request does not leave controls
+disabled indefinitely.
+
+Each app user has a separate Tink identity, even when two people enter the same
+Demo Bank username. A slow import does not hold a database connection while
+another user signs in or syncs. Older connections with a shared external identity
+must reconnect rather than importing someone else's data. Reconnecting with
+duplicate credentials reuses only that verified user's existing accounts.
 
 The single endpoint uses `POST /api/tink?action=connect` or `?action=sync`;
-`GET /api/tink` handles the callback. Only verified, signed-in users can connect
-or sync, and the callback also requires the browser's single-use state.
+sync returns `202` while work continues through Next.js `after`.
+`GET /api/tink?action=status` reads the user's saved sync state without calling
+Tink, and `GET /api/tink` handles the callback. Only verified, signed-in users
+can connect or sync, and the callback also requires the browser's single-use state.
 
 Tests use fake Tink responses and an in-memory PostgreSQL database. They do
 not verify your hosted project or Tink permissions. For a configured Demo Bank,
 check the first import and then refresh again to confirm there are no duplicates.
+Also sign in as two separate app users using the same Demo Bank credentials:
+both should finish independently and continue to see only their own saved rows.
+Manual refresh uses `POST /api/v1/credentials/{id}/refresh?authenticate=false`
+and requires Tink access to `credentials:read` and `credentials:refresh`.
+The request includes `productNames: ["PRODUCT_ACCOUNT_AGGREGATION"]`, matching
+the existing credentials-refresh flow in Tink Link. Bank credentials are not
+sent by the app.
+The backend requests these scopes only for a manual refresh. Tink documents
+the refresh endpoint as an Enterprise capability; availability depends on
+the application's Tink permissions. A refused or unfinished refresh preserves
+saved data and reports a failed update rather than claiming old data is new.
+Only healthy consents covering this user's saved accounts are refreshed.
+The refresh must reach `UPDATED` with a newer successful update timestamp,
+within 30 seconds, before transactions are fetched. A bank asking for renewed
+authentication shows **Reconnect Demo Bank**; the app never supplies bank
+credentials itself. Dashboard visits import the available Tink snapshot;
+they do not start an on-demand bank refresh. An unchanged complete snapshot
+shows **No new transactions**. Refresh cannot create new bank transactions.
+Failed refreshes request Tink's `detailedError` and log only an allowlisted
+machine-readable `reason` alongside the error code; messages and bank data
+are never logged.
+
+A missing connected Tink user (404 from the authorization grant) requires
+**Reconnect Demo Bank**. Refresh preserves saved data and does not create an
+empty replacement user. Reconnect creates a user for the same app login and
+starts a new Tink Link bank login, retaining local transaction history.
+Check the application's permanent-user entitlement in Tink when this happens
+the day after connection: Tink documents a 24-hour persistence limit without
+permanent users. This limit is external to the database migration; enabling
+long-lived access depends on the application's Tink permissions.
+See [Tink's persistence prerequisites](https://docs.tink.com/entries/articles/ingest-accounts-and-transactions).
+
+Known issue before release: the current Demo Bank background refresh has
+returned `BANK_REFRESH_FAILED` with reason `UNKNOWN_ERROR` in manual testing.
+Its cause remains unresolved; unchanged transactions alone do not explain a
+failed refresh. Automated tests use fake Tink responses and cannot establish
+that this live refresh works. Keep this change in draft until manual refresh
+succeeds without opening Tink Link. Initial connection and importing the
+available snapshot have been tested manually.
 
 ## Use the changes in VS Code
 
@@ -80,15 +141,15 @@ Review the changes in Source Control; keep your existing `.env.local` private.
 From the repository root:
 
 ```bash
-git switch -c tink/simple-sync
+git switch -c tink/demo-bank-sync-rework
 npm ci
 npm ci --prefix web
 npm test
 npm run lint --prefix web
 npm run build --prefix web
 git add .
-git commit -m "Add simple Tink dashboard sync"
-git push -u origin tink/simple-sync
+git commit -m "Simplify Demo Bank login and isolate bank sync"
+git push -u origin tink/demo-bank-sync-rework
 ```
 
 Then open a pull request to `main`. Setting up the bank variables and migration

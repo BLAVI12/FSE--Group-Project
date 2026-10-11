@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
+import { SelectMenu } from "@/components/ui/select-menu";
 import {
   aggregateSpendingMonths,
   countsTowardsTrend,
@@ -14,14 +16,41 @@ import {
 const ALL = "all";
 const UNCAT = "Uncategorised";
 const ROWS_PER_PAGE = 20;
-const control =
+const inputControl =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
 
+function compactMoney(cents: number, currency: string) {
+  const currencyMarks: Record<string, string> = {
+    EUR: "€",
+    GBP: "£",
+    USD: "$",
+    JPY: "¥",
+    CNY: "¥",
+  };
+  const mark = currencyMarks[currency] ?? `${currency} `;
+  const sign = cents < 0 ? "-" : "";
+  const amount = Math.abs(cents) / 100;
+  const units = [
+    { threshold: 1_000_000_000, suffix: "b" },
+    { threshold: 1_000_000, suffix: "m" },
+    { threshold: 1_000, suffix: "k" },
+  ];
+  const unit = units.find(({ threshold }) => amount >= threshold);
+  const scaled = unit ? amount / unit.threshold : amount;
+  const fractionDigits = scaled >= 100 ? 0 : scaled >= 1 ? 1 : 2;
+  const value = scaled
+    .toFixed(fractionDigits)
+    .replace(/\.0+$|(?<=\.[0-9])0+$/, "");
+
+  return `${sign}${mark}${value}${unit?.suffix ?? ""}`;
+}
+
 function money(cents: number, currency: string, compact = false) {
+  if (compact) return compactMoney(cents, currency);
+
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
-    ...(compact ? { notation: "compact", maximumFractionDigits: 1 } : {}),
   }).format(cents / 100);
 }
 
@@ -278,76 +307,70 @@ export function TransactionsExplorer({
         aria-label="Trend filters"
         className="grid gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4"
       >
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Period
-          <select
-            aria-label="Period"
-            className={control}
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Period</span>
+          <SelectMenu
+            ariaLabel="Period"
             value={period}
-            onChange={(event) => {
-              setPeriod(event.target.value);
+            options={[
+              { value: "6", label: "Last 6 months" },
+              { value: "12", label: "Last 12 months" },
+              { value: ALL, label: "All history" },
+            ]}
+            onValueChange={(nextPeriod) => {
+              setPeriod(nextPeriod);
               resetSelection();
             }}
-          >
-            <option value="6">Last 6 months</option>
-            <option value="12">Last 12 months</option>
-            <option value={ALL}>All history</option>
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Account
-          <select
-            aria-label="Account"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Account</span>
+          <SelectMenu
+            ariaLabel="Account"
             value={account}
-            onChange={(event) => {
-              setAccount(event.target.value);
+            options={[
+              { value: ALL, label: "All accounts" },
+              ...accounts.map((item) => ({
+                value: item.id,
+                label: item.name ?? "Unnamed account",
+              })),
+            ]}
+            onValueChange={(nextAccount) => {
+              setAccount(nextAccount);
               resetSelection();
             }}
-          >
-            <option value={ALL}>All accounts</option>
-            {accounts.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name ?? "Unnamed account"}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Category
-          <select
-            aria-label="Category"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Category</span>
+          <SelectMenu
+            ariaLabel="Category"
             value={category}
-            onChange={(event) => {
-              setCategory(event.target.value);
+            options={[
+              { value: ALL, label: "All categories" },
+              ...filterCategories.map((item) => ({ value: item, label: item })),
+            ]}
+            onValueChange={(nextCategory) => {
+              setCategory(nextCategory);
               resetSelection();
             }}
-          >
-            <option value={ALL}>All categories</option>
-            {filterCategories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-2 text-sm font-medium text-slate-600">
-          Currency
-          <select
-            aria-label="Currency"
-            className={control}
+          />
+        </div>
+        <div className="space-y-2 text-sm font-medium text-slate-600">
+          <span className="block">Currency</span>
+          <SelectMenu
+            ariaLabel="Currency"
             value={currency}
-            onChange={(event) => {
-              setCurrency(event.target.value);
+            options={(currencies.length ? currencies : ["EUR"]).map((item) => ({
+              value: item,
+              label: item,
+            }))}
+            onValueChange={(nextCurrency) => {
+              setCurrency(nextCurrency);
               resetSelection();
             }}
-          >
-            {(currencies.length ? currencies : ["EUR"]).map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -396,17 +419,26 @@ export function TransactionsExplorer({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 id="spending-heading" className="text-xl font-semibold">
-                Spending trends
+                Monthly cash flow
               </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Select a month to explore its transactions.
+                Compare money in and money out, month by month.
               </p>
             </div>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-              {currency} · monthly
-            </span>
+            <div className="-mt-4 flex shrink-0 flex-col items-center gap-1">
+              <Image
+                src="/images/irish-finance-mascot.png"
+                alt=""
+                width={126}
+                height={128}
+                className="h-24 w-24 object-contain drop-shadow-md sm:h-28 sm:w-28"
+              />
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                {currency} · monthly
+              </span>
+            </div>
           </div>
-          <SpendingChart
+          <CashFlowChart
             summaries={summaries}
             currency={currency}
             selectedMonth={selectedMonth}
@@ -501,7 +533,7 @@ export function TransactionsExplorer({
               <span className="sr-only">Search transactions</span>
               <input
                 type="search"
-                className={control}
+                className={inputControl}
                 placeholder="Search description, category or account…"
                 value={search}
                 onChange={(event) => {
@@ -510,22 +542,21 @@ export function TransactionsExplorer({
                 }}
               />
             </label>
-            <label className="sm:w-44">
-              <span className="sr-only">Entry type</span>
-              <select
-                aria-label="Entry type"
-                className={control}
+            <div className="sm:w-44">
+              <SelectMenu
+                ariaLabel="Entry type"
                 value={entryType}
-                onChange={(event) => {
-                  setEntryType(event.target.value);
+                options={[
+                  { value: ALL, label: "All entries" },
+                  { value: "spending", label: "Money out" },
+                  { value: "income", label: "Money in" },
+                ]}
+                onValueChange={(nextEntryType) => {
+                  setEntryType(nextEntryType);
                   setPage(1);
                 }}
-              >
-                <option value={ALL}>All entries</option>
-                <option value="spending">Money out</option>
-                <option value="income">Money in</option>
-              </select>
-            </label>
+              />
+            </div>
           </div>
           {editMessage && (
             <p className="text-sm text-emerald-800" role="status" aria-live="polite">
@@ -575,25 +606,25 @@ export function TransactionsExplorer({
                     {dateLabel(transaction.booked_date)}
                   </td>
                   <td className="min-w-48 px-5 py-4 text-slate-600">
-                    <select
-                      aria-label={`Category for ${transaction.description}`}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-50 disabled:opacity-50"
+                    <SelectMenu
+                      ariaLabel={`Category for ${transaction.description}`}
                       value={categoryIdByName.get(transaction.category ?? "") ?? ""}
                       disabled={savingId === transaction.id}
-                      onChange={(event) =>
+                      compact
+                      options={[
+                        { value: "", label: UNCAT },
+                        ...availableCategories.map((item) => ({
+                          value: item.id,
+                          label: item.name,
+                        })),
+                      ]}
+                      onValueChange={(nextCategoryId) =>
                         void saveCategory(
                           transaction,
-                          event.target.value || null,
+                          nextCategoryId || null,
                         )
                       }
-                    >
-                      <option value="">{UNCAT}</option>
-                      {availableCategories.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </td>
                   <td className="px-5 py-4">
                     <span
@@ -684,7 +715,7 @@ function Stat({
   );
 }
 
-function SpendingChart({
+function CashFlowChart({
   summaries,
   currency,
   selectedMonth,
@@ -695,72 +726,96 @@ function SpendingChart({
   selectedMonth: string | null;
   onSelect: (month: string) => void;
 }) {
-  const max = Math.max(100, ...summaries.map((item) => item.spending));
+  const max = Math.max(
+    100,
+    ...summaries.flatMap((item) => [item.income, item.spending]),
+  );
   const magnitude = 10 ** Math.floor(Math.log10(max));
   const ceiling =
     [1, 2, 5, 10].find((step) => step * magnitude >= max)! * magnitude;
   const ticks = [1, 0.75, 0.5, 0.25, 0];
+  const hasActivity = summaries.some(
+    (item) => item.income > 0 || item.spending > 0,
+  );
 
   return (
-    <div
-      className="mt-4 overflow-x-auto pt-6 pb-2"
-      tabIndex={0}
-      aria-label="Monthly spending chart; scroll horizontally for more months"
-    >
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-slate-600">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          Money in
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+          Money out
+        </span>
+      </div>
       <div
-        className="relative pr-2 pl-16"
-        style={{ minWidth: Math.max(480, summaries.length * 62 + 64) }}
+        className="mt-2 overflow-x-auto pt-6 pb-2"
+        tabIndex={0}
+        aria-label="Monthly cash flow chart; green bars show money in and red bars show money out. Scroll horizontally for more months"
       >
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-56"
+          className="relative pr-2 pl-16"
+          style={{ minWidth: Math.max(480, summaries.length * 68 + 64) }}
         >
-          {ticks.map((tick) => (
-            <div
-              key={tick}
-              className="absolute right-2 left-16 border-t border-slate-200"
-              style={{ top: `${(1 - tick) * 100}%` }}
-            >
-              <span className="absolute right-full -mt-2.5 pr-3 text-xs tabular-nums text-slate-500">
-                {money(ceiling * tick, currency, true)}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="relative flex gap-2">
-          {summaries.map((item) => {
-            const height = (item.spending / ceiling) * 100;
-            const active = selectedMonth === item.month;
-            return (
-              <button
-                key={item.month}
-                type="button"
-                aria-pressed={active}
-                aria-label={`${monthLabel(item.month)}: ${money(item.spending, currency)} spending. ${active ? "Show entire period" : "Show this month's transactions"}.`}
-                title={`${monthLabel(item.month)} · ${money(item.spending, currency)}`}
-                className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
-                onClick={() => onSelect(item.month)}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-56"
+          >
+            {ticks.map((tick) => (
+              <div
+                key={tick}
+                className="absolute right-2 left-16 border-t border-slate-200"
+                style={{ top: `${(1 - tick) * 100}%` }}
               >
-                <div className="relative h-56">
-                  <span
-                    className="absolute inset-x-0 text-[11px] font-medium tabular-nums text-slate-600"
-                    style={{ bottom: `calc(${height}% + 7px)` }}
-                  >
-                    {money(item.spending, currency, true)}
-                  </span>
-                  <span
-                    className={`absolute right-[18%] bottom-0 left-[18%] rounded-t-md transition-colors ${active ? "bg-emerald-700" : "bg-emerald-500 group-hover:bg-emerald-600"}`}
-                    style={{ height: `${height}%` }}
-                  />
-                </div>
-                <span
-                  className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-800" : "text-slate-600"}`}
-                >
-                  {monthLabel(item.month, true)}
+                <span className="absolute right-full -mt-2.5 pr-3 text-xs tabular-nums text-slate-500">
+                  {money(ceiling * tick, currency, true)}
                 </span>
-              </button>
-            );
-          })}
+              </div>
+            ))}
+          </div>
+          {!hasActivity ? (
+            <p className="pointer-events-none absolute top-24 right-4 left-16 z-10 text-center text-sm font-medium text-slate-500">
+              No money in or out for this selection.
+            </p>
+          ) : null}
+          <div className="relative flex gap-2">
+            {summaries.map((item) => {
+              const incomeHeight = (item.income / ceiling) * 100;
+              const spendingHeight = (item.spending / ceiling) * 100;
+              const active = selectedMonth === item.month;
+              return (
+                <button
+                  key={item.month}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={`${monthLabel(item.month)}: ${money(item.income, currency)} money in and ${money(item.spending, currency)} money out. ${active ? "Show entire period" : "Show this month's transactions"}.`}
+                  title={`${monthLabel(item.month)} · In ${money(item.income, currency)} · Out ${money(item.spending, currency)}`}
+                  className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
+                  onClick={() => onSelect(item.month)}
+                >
+                  <div className="flex h-56 items-end justify-center gap-1 px-[18%]">
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-emerald-700" : "bg-emerald-500 group-hover:bg-emerald-600"}`}
+                      style={{ height: `${incomeHeight}%` }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-rose-700" : "bg-rose-500 group-hover:bg-rose-600"}`}
+                      style={{ height: `${spendingHeight}%` }}
+                    />
+                  </div>
+                  <span
+                    className={`mt-3 block pb-2 text-xs ${active ? "font-semibold text-emerald-800" : "text-slate-600"}`}
+                  >
+                    {monthLabel(item.month, true)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
