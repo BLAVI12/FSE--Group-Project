@@ -14,7 +14,7 @@ import {
 } from "@/lib/data/transactions";
 
 const ALL = "all";
-const UNCAT = "Uncategorised";
+const UNCAT = "Uncategorized";
 const ROWS_PER_PAGE = 20;
 const inputControl =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
@@ -275,7 +275,7 @@ export function TransactionsExplorer({
     const params = new URLSearchParams({ currency });
     if (account !== ALL) params.set("account", account);
     if (category !== ALL)
-      params.set("category", category === UNCAT ? "__uncategorised__" : category);
+      params.set("category", category);
     if (entryType !== ALL) params.set("type", entryType);
     if (search.trim()) params.set("search", search.trim().slice(0, 100));
     if (!selectedMonth) params.set("undated", "include");

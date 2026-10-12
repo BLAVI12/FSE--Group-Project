@@ -1,4 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { categorizeTransactions } from "./dashboard.ts";
+import { APP_TIME_ZONE } from "../time.ts";
+import { countsTowardTotals } from "./totals.ts";
 
 export type TransactionAccount = {
   id: string;
@@ -113,26 +116,28 @@ export async function loadTransactionsData(
   return {
     accounts: (accountsResult.data ?? []) as TransactionAccount[],
     categories: (categoriesResult.data ?? []) as TransactionCategory[],
-    transactions,
+    // Older rows (the demo data) have no saved category. Show them the way the
+    // dashboard does, so both pages sort the same transaction the same way.
+    transactions: categorizeTransactions(transactions),
   };
 }
 
-export function getMonthKeys(now: Date, count: number): string[] {
+// The current month is decided on the German calendar, like the dashboard:
+// at 00:30 on 1 November in Germany it is already November, although UTC
+// still says 31 October.
+export function getMonthKeys(now: Date, count: number, timeZone = APP_TIME_ZONE): string[] {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone, year: "numeric", month: "numeric" })
+    .formatToParts(now);
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value) - 1;
   return Array.from({ length: count }, (_, index) =>
-    new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - count + 1 + index, 1),
-    )
-      .toISOString()
-      .slice(0, 7),
+    new Date(Date.UTC(year, month - count + 1 + index, 1)).toISOString().slice(0, 7),
   );
 }
 
+// The same rule as the dashboard's totals, so both pages show the same sums.
 export function countsTowardsTrend(transaction: SpendingTransaction): boolean {
-  return (
-    transaction.status === "BOOKED" &&
-    !transaction.is_transfer &&
-    !transaction.is_excluded
-  );
+  return countsTowardTotals(transaction);
 }
 
 // A currency is mandatory: EUR and GBP must never be added together.

@@ -354,7 +354,7 @@ function TransactionRow({
         )}
       </td>
       <td className="px-5 py-4 text-slate-600">
-        {transaction.category ?? "Uncategorised"}
+        {transaction.category ?? "Uncategorized"}
       </td>
       <td className="whitespace-nowrap px-5 py-4 text-slate-600">
         {formatDate(transaction.booked_date)}

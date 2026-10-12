@@ -25,11 +25,12 @@ export type DashboardTransaction = {
   status: string;
   category: string | null;
   is_transfer: boolean;
+  is_excluded: boolean;
 };
 
 type TransactionAmount = Pick<
   DashboardTransaction,
-  "amount" | "is_transfer" | "status"
+  "amount" | "is_transfer" | "is_excluded" | "status"
 >;
 
 export type MonthlySummary = {
@@ -113,10 +114,12 @@ export function summariseTransactions(
   );
 }
 
+type Categorizable = { category: string | null; description: string };
+
 // Uses the Tink sync's own rules, so a chart never sorts a transaction
 // differently from the category the sync stores. Test bookings and
 // descriptions matching several categories have no category there.
-function categorizeTransaction(transaction: DashboardTransaction): string {
+function categorizeTransaction(transaction: Categorizable): string {
   if (transaction.category?.trim()) {
     return transaction.category;
   }
@@ -130,9 +133,10 @@ function categorizeTransaction(transaction: DashboardTransaction): string {
   );
 }
 
-export function categorizeTransactions(
-  transactions: DashboardTransaction[],
-): DashboardTransaction[] {
+/** Every transaction with a category: the saved one, or the keyword rules' choice. */
+export function categorizeTransactions<T extends Categorizable>(
+  transactions: T[],
+): (T & { category: string })[] {
   return transactions.map((transaction) => ({
     ...transaction,
     category: categorizeTransaction(transaction),
@@ -147,7 +151,7 @@ export async function loadDashboardData(
   const currentMonthRange = getMonthRange(now);
   const previousMonthRange = getPreviousMonthRange(now);
   const monthlyTransactionFields =
-    "id,amount,currency,description,booked_date,status,category,is_transfer";
+    "id,amount,currency,description,booked_date,status,category,is_transfer,is_excluded";
 
   const [accountsResult, recentResult, countResult, monthResult, previousMonthResult] =
     await Promise.all([
@@ -161,7 +165,7 @@ export async function loadDashboardData(
       supabase
         .from("transactions")
         .select(
-          "id,amount,currency,description,booked_date,status,category,is_transfer",
+          "id,amount,currency,description,booked_date,status,category,is_transfer,is_excluded",
         )
         .eq("user_id", userId)
         .order("booked_date", { ascending: false })
