@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { categoryIdToSave, categoryMenuOptions } from "@/lib/data/category-options";
 import {
   aggregateSpendingMonths,
   countsTowardsTrend,
@@ -611,17 +612,11 @@ export function TransactionsExplorer({
                       value={categoryIdByName.get(transaction.category ?? "") ?? ""}
                       disabled={savingId === transaction.id}
                       compact
-                      options={[
-                        { value: "", label: UNCAT },
-                        ...availableCategories.map((item) => ({
-                          value: item.id,
-                          label: item.name,
-                        })),
-                      ]}
-                      onValueChange={(nextCategoryId) =>
+                      options={categoryMenuOptions(availableCategories)}
+                      onValueChange={(menuValue) =>
                         void saveCategory(
                           transaction,
-                          nextCategoryId || null,
+                          categoryIdToSave(menuValue),
                         )
                       }
                     />
