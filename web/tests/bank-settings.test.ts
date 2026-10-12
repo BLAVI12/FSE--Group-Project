@@ -44,6 +44,13 @@ test("leaving Demo Bank test mode is not usable, as the bank route refuses it", 
   assert.deepEqual(missingBankSettings({ ...live, TINK_TEST_MODE: "true" }), []);
 });
 
+test("a Tink timeout the route would reject is not usable", () => {
+  for (const value of ["0", "-5", "1.5", "abc", ""]) {
+    assert.deepEqual(missingBankSettings({ ...live, TINK_TIMEOUT_MS: value }), ["TINK_TIMEOUT_MS"], value);
+  }
+  assert.deepEqual(missingBankSettings({ ...live, TINK_TIMEOUT_MS: "20000" }), []);
+});
+
 test("empty values and an address that is not a URL are not usable", () => {
   assert.deepEqual(
     missingBankSettings({ ...live, TINK_CLIENT_ID: "", TINK_CLIENT_SECRET: "  " }),

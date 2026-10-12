@@ -16,6 +16,11 @@ export function missingBankSettings(env: Record<string, string | undefined>): st
   const missing: string[] = REQUIRED.filter((name) => !env[name]?.trim());
   // The route supports Demo Bank only and refuses to start outside test mode.
   if (env.TINK_TEST_MODE === "false") missing.push("TINK_TEST_MODE");
+  // Same rule as tinkConfigFromEnv: if set, a positive whole number of milliseconds.
+  if (env.TINK_TIMEOUT_MS !== undefined) {
+    const timeoutMs = Number(env.TINK_TIMEOUT_MS);
+    if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) missing.push("TINK_TIMEOUT_MS");
+  }
   const databaseUrl = env.DATABASE_URL?.trim();
   if (!databaseUrl) return missing;
 
