@@ -9,13 +9,16 @@ import { SupabaseSetupNotice } from "@/components/auth/supabase-setup-notice";
 import { startGoogleOAuth } from "@/lib/auth/google";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { registrationNameData } from "@/lib/auth/registration";
+import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabaseConfigured = isSupabaseConfigured();
 
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,6 +42,12 @@ function RegisterForm() {
     setErrorMessage("");
     setSuccessMessage("");
 
+    const names = registrationNameData(firstName, lastName);
+    if (!names) {
+      setErrorMessage("Enter a first and last name, each with at most 100 characters.");
+      return;
+    }
+
     if (password.length < 8) {
       setErrorMessage(
         "Password must contain at least 8 characters.",
@@ -60,9 +69,7 @@ function RegisterForm() {
         email: email.trim().toLowerCase(),
         password,
         options: {
-          data: {
-            display_name: displayName.trim(),
-          },
+          data: names,
           emailRedirectTo: `${window.location.origin}/login`,
         },
       });
@@ -145,21 +152,42 @@ function RegisterForm() {
           >
             <div>
               <label
-                htmlFor="displayName"
+                htmlFor="firstName"
                 className="mb-2 block text-sm font-semibold text-slate-700"
               >
-                Name
+                First name
               </label>
 
               <input
-                id="displayName"
+                id="firstName"
+                name="firstName"
                 type="text"
-                value={displayName}
+                autoComplete="given-name"
+                maxLength={NAME_INPUT_MAX_LENGTH}
+                value={firstName}
                 onChange={(event) =>
-                  setDisplayName(event.target.value)
+                  setFirstName(event.target.value)
                 }
                 required
-                placeholder="Your name"
+                placeholder="Your first name"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="mb-2 block text-sm font-semibold text-slate-700">
+                Last name
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                autoComplete="family-name"
+                maxLength={NAME_INPUT_MAX_LENGTH}
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                required
+                placeholder="Your last name"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>

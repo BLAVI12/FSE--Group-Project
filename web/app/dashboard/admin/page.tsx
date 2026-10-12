@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { AdminRoleForm } from "@/components/admin-role-form";
 import { AdminStatusForm } from "@/components/admin-status-form";
 import { BrandLink } from "@/components/brand/brand-link";
+import { UserGreeting } from "@/components/user-greeting";
 import { LogoutButton } from "@/components/logout-button";
 import { loadAdminProfiles, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
@@ -73,9 +74,7 @@ export default async function AdminPage({ searchParams }: {
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
             <BrandLink />
-            <p className="mt-1 break-all text-sm text-slate-500 sm:ml-[50px]">
-              Signed in as {user.email ?? user.id}
-            </p>
+            <UserGreeting supabase={supabase} userId={user.id} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
