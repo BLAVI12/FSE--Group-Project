@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BrandLink } from "@/components/brand/brand-link";
-import { LogoutButton } from "@/components/logout-button";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { ProfileForm } from "@/components/profile-form";
 import { loadOwnProfile, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
@@ -49,46 +48,15 @@ export default async function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
-      <header className="border-b border-slate-100 bg-white">
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <div>
-            <BrandLink />
-            <p className="mt-1 break-words text-sm text-slate-500 sm:ml-[50px]">
-              {profileGreeting(profile.first_name)}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Overview
-            </Link>
-            <Link
-              href="/dashboard/transactions"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Transactions
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              aria-current="page"
-              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
-            >
-              Profile
-            </Link>
-            {profile.role === "admin" ? (
-              <Link
-                href="/dashboard/admin"
-                className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-              >
-                Admin
-              </Link>
-            ) : null}
-            <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
-          </div>
-        </nav>
-      </header>
+      <DashboardHeader
+        activePage="profile"
+        showAdmin={profile.role === "admin"}
+        greeting={
+          <p className="mt-1 break-words text-sm text-slate-500 sm:ml-[50px]">
+            {profileGreeting(profile.first_name)}
+          </p>
+        }
+      />
 
       <div className="mx-auto max-w-4xl px-6 py-10 pb-16">
         <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">

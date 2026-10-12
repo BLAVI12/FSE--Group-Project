@@ -27,6 +27,16 @@ use the server-only names from `.env.example`, without that prefix.
 
 Demo login: `demo@example.com` / `demo-planner-2026` (owns the sample data).
 
+## Dashboard navigation
+
+Overview and Transactions stay in the main navigation. The circular placeholder
+avatar in the top-right corner opens the account panel with Profile and Log out.
+The panel supports keyboard navigation, closes on Escape or a click outside, and
+returns focus to the avatar on Escape. Existing Admin links remain visible on
+the profile and admin pages for admins. The shared header is used on all four
+dashboard pages; logout still uses the shared server action. No profile-picture
+upload or database changes are required for this placeholder.
+
 ## Tink bank connection
 
 The existing login and dashboard stay in place. The bank integration has four
