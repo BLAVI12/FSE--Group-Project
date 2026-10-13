@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
-  type: "json",
-};
-import { classifyDescriptions } from "../../../src/features/transactions/transaction-rules.js";
+import { categorizeTransactions } from "./categories.ts";
 import { APP_TIME_ZONE } from "../time.ts";
 import { countsTowardTotals } from "./totals.ts";
+
+export { categorizeTransactions };
 
 export type DashboardAccount = {
   id: string;
@@ -112,35 +111,6 @@ export function summariseTransactions(
     },
     { income: 0, spending: 0, net: 0 },
   );
-}
-
-type Categorizable = { category: string | null; description: string };
-
-// Uses the Tink sync's own rules, so a chart never sorts a transaction
-// differently from the category the sync stores. Test bookings and
-// descriptions matching several categories have no category there.
-function categorizeTransaction(transaction: Categorizable): string {
-  if (transaction.category?.trim()) {
-    return transaction.category;
-  }
-
-  return (
-    classifyDescriptions(
-      transaction.description,
-      transaction.description,
-      categoryMapping,
-    ).categoryName ?? "Uncategorized"
-  );
-}
-
-/** Every transaction with a category: the saved one, or the keyword rules' choice. */
-export function categorizeTransactions<T extends Categorizable>(
-  transactions: T[],
-): (T & { category: string })[] {
-  return transactions.map((transaction) => ({
-    ...transaction,
-    category: categorizeTransaction(transaction),
-  }));
 }
 
 export async function loadDashboardData(

@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   aggregateSpendingMonths,
   getMonthKeys,
+  getMonthKeysSince,
   loadTransactionsData,
   TransactionsDataError,
   type SpendingTransaction,
@@ -219,4 +220,13 @@ test("rows without a saved category are sorted like on the dashboard; saved ones
     result.transactions.map((row) => [row.id, row.category]),
     [["aldi", "Groceries"], ["unknown", "Uncategorized"], ["saved", "Food"]],
   );
+});
+
+test("All history keeps the oldest month at the German month boundary", () => {
+  // 23:30 UTC on 31 October is already 1 November in Germany.
+  const months = getMonthKeysSince("2026-01", new Date("2026-10-31T23:30:00Z"));
+  assert.equal(months[0], "2026-01");
+  assert.equal(months.at(-1), "2026-11");
+  assert.equal(months.length, 11);
+  assert.deepEqual(getMonthKeysSince(undefined, new Date("2026-10-31T23:30:00Z")), ["2026-11"]);
 });

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { categorizeTransactions } from "./dashboard.ts";
+import { categorizeTransactions } from "./categories.ts";
 import { APP_TIME_ZONE } from "../time.ts";
 import { countsTowardTotals } from "./totals.ts";
 
@@ -133,6 +133,28 @@ export function getMonthKeys(now: Date, count: number, timeZone = APP_TIME_ZONE)
   return Array.from({ length: count }, (_, index) =>
     new Date(Date.UTC(year, month - count + 1 + index, 1)).toISOString().slice(0, 7),
   );
+}
+
+/**
+ * Every month from the earliest booked month ("YYYY-MM") up to the current
+ * month, both on the German calendar, so the oldest month is never cut off
+ * at a month boundary where UTC is still a month behind.
+ */
+export function getMonthKeysSince(
+  earliestMonth: string | undefined,
+  now: Date,
+  timeZone = APP_TIME_ZONE,
+): string[] {
+  const [currentMonth] = getMonthKeys(now, 1, timeZone);
+  const [currentYear, currentMonthNumber] = currentMonth.split("-").map(Number);
+  const [earliestYear, earliestMonthNumber] = (earliestMonth ?? currentMonth)
+    .split("-")
+    .map(Number);
+  const count = Math.max(
+    1,
+    (currentYear - earliestYear) * 12 + currentMonthNumber - earliestMonthNumber + 1,
+  );
+  return getMonthKeys(now, count, timeZone);
 }
 
 // The same rule as the dashboard's totals, so both pages show the same sums.

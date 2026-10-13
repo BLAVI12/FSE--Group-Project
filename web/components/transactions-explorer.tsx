@@ -3,11 +3,16 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
-import { categoryIdToSave, categoryMenuOptions } from "@/lib/data/category-options";
+import {
+  categoryIdToSave,
+  categoryMenuOptions,
+  categoryNameAfterSave,
+} from "@/lib/data/category-options";
 import {
   aggregateSpendingMonths,
   countsTowardsTrend,
   getMonthKeys,
+  getMonthKeysSince,
   type SpendingMonth,
   type SpendingTransaction,
   type TransactionAccount,
@@ -145,9 +150,11 @@ export function TransactionsExplorer({
     categoryId: string | null,
   ) {
     if (savingId) return;
-    const categoryName = categoryId
-      ? availableCategories.find((item) => item.id === categoryId)?.name ?? null
-      : null;
+    const categoryName = categoryNameAfterSave(
+      categoryId,
+      availableCategories,
+      transaction.description,
+    );
     const previous = Object.prototype.hasOwnProperty.call(
       categoryOverrides,
       transaction.id,
@@ -182,23 +189,15 @@ export function TransactionsExplorer({
 
   const months = useMemo(() => {
     const current = new Date(now);
-    let count = Number(period);
     if (period === ALL) {
       const dates = transactions
         .flatMap((transaction) =>
           transaction.booked_date ? [transaction.booked_date] : [],
         )
         .sort();
-      const earliest = new Date(`${dates[0] ?? now.slice(0, 10)}T00:00:00Z`);
-      count = Math.max(
-        1,
-        (current.getUTCFullYear() - earliest.getUTCFullYear()) * 12 +
-          current.getUTCMonth() -
-          earliest.getUTCMonth() +
-          1,
-      );
+      return getMonthKeysSince(dates[0]?.slice(0, 7), current);
     }
-    return getMonthKeys(current, count);
+    return getMonthKeys(current, Number(period));
   }, [now, period, transactions]);
 
   const filtered = useMemo(
