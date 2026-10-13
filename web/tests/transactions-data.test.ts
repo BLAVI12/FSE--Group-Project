@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   aggregateSpendingMonths,
   getMonthKeys,
+  getMonthKeysSince,
   loadTransactionsData,
   TransactionsDataError,
   type SpendingTransaction,
@@ -27,7 +28,7 @@ function transaction(
   };
 }
 
-test("monthly spending uses UTC calendar months and includes empty months across New Year", () => {
+test("monthly spending uses German calendar months and includes empty months across New Year", () => {
   const months = getMonthKeys(new Date("2026-02-01T00:30:00+02:00"), 3);
   assert.deepEqual(months, ["2025-11", "2025-12", "2026-01"]);
   assert.deepEqual(aggregateSpendingMonths([transaction()], months, "EUR"), [
@@ -199,4 +200,33 @@ test("loader rejects malformed amounts and amounts outside safe integer precisio
       TransactionsDataError,
     );
   }
+});
+
+test("the current month follows the German calendar, not UTC", () => {
+  // 23:30 UTC on 31 October is 00:30 on 1 November in Germany (CET).
+  assert.deepEqual(getMonthKeys(new Date("2026-10-31T23:30:00Z"), 3), ["2026-09", "2026-10", "2026-11"]);
+  assert.deepEqual(getMonthKeys(new Date("2026-10-31T22:30:00Z"), 1), ["2026-10"]);
+});
+
+test("rows without a saved category are sorted like on the dashboard; saved ones are kept", async () => {
+  const rows = [
+    transaction({ id: "aldi", description: "Aldi", category: null }),
+    transaction({ id: "unknown", description: "Unknown merchant", category: null }),
+    transaction({ id: "saved", description: "Aldi", category: "Food" }),
+  ];
+  const { client } = fakeSupabase(rows);
+  const result = await loadTransactionsData(client, "signed-in-user");
+  assert.deepEqual(
+    result.transactions.map((row) => [row.id, row.category]),
+    [["aldi", "Groceries"], ["unknown", "Uncategorized"], ["saved", "Food"]],
+  );
+});
+
+test("All history keeps the oldest month at the German month boundary", () => {
+  // 23:30 UTC on 31 October is already 1 November in Germany.
+  const months = getMonthKeysSince("2026-01", new Date("2026-10-31T23:30:00Z"));
+  assert.equal(months[0], "2026-01");
+  assert.equal(months.at(-1), "2026-11");
+  assert.equal(months.length, 11);
+  assert.deepEqual(getMonthKeysSince(undefined, new Date("2026-10-31T23:30:00Z")), ["2026-11"]);
 });
