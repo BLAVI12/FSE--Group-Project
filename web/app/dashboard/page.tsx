@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
 import { BankConnection } from "@/components/bank-connection";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { BrandLink } from "@/components/brand/brand-link";
+import { missingBankSettings } from "@/lib/bank-settings";
+import { UserGreeting } from "@/components/user-greeting";
 import {
   DashboardDataError,
   loadDashboardData,
@@ -57,13 +60,12 @@ export default async function DashboardPage({
     .eq("user_id", user.id)
     .eq("provider", "tink")
     .maybeSingle();
-  const bankConfigured = [
-    "DATABASE_URL",
-    "TINK_CLIENT_ID",
-    "TINK_CLIENT_SECRET",
-    "TINK_REDIRECT_URI",
-  ].every((name) => Boolean(process.env[name])) &&
-    process.env.TINK_TEST_MODE !== "false";
+  const missingSettings = missingBankSettings(process.env);
+  if (missingSettings.length > 0) {
+    // Names only, never values: tells whoever reads the server log what to fix.
+    console.warn("Bank connection unavailable; missing or unusable settings:", missingSettings.join(", "));
+  }
+  const bankConfigured = missingSettings.length === 0;
 
   let dashboardData;
 
@@ -111,39 +113,10 @@ const availableCurrency =
 
   return (
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
-      <header className="border-b border-slate-100 bg-white">
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <div>
-            <BrandLink />
-            <p className="mt-1 text-sm text-slate-500 sm:ml-[50px]">
-              Signed in as {user.email ?? user.id}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/dashboard"
-              aria-current="page"
-              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
-            >
-              Overview
-            </Link>
-            <Link
-              href="/dashboard/transactions"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Transactions
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Profile
-            </Link>
-            <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
-          </div>
-        </nav>
-      </header>
+      <DashboardHeader
+        activePage="overview"
+        greeting={<UserGreeting supabase={supabase} userId={user.id} />}
+      />
 
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div>
