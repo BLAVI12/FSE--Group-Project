@@ -129,7 +129,7 @@ export default async function AdminPage({ searchParams }: {
                           {profile.username ?? "Username not set"}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">Registered: {formatDate(profile.registered_at)}</p>
-                        <p className="mt-1 text-xs text-slate-500">Last sign-in: {formatDate(profile.last_sign_in_at)} (Berlin)</p>
+                        <p className="mt-1 text-xs text-slate-500">Last activity: {formatDate(profile.last_sign_in_at)} (Berlin)</p>
                       </td>
                       <td className="px-5 py-4 font-mono text-xs text-slate-500">
                         {profile.id}
