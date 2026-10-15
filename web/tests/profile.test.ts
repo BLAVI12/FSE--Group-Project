@@ -46,9 +46,8 @@ test("profile validation rejects unsafe usernames and country codes", () => {
 
 test("optional address details are stored as null", () => {
   const result = validateProfile({
+    ...validProfile,
     username: "budgeter",
-    firstName: " ",
-    lastName: "",
     street: "",
     postalCode: "",
     city: "",

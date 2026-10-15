@@ -72,27 +72,18 @@ export default async function DashboardPage() {
     return <DashboardError email={user.email ?? user.id} />;
   }
 
-  const checkingAccounts = dashboardData.accounts.filter(
-  (account) => account.type === "CHECKING",
-);
-
-const checkingCurrencies = new Set(
-  checkingAccounts.map((account) => account.currency),
-);
-
-const availableToSpend =
-  checkingAccounts.length > 0 &&
-  checkingAccounts.every((account) => account.balance_available !== null)
-    ? checkingAccounts.reduce(
-        (sum, account) => sum + (account.balance_available ?? 0),
-        0,
-      )
-    : null;
-
-const availableCurrency =
-  checkingCurrencies.size === 1
-    ? checkingAccounts[0]?.currency ?? "EUR"
-    : "EUR";
+  const accountCurrencies = new Set(
+    dashboardData.accounts.map((account) => account.currency),
+  );
+  const balanceCurrency = dashboardData.accounts[0]?.currency ?? "EUR";
+  const totalBalance =
+    accountCurrencies.size <= 1 &&
+    dashboardData.accounts.every((account) => account.balance_booked !== null)
+      ? dashboardData.accounts.reduce(
+          (sum, account) => sum + (account.balance_booked ?? 0),
+          0,
+        )
+      : null;
   const monthLabel = new Intl.DateTimeFormat("en-GB", {
     month: "long",
     year: "numeric",
@@ -134,7 +125,7 @@ const availableCurrency =
                 : "Multiple currencies"
             }
             tone={
-              accountCurrencies.size <= 1 && totalBalance < 0
+              accountCurrencies.size <= 1 && totalBalance !== null && totalBalance < 0
                 ? "negative"
                 : "default"
             }
