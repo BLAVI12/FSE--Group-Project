@@ -127,14 +127,14 @@ const availableCurrency =
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            label="Total balance"
+            label="Available to spend"
             value={
-              accountCurrencies.size <= 1
-                ? formatMoney(totalBalance, balanceCurrency)
+              checkingCurrencies.size <= 1
+                ? formatMoney(availableToSpend, availableCurrency)
                 : "Multiple currencies"
             }
             tone={
-              accountCurrencies.size <= 1 && totalBalance < 0
+              checkingCurrencies.size <= 1 && availableToSpend !== null && availableToSpend < 0
                 ? "negative"
                 : "default"
             }
