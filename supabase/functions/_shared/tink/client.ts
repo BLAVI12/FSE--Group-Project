@@ -596,6 +596,21 @@ export function createTinkClient(
       return ids.length;
     },
 
+    /** The user's bank logins as Tink lists them. Reads only. */
+    async bankLogins(externalUserId: string): Promise<TinkProviderConsent[]> {
+      return fetchProviderConsents(await grantUserToken(externalUserId, CLEANUP_SCOPES));
+    },
+
+    /**
+     * Deletes the given bank logins of the user. For maintenance by hand
+     * (scripts/clean-demo-bank-logins.mjs), never called by the app: Tink deletes
+     * the login's data with it, while the transactions saved in our database stay.
+     */
+    async removeBankLogins(externalUserId: string, credentialsIds: string[]): Promise<void> {
+      const token = await grantUserToken(externalUserId, CLEANUP_SCOPES);
+      for (const id of credentialsIds) await deleteCredentials(token, id);
+    },
+
     fetchAccounts(userToken: string): Promise<TinkAccount[]> {
       return fetchAllPages<TinkAccount>(
         "/data/v2/accounts",

@@ -1497,6 +1497,43 @@ test("failed-login clean-up deletes only failed logins that never got accounts",
   );
 });
 
+test("maintenance clean-up lists logins and deletes only the chosen ones", async () => {
+  calls.length = 0;
+  const deleted: string[] = [];
+  handler = (url, init) => {
+    const auth = tinkAuth(url);
+    if (auth) return auth;
+    if (url.pathname === "/api/v1/oauth/authorization-grant")
+      return json(200, { code: "cleanup-code" });
+    if (url.pathname === "/api/v1/provider-consents") {
+      return json(200, {
+        providerConsents: [
+          { credentialsId: "commerz", providerName: "de-demo-commerzbank-ob", status: "TEMPORARY_ERROR", accountIds: ["a"] },
+          { credentialsId: "embedded", providerName: "de-demobank-open-banking-embedded-templates", status: "UPDATED", accountIds: ["giro"] },
+        ],
+      });
+    }
+    if (init.method === "DELETE") {
+      deleted.push(url.pathname);
+      return new Response(null, { status: 204 });
+    }
+    throw new Error(`unexpected ${url.pathname}`);
+  };
+
+  const logins = await client.bankLogins("demo-user");
+  assert.deepEqual(logins.map((login) => login.providerName), [
+    "de-demo-commerzbank-ob",
+    "de-demobank-open-banking-embedded-templates",
+  ]);
+  await client.removeBankLogins("demo-user", ["commerz"]);
+  assert.deepEqual(deleted, ["/api/v1/credentials/commerz"]);
+  assert.ok(
+    calls
+      .filter((c) => c.path === "/api/v1/oauth/authorization-grant")
+      .every((c) => c.form?.get("scope") === "provider-consents:read,credentials:write"),
+  );
+});
+
 // Bank consent checks.
 test("a healthy overlapping consent covers an account despite an expired old login", () => {
   const consents = [
