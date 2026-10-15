@@ -8,6 +8,7 @@ import {
 } from "react";
 import { updateProfile } from "@/app/dashboard/profile/actions";
 import type { ProfileWithRole } from "@/lib/data/profile";
+import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
 import {
   PROFILE_LIMITS,
   USERNAME_HTML_PATTERN,
@@ -95,7 +96,7 @@ export function ProfileForm({
           Personal details
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Only add information you want to keep with this account.
+          First and last name are required. Address details remain optional.
         </p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <TextField
@@ -103,16 +104,18 @@ export function ProfileForm({
             name="firstName"
             {...bind("firstName")}
             error={state.errors?.firstName}
-            maxLength={PROFILE_LIMITS.firstName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="given-name"
+            required
           />
           <TextField
             label="Last name"
             name="lastName"
             {...bind("lastName")}
             error={state.errors?.lastName}
-            maxLength={PROFILE_LIMITS.lastName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="family-name"
+            required
           />
         </div>
       </section>

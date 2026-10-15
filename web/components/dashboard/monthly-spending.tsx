@@ -38,7 +38,7 @@ function formatDate(value: string | null) {
 }
 
 function getCategory(transaction: DashboardTransaction) {
-  return transaction.category?.trim() || "Uncategorised";
+  return transaction.category?.trim() || "Uncategorized";
 }
 
 function MonthlySpendingPanel({

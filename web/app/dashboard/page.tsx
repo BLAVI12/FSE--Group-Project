@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
 import { BankConnection } from "@/components/bank-connection";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
+import { DashboardHeader } from "@/components/dashboard-header";
 import { BrandLink } from "@/components/brand/brand-link";
+import { missingBankSettings } from "@/lib/bank-settings";
+import { UserGreeting } from "@/components/user-greeting";
 import {
   DashboardDataError,
   loadDashboardData,
@@ -57,12 +60,12 @@ export default async function DashboardPage({
     .eq("user_id", user.id)
     .eq("provider", "tink")
     .maybeSingle();
-  const bankConfigured = [
-    "DATABASE_URL",
-    "TINK_CLIENT_ID",
-    "TINK_CLIENT_SECRET",
-    "TINK_REDIRECT_URI",
-  ].every((name) => Boolean(process.env[name]));
+  const missingSettings = missingBankSettings(process.env);
+  if (missingSettings.length > 0) {
+    // Names only, never values: tells whoever reads the server log what to fix.
+    console.warn("Bank connection unavailable; missing or unusable settings:", missingSettings.join(", "));
+  }
+  const bankConfigured = missingSettings.length === 0;
 
   let dashboardData;
 
@@ -76,16 +79,23 @@ export default async function DashboardPage({
     return <DashboardError email={user.email ?? user.id} />;
   }
 
-  const accountCurrencies = new Set(
-    dashboardData.accounts.map((account) => account.currency),
+  const checkingAccounts = dashboardData.accounts.filter(
+    (account) => account.type === "CHECKING",
   );
-  const totalBalance = dashboardData.accounts.reduce(
-    (sum, account) => sum + (account.balance_booked ?? 0),
-    0,
+  const checkingCurrencies = new Set(
+    checkingAccounts.map((account) => account.currency),
   );
-  const balanceCurrency =
-    accountCurrencies.size === 1
-      ? dashboardData.accounts[0]?.currency ?? "EUR"
+  const availableToSpend =
+    checkingAccounts.length > 0 &&
+    checkingAccounts.every((account) => account.balance_available !== null)
+      ? checkingAccounts.reduce(
+          (sum, account) => sum + (account.balance_available ?? 0),
+          0,
+        )
+      : null;
+  const availableCurrency =
+    checkingCurrencies.size === 1
+      ? checkingAccounts[0]?.currency ?? "EUR"
       : "EUR";
   const monthLabel = new Intl.DateTimeFormat("en-GB", {
     month: "long",
@@ -100,39 +110,10 @@ export default async function DashboardPage({
 
   return (
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
-      <header className="border-b border-slate-100 bg-white">
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
-          <div>
-            <BrandLink />
-            <p className="mt-1 text-sm text-slate-500 sm:ml-[50px]">
-              Signed in as {user.email ?? user.id}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/dashboard"
-              aria-current="page"
-              className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
-            >
-              Overview
-            </Link>
-            <Link
-              href="/dashboard/transactions"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Transactions
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700"
-            >
-              Profile
-            </Link>
-            <LogoutButton className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700" />
-          </div>
-        </nav>
-      </header>
+      <DashboardHeader
+        activePage="overview"
+        greeting={<UserGreeting supabase={supabase} userId={user.id} />}
+      />
 
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div>
@@ -153,14 +134,14 @@ export default async function DashboardPage({
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            label="Total balance"
+            label="Available to spend"
             value={
-              accountCurrencies.size <= 1
-                ? formatMoney(totalBalance, balanceCurrency)
+              checkingCurrencies.size <= 1
+                ? formatMoney(availableToSpend, availableCurrency)
                 : "Multiple currencies"
             }
             tone={
-              accountCurrencies.size <= 1 && totalBalance < 0
+              availableToSpend !== null && availableToSpend < 0
                 ? "negative"
                 : "default"
             }
@@ -362,7 +343,7 @@ function TransactionRow({
         )}
       </td>
       <td className="px-5 py-4 text-slate-600">
-        {transaction.category ?? "Uncategorised"}
+        {transaction.category ?? "Uncategorized"}
       </td>
       <td className="whitespace-nowrap px-5 py-4 text-slate-600">
         {formatDate(transaction.booked_date)}

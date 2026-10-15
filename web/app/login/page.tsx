@@ -45,7 +45,7 @@ function LoginForm() {
         return;
       }
 
-      router.replace("/dashboard");
+      router.replace("/dashboard?bank=login");
       router.refresh();
     } catch {
       setErrorMessage("Login is currently unavailable. Please try again.");

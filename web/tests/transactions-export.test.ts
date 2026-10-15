@@ -105,6 +105,11 @@ test("CSV escapes descriptions and account names and includes an Excel-friendly 
 });
 
 
+test("CSV neutralises formula-like account names for Excel", () => {
+  const csv = transactionsToCsv([transaction()], [{ id: "checking", name: "=HYPERLINK(1)", currency: "EUR" }]);
+  assert.ok(csv.includes("'=HYPERLINK(1)"));
+});
+
 test("CSV neutralises formula-like description and category text for Excel", () => {
   const csv = transactionsToCsv(
     [transaction({ description: "=2+2", category: "@Finance" })],

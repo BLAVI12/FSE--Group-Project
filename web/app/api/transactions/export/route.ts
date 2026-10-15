@@ -56,7 +56,7 @@ function exportFilters(request: NextRequest): TransactionExportFilters | null {
       categoryParam === null
         ? undefined
         : categoryParam === "__uncategorised__"
-          ? null
+          ? "Uncategorized"
           : categoryParam,
     from,
     to,
