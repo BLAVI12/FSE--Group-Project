@@ -23,7 +23,8 @@ login. It is sandbox data with no real personal or financial information.
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
 The reasoning behind the schema is recorded in the team's `DECISIONS.md`
-(ADR-0005, ADR-0006 and ADR-0008), which moves into this repository next.
+(ADR-0005, ADR-0006 and ADR-0008), kept in the shared project folder outside
+this repository.
 
 ## Demo login
 

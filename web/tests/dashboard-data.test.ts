@@ -59,9 +59,9 @@ test("the month follows the German calendar, not UTC", () => {
 test("summariseTransactions separates income and spending", () => {
   assert.deepEqual(
     summariseTransactions([
-      { amount: 125000, is_transfer: false, status: "BOOKED" },
-      { amount: -3499, is_transfer: false, status: "BOOKED" },
-      { amount: -50000, is_transfer: true, status: "BOOKED" },
+      { amount: 125000, is_transfer: false, is_excluded: false, status: "BOOKED" },
+      { amount: -3499, is_transfer: false, is_excluded: false, status: "BOOKED" },
+      { amount: -50000, is_transfer: true, is_excluded: false, status: "BOOKED" },
     ]),
     {
       income: 125000,
@@ -74,10 +74,10 @@ test("summariseTransactions separates income and spending", () => {
 test("pending transactions do not count toward monthly totals", () => {
   assert.deepEqual(
     summariseTransactions([
-      { amount: 125000, is_transfer: false, status: "BOOKED" },
-      { amount: -3499, is_transfer: false, status: "BOOKED" },
-      { amount: -2000, is_transfer: false, status: "PENDING" },
-      { amount: 9900, is_transfer: false, status: "PENDING" },
+      { amount: 125000, is_transfer: false, is_excluded: false, status: "BOOKED" },
+      { amount: -3499, is_transfer: false, is_excluded: false, status: "BOOKED" },
+      { amount: -2000, is_transfer: false, is_excluded: false, status: "PENDING" },
+      { amount: 9900, is_transfer: false, is_excluded: false, status: "PENDING" },
     ]),
     {
       income: 125000,
@@ -87,11 +87,12 @@ test("pending transactions do not count toward monthly totals", () => {
   );
 });
 
-test("only booked transactions that are not transfers count toward totals", () => {
-  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: false }), true);
-  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: false }), false);
-  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: true }), false);
-  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: true }), false);
+test("only booked transactions that are neither transfers nor excluded count toward totals", () => {
+  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: false, is_excluded: false }), true);
+  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: false, is_excluded: false }), false);
+  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: true, is_excluded: false }), false);
+  assert.equal(countsTowardTotals({ status: "PENDING", is_transfer: true, is_excluded: false }), false);
+  assert.equal(countsTowardTotals({ status: "BOOKED", is_transfer: false, is_excluded: true }), false);
 });
 
 test("categorizeTransactions uses the supplied mapping and preserves saved categories", () => {
@@ -105,6 +106,7 @@ test("categorizeTransactions uses the supplied mapping and preserves saved categ
       status: "BOOKED",
       category: null,
       is_transfer: false,
+      is_excluded: false,
     },
     {
       id: "dining",
@@ -115,6 +117,7 @@ test("categorizeTransactions uses the supplied mapping and preserves saved categ
       status: "BOOKED",
       category: null,
       is_transfer: false,
+      is_excluded: false,
     },
     {
       id: "unknown",
@@ -125,6 +128,7 @@ test("categorizeTransactions uses the supplied mapping and preserves saved categ
       status: "BOOKED",
       category: null,
       is_transfer: false,
+      is_excluded: false,
     },
     {
       id: "manual",
@@ -135,6 +139,7 @@ test("categorizeTransactions uses the supplied mapping and preserves saved categ
       status: "BOOKED",
       category: "Personal",
       is_transfer: false,
+      is_excluded: false,
     },
   ];
 
@@ -154,6 +159,7 @@ function uncategorized(description: string): DashboardTransaction {
     status: "BOOKED",
     category: null,
     is_transfer: false,
+    is_excluded: false,
   };
 }
 

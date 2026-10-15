@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import categoryMapping from "../../../supabase/seed-data/transaction-categories.json" with {
-  type: "json",
-};
-import { classifyDescriptions } from "../../../src/features/transactions/transaction-rules.js";
+import { categorizeTransactions } from "./categories.ts";
 import { APP_TIME_ZONE } from "../time.ts";
 import { countsTowardTotals } from "./totals.ts";
+
+export { categorizeTransactions };
 
 export type DashboardAccount = {
   id: string;
@@ -25,11 +24,12 @@ export type DashboardTransaction = {
   status: string;
   category: string | null;
   is_transfer: boolean;
+  is_excluded: boolean;
 };
 
 type TransactionAmount = Pick<
   DashboardTransaction,
-  "amount" | "is_transfer" | "status"
+  "amount" | "is_transfer" | "is_excluded" | "status"
 >;
 
 export type MonthlySummary = {
@@ -113,32 +113,6 @@ export function summariseTransactions(
   );
 }
 
-// Uses the Tink sync's own rules, so a chart never sorts a transaction
-// differently from the category the sync stores. Test bookings and
-// descriptions matching several categories have no category there.
-function categorizeTransaction(transaction: DashboardTransaction): string {
-  if (transaction.category?.trim()) {
-    return transaction.category;
-  }
-
-  return (
-    classifyDescriptions(
-      transaction.description,
-      transaction.description,
-      categoryMapping,
-    ).categoryName ?? "Uncategorized"
-  );
-}
-
-export function categorizeTransactions(
-  transactions: DashboardTransaction[],
-): DashboardTransaction[] {
-  return transactions.map((transaction) => ({
-    ...transaction,
-    category: categorizeTransaction(transaction),
-  }));
-}
-
 export async function loadDashboardData(
   supabase: SupabaseClient,
   userId: string,
@@ -147,7 +121,7 @@ export async function loadDashboardData(
   const currentMonthRange = getMonthRange(now);
   const previousMonthRange = getPreviousMonthRange(now);
   const monthlyTransactionFields =
-    "id,amount,currency,description,booked_date,status,category,is_transfer";
+    "id,amount,currency,description,booked_date,status,category,is_transfer,is_excluded";
 
   const [accountsResult, recentResult, countResult, monthResult, previousMonthResult] =
     await Promise.all([
@@ -161,7 +135,7 @@ export async function loadDashboardData(
       supabase
         .from("transactions")
         .select(
-          "id,amount,currency,description,booked_date,status,category,is_transfer",
+          "id,amount,currency,description,booked_date,status,category,is_transfer,is_excluded",
         )
         .eq("user_id", userId)
         .order("booked_date", { ascending: false })
