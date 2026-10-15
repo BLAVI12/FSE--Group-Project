@@ -9,6 +9,7 @@ import {
   type TransactionExportFilters,
 } from "@/lib/data/transactions-export";
 import { createClient } from "@/lib/supabase/server";
+import { bankAccessDecision, bankAccessProblem } from "@/lib/auth/bank-access";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -79,6 +80,12 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (authError || !user) {
     return Response.json({ error: "Please sign in again." }, { status: 401 });
+  }
+
+  const bankDecision = await bankAccessDecision(supabase, user.id, "/api/transactions/export");
+  if (bankDecision !== "allow") {
+    const problem = bankAccessProblem(bankDecision);
+    return Response.json(problem.body, { status: problem.status, headers: { "Cache-Control": "no-store" } });
   }
 
   try {
