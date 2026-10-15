@@ -31,9 +31,30 @@ test("monthly spending uses UTC calendar months and includes empty months across
   const months = getMonthKeys(new Date("2026-02-01T00:30:00+02:00"), 3);
   assert.deepEqual(months, ["2025-11", "2025-12", "2026-01"]);
   assert.deepEqual(aggregateSpendingMonths([transaction()], months, "EUR"), [
-    { month: "2025-11", income: 0, spending: 0, net: 0 },
-    { month: "2025-12", income: 0, spending: 0, net: 0 },
-    { month: "2026-01", income: 0, spending: 1250, net: -1250 },
+    {
+      month: "2025-11",
+      income: 0,
+      spending: 0,
+      net: 0,
+      transfersIn: 0,
+      transfersOut: 0,
+    },
+    {
+      month: "2025-12",
+      income: 0,
+      spending: 0,
+      net: 0,
+      transfersIn: 0,
+      transfersOut: 0,
+    },
+    {
+      month: "2026-01",
+      income: 0,
+      spending: 1250,
+      net: -1250,
+      transfersIn: 0,
+      transfersOut: 0,
+    },
   ]);
 });
 
@@ -49,12 +70,39 @@ test("trends count booked income and expenses without transfers, exclusions or m
     transaction({ booked_date: "2025-12-31" }),
   ];
   assert.deepEqual(aggregateSpendingMonths(entries, ["2026-01"], "EUR"), [
-    { month: "2026-01", spending: 1250, income: 100000, net: 98750 },
+    {
+      month: "2026-01",
+      spending: 1250,
+      income: 100000,
+      net: 98750,
+      transfersIn: 0,
+      transfersOut: 50000,
+    },
   ]);
   assert.equal(
     aggregateSpendingMonths(entries, ["2026-01"], "GBP")[0].spending,
     100,
   );
+});
+
+test("internal transfers remain visible without becoming income or spending", () => {
+  const result = aggregateSpendingMonths(
+    [
+      transaction({ amount: 20000, is_transfer: true }),
+      transaction({ amount: -7500, is_transfer: true }),
+    ],
+    ["2026-01"],
+    "EUR",
+  )[0];
+
+  assert.deepEqual(result, {
+    month: "2026-01",
+    spending: 0,
+    income: 0,
+    net: 0,
+    transfersIn: 20000,
+    transfersOut: 7500,
+  });
 });
 
 test("aggregation rejects totals that would lose cent precision", () => {

@@ -1,4 +1,4 @@
-# Student Finance Planner — web app
+# Financial Planner — web app
 
 Next.js app (App Router) that logs users in with Supabase Auth and reads their
 data straight from Supabase. What a user may see or change is enforced by the

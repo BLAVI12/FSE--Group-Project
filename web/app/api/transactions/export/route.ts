@@ -38,7 +38,12 @@ function exportFilters(request: NextRequest): TransactionExportFilters | null {
   if (from && !validDate(from)) return null;
   if (to && !validDate(to)) return null;
   if (from && to && from >= to) return null;
-  if (entryType && entryType !== "spending" && entryType !== "income") return null;
+  if (
+    entryType &&
+    entryType !== "spending" &&
+    entryType !== "income" &&
+    entryType !== "transfer"
+  ) return null;
   if (search && search.length > 100) return null;
   if (undated && undated !== "include") return null;
   if (categoryParam && categoryParam !== "__uncategorised__" && categoryParam.length > 80)

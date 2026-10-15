@@ -60,6 +60,10 @@ export async function updateSession(request: NextRequest) {
         blockedUrl.search = "";
         return redirectWithRefreshedCookies(blockedUrl, response);
       }
+    } else {
+      // The database throttles writes, so this keeps the admin's activity
+      // timestamp fresh without updating a row on every request.
+      await supabase.rpc("record_user_activity");
     }
   }
 

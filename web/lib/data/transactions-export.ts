@@ -9,7 +9,7 @@ export type TransactionExportFilters = {
   category?: string | null;
   from?: string;
   to?: string;
-  entryType?: "spending" | "income";
+  entryType?: "spending" | "income" | "transfer";
   search?: string;
   includeUndated?: boolean;
 };
@@ -50,8 +50,15 @@ export function filterTransactionsForExport(
       if (filters.from && transaction.booked_date < filters.from) return false;
       if (filters.to && transaction.booked_date >= filters.to) return false;
     }
-    if (filters.entryType === "spending" && transaction.amount >= 0) return false;
-    if (filters.entryType === "income" && transaction.amount <= 0) return false;
+    if (filters.entryType === "transfer" && !transaction.is_transfer) return false;
+    if (
+      filters.entryType === "spending" &&
+      (transaction.is_transfer || transaction.amount >= 0)
+    ) return false;
+    if (
+      filters.entryType === "income" &&
+      (transaction.is_transfer || transaction.amount <= 0)
+    ) return false;
     if (
       search &&
       !`${transaction.description} ${transaction.category ?? "Uncategorised"} ${accountNames.get(transaction.account_id) ?? ""}`

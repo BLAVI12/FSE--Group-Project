@@ -224,6 +224,15 @@ export function TransactionsExplorer({
   );
   const income = activeSummaries.reduce((sum, item) => sum + item.income, 0);
   const net = income - spending;
+  const transfersIn = activeSummaries.reduce(
+    (sum, item) => sum + item.transfersIn,
+    0,
+  );
+  const transfersOut = activeSummaries.reduce(
+    (sum, item) => sum + item.transfersOut,
+    0,
+  );
+  const transferNet = transfersIn - transfersOut;
   const activeMonths = new Set(activeSummaries.map((item) => item.month));
   const rangeLabel = selectedMonth
     ? monthLabel(selectedMonth)
@@ -260,9 +269,12 @@ export function TransactionsExplorer({
           .toLocaleLowerCase("en-GB")
           .includes(query)) &&
       (entryType === ALL ||
-        (entryType === "spending"
-          ? transaction.amount < 0
-          : transaction.amount > 0)),
+        (entryType === "transfer"
+          ? transaction.is_transfer
+          : !transaction.is_transfer &&
+            (entryType === "spending"
+              ? transaction.amount < 0
+              : transaction.amount > 0))),
   );
   const totalPages = Math.max(1, Math.ceil(rows.length / ROWS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -390,7 +402,7 @@ export function TransactionsExplorer({
 
       <section
         aria-label="Period summary"
-        className="grid gap-4 sm:grid-cols-3"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         <Stat
           label="Total spending"
@@ -407,7 +419,19 @@ export function TransactionsExplorer({
           label="Net cash flow"
           value={money(net, currency)}
           note="Income minus spending"
-          positive={net >= 0}
+          tone={net >= 0 ? "positive" : "negative"}
+        />
+        <Stat
+          label="Internal transfers"
+          value={money(transferNet, currency)}
+          note={`Transferred in ${money(transfersIn, currency)} · out ${money(transfersOut, currency)}`}
+          tone={
+            transferNet > 0
+              ? "positive"
+              : transferNet < 0
+                ? "negative"
+                : "default"
+          }
         />
       </section>
 
@@ -451,9 +475,9 @@ export function TransactionsExplorer({
             Swipe the chart to see more months.
           </p>
           <p className="mt-5 text-xs leading-relaxed text-slate-500">
-            The current month is month to date. Pending entries, internal
-            transfers and excluded transactions do not count towards these
-            totals.
+            The current month is month to date. Internal transfers are shown
+            separately and do not count as income or spending. Pending and
+            excluded transactions do not count towards these totals.
           </p>
         </section>
 
@@ -550,6 +574,7 @@ export function TransactionsExplorer({
                   { value: ALL, label: "All entries" },
                   { value: "spending", label: "Money out" },
                   { value: "income", label: "Money in" },
+                  { value: "transfer", label: "Internal transfers" },
                 ]}
                 onValueChange={(nextEntryType) => {
                   setEntryType(nextEntryType);
@@ -696,17 +721,26 @@ function Stat({
   value,
   note,
   positive = false,
+  tone,
 }: {
   label: string;
   value: string;
   note: string;
   positive?: boolean;
+  tone?: "default" | "positive" | "negative";
 }) {
+  const resolvedTone = tone ?? (positive ? "positive" : "default");
   return (
     <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       <p className="text-sm text-slate-500">{label}</p>
       <p
-        className={`mt-2 text-2xl font-semibold tabular-nums ${positive ? "text-emerald-700" : "text-slate-950"}`}
+        className={`mt-2 text-2xl font-semibold tabular-nums ${
+          resolvedTone === "positive"
+            ? "text-emerald-700"
+            : resolvedTone === "negative"
+              ? "text-rose-700"
+              : "text-slate-950"
+        }`}
       >
         {value}
       </p>
@@ -728,14 +762,23 @@ function CashFlowChart({
 }) {
   const max = Math.max(
     100,
-    ...summaries.flatMap((item) => [item.income, item.spending]),
+    ...summaries.flatMap((item) => [
+      item.income,
+      item.spending,
+      item.transfersIn,
+      item.transfersOut,
+    ]),
   );
   const magnitude = 10 ** Math.floor(Math.log10(max));
   const ceiling =
     [1, 2, 5, 10].find((step) => step * magnitude >= max)! * magnitude;
   const ticks = [1, 0.75, 0.5, 0.25, 0];
   const hasActivity = summaries.some(
-    (item) => item.income > 0 || item.spending > 0,
+    (item) =>
+      item.income > 0 ||
+      item.spending > 0 ||
+      item.transfersIn > 0 ||
+      item.transfersOut > 0,
   );
 
   return (
@@ -749,11 +792,19 @@ function CashFlowChart({
           <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
           Money out
         </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+          Transfer in
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+          Transfer out
+        </span>
       </div>
       <div
         className="mt-2 overflow-x-auto pt-6 pb-2"
         tabIndex={0}
-        aria-label="Monthly cash flow chart; green bars show money in and red bars show money out. Scroll horizontally for more months"
+        aria-label="Monthly cash flow chart; green and red bars show income and spending, while blue and amber bars show internal transfers. Scroll horizontally for more months"
       >
         <div
           className="relative pr-2 pl-16"
@@ -777,21 +828,23 @@ function CashFlowChart({
           </div>
           {!hasActivity ? (
             <p className="pointer-events-none absolute top-24 right-4 left-16 z-10 text-center text-sm font-medium text-slate-500">
-              No money in or out for this selection.
+              No money or transfers for this selection.
             </p>
           ) : null}
           <div className="relative flex gap-2">
             {summaries.map((item) => {
               const incomeHeight = (item.income / ceiling) * 100;
               const spendingHeight = (item.spending / ceiling) * 100;
+              const transfersInHeight = (item.transfersIn / ceiling) * 100;
+              const transfersOutHeight = (item.transfersOut / ceiling) * 100;
               const active = selectedMonth === item.month;
               return (
                 <button
                   key={item.month}
                   type="button"
                   aria-pressed={active}
-                  aria-label={`${monthLabel(item.month)}: ${money(item.income, currency)} money in and ${money(item.spending, currency)} money out. ${active ? "Show entire period" : "Show this month's transactions"}.`}
-                  title={`${monthLabel(item.month)} · In ${money(item.income, currency)} · Out ${money(item.spending, currency)}`}
+                  aria-label={`${monthLabel(item.month)}: ${money(item.income, currency)} income, ${money(item.spending, currency)} spending, ${money(item.transfersIn, currency)} transferred in and ${money(item.transfersOut, currency)} transferred out. ${active ? "Show entire period" : "Show this month's transactions"}.`}
+                  title={`${monthLabel(item.month)} · Income ${money(item.income, currency)} · Spending ${money(item.spending, currency)} · Transfer in ${money(item.transfersIn, currency)} · Transfer out ${money(item.transfersOut, currency)}`}
                   className={`group min-w-0 flex-1 rounded-lg pt-0 text-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${active ? "bg-emerald-50" : "hover:bg-slate-50"}`}
                   onClick={() => onSelect(item.month)}
                 >
@@ -805,6 +858,16 @@ function CashFlowChart({
                       aria-hidden="true"
                       className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-rose-700" : "bg-rose-500 group-hover:bg-rose-600"}`}
                       style={{ height: `${spendingHeight}%` }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-sky-700" : "bg-sky-500 group-hover:bg-sky-600"}`}
+                      style={{ height: `${transfersInHeight}%` }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`h-0 min-w-2 flex-1 rounded-t-md transition-colors ${active ? "bg-amber-700" : "bg-amber-500 group-hover:bg-amber-600"}`}
+                      style={{ height: `${transfersOutHeight}%` }}
                     />
                   </div>
                   <span
