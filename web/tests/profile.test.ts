@@ -6,7 +6,7 @@ import {
 } from "../lib/profile.ts";
 
 const validProfile = {
-  username: " Student_User ",
+  username: " Example_User ",
   firstName: " Ada ",
   lastName: " Lovelace ",
   street: " 1 Example Street ",
@@ -21,7 +21,7 @@ test("profile validation normalises safe profile data", () => {
   if (!result.ok) return;
 
   assert.deepEqual(result.data, {
-    username: "student_user",
+    username: "example_user",
     first_name: "Ada",
     last_name: "Lovelace",
     street: "1 Example Street",
@@ -46,9 +46,9 @@ test("profile validation rejects unsafe usernames and country codes", () => {
 
 test("optional address details are stored as null", () => {
   const result = validateProfile({
-    username: "student",
-    firstName: "Ada",
-    lastName: "Lovelace",
+    username: "budgeter",
+    firstName: " ",
+    lastName: "",
     street: "",
     postalCode: "",
     city: "",
@@ -71,7 +71,7 @@ test("profile saves require both names, including when HTML validation is bypass
 
 test("the username HTML pattern is valid with the browser v regex flag", () => {
   const pattern = new RegExp(`^(?:${USERNAME_HTML_PATTERN})$`, "v");
-  assert.equal(pattern.test("student-user"), true);
-  assert.equal(pattern.test("student_user"), true);
-  assert.equal(pattern.test("student user"), false);
+  assert.equal(pattern.test("budget-user"), true);
+  assert.equal(pattern.test("budget_user"), true);
+  assert.equal(pattern.test("budget user"), false);
 });

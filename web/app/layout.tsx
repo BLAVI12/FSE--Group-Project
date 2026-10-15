@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Student Finance Planner",
+  title: "Financial Planner",
   description: "Track your transactions, spending and savings in one place.",
 };
 

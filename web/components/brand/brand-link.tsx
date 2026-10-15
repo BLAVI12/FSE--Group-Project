@@ -53,7 +53,7 @@ export function BrandLink({
         <PiggyBank className={compact ? "h-6 w-6" : "h-7 w-7"} />
       </span>
       <span className={`font-bold tracking-tight text-slate-900 ${compact ? "text-sm" : "text-base sm:text-lg"}`}>
-        Student Finance Planner
+        Financial Planner
       </span>
     </Link>
   );
