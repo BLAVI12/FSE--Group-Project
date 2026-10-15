@@ -6,6 +6,8 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { UserGreeting } from "@/components/user-greeting";
 import { loadAdminProfiles, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
+import { loadOwnBankConnection, BankDataError } from "@/lib/data/bank";
+import type { BankConnectionData } from "@/lib/bank-connection-state";
 
 export default async function AdminPage({ searchParams }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -59,6 +61,15 @@ export default async function AdminPage({ searchParams }: {
     notFound();
   }
 
+  let connection: BankConnectionData | null = null;
+  let bankUnavailable = false;
+  try {
+    connection = await loadOwnBankConnection(supabase, user.id);
+  } catch (error) {
+    if (!(error instanceof BankDataError)) throw error;
+    bankUnavailable = true;
+  }
+
   const { data: audit, error: auditError } = await supabase.from("admin_audit_log")
     .select("id,actor_id,target_id,action,old_value,new_value,reason,created_at")
     .order("created_at", { ascending: false }).order("id").limit(20);
@@ -71,6 +82,8 @@ export default async function AdminPage({ searchParams }: {
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
       <DashboardHeader
         activePage="admin"
+        bankConnection={connection}
+        bankUnavailable={bankUnavailable}
         showAdmin
         greeting={<UserGreeting supabase={supabase} userId={user.id} />}
       />

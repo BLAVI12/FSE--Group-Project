@@ -8,6 +8,8 @@ import {
   TransactionsDataError,
 } from "@/lib/data/transactions";
 import { createClient } from "@/lib/supabase/server";
+import { loadOwnBankConnection, BankDataError } from "@/lib/data/bank";
+import { bankPhase, type BankConnectionData } from "@/lib/bank-connection-state";
 
 export default async function TransactionsPage() {
   const supabase = await createClient();
@@ -15,6 +17,15 @@ export default async function TransactionsPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  let connection: BankConnectionData | null = null;
+  try {
+    connection = await loadOwnBankConnection(supabase, user.id);
+  } catch (error) {
+    if (!(error instanceof BankDataError)) throw error;
+    redirect("/dashboard/bank?bank=unavailable");
+  }
+  if (bankPhase(connection) !== "ready") redirect("/dashboard/bank");
 
   let data;
   try {
@@ -27,6 +38,7 @@ export default async function TransactionsPage() {
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
       <DashboardHeader
         activePage="transactions"
+        bankConnection={connection}
         greeting={<UserGreeting supabase={supabase} userId={user.id} />}
       />
       <div className="mx-auto max-w-6xl px-6 py-10 pb-16">

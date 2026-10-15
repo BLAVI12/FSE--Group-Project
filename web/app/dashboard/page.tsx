@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
-import { BankConnection } from "@/components/bank-connection";
+import { BankBackgroundSync } from "@/components/bank-background-sync";
 import { MonthlySpending } from "@/components/dashboard/monthly-spending";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { BrandLink } from "@/components/brand/brand-link";
@@ -13,6 +13,9 @@ import {
   type DashboardTransaction,
 } from "@/lib/data/dashboard";
 import { createClient } from "@/lib/supabase/server";
+import { loadOwnBankConnection, BankDataError } from "@/lib/data/bank";
+import { bankPhase, type BankConnectionData } from "@/lib/bank-connection-state";
+import { isBankConfigured } from "@/lib/bank-config";
 
 function formatMoney(cents: number | null, currency = "EUR") {
   if (cents === null) {
@@ -38,11 +41,7 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ bank?: string }>;
-}) {
+export default async function DashboardPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -52,20 +51,14 @@ export default async function DashboardPage({
     redirect("/login");
   }
 
-  const { bank } = await searchParams;
-  const { data: connection, error: connectionError } = await supabase
-    .from("connections")
-    .select("status,live_sync_enabled,last_synced")
-    .eq("user_id", user.id)
-    .eq("provider", "tink")
-    .maybeSingle();
-  const bankConfigured = [
-    "DATABASE_URL",
-    "TINK_CLIENT_ID",
-    "TINK_CLIENT_SECRET",
-    "TINK_REDIRECT_URI",
-  ].every((name) => Boolean(process.env[name])) &&
-    process.env.TINK_TEST_MODE !== "false";
+  let connection: BankConnectionData | null = null;
+  try {
+    connection = await loadOwnBankConnection(supabase, user.id);
+  } catch (error) {
+    if (!(error instanceof BankDataError)) throw error;
+    redirect("/dashboard/bank?bank=unavailable");
+  }
+  if (!connection || bankPhase(connection) !== "ready") redirect("/dashboard/bank");
 
   let dashboardData;
 
@@ -115,6 +108,7 @@ const availableCurrency =
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
       <DashboardHeader
         activePage="overview"
+        bankConnection={connection}
         greeting={<UserGreeting supabase={supabase} userId={user.id} />}
       />
 
@@ -129,11 +123,7 @@ const availableCurrency =
           </p>
         </div>
 
-        <BankConnection
-          configured={!connectionError && bankConfigured}
-          connection={connection}
-          outcome={bank}
-        />
+        <BankBackgroundSync configured={isBankConfigured()} connection={connection} />
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard

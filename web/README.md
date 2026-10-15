@@ -29,19 +29,39 @@ Demo login: `demo@example.com` / `demo-planner-2026` (owns the sample data).
 
 ## Dashboard navigation
 
-Overview and Transactions stay in the main navigation. The circular placeholder
-avatar in the top-right corner opens the account panel with Profile and Log out.
+Overview and Transactions stay in the main navigation once a live bank connection
+has completed its first import. Without one, financial pages redirect to
+`/dashboard/bank` and these tabs are hidden. The circular placeholder avatar in
+the top-right corner opens the account panel with Profile, a bank link and Log out.
+The bank link reads **Add bank**, **Manage bank**, or **Renew bank connection**
+depending on the verified connection metadata.
 The panel supports keyboard navigation, closes on Escape or a click outside, and
 returns focus to the avatar on Escape. Existing Admin links remain visible on
-the profile and admin pages for admins. The shared header is used on all four
+the profile and admin pages for admins, even without a bank. The shared header is used on all five
 dashboard pages; logout still uses the shared server action. No profile-picture
 upload or database changes are required for this placeholder.
+
+After email or Google registration, users complete any missing username and
+names before bank setup. Email confirmation, when enabled, still comes first.
+Saving an incomplete profile successfully continues onboarding; ordinary profile
+edits remain on the profile page. Bank setup, profile/logout, the Tink callback
+and status endpoint stay reachable, avoiding redirect loops. Suspended accounts
+remain blocked before onboarding is considered.
+
+The gate uses only the signed-in user's `connections` metadata. A live connection
+without `last_synced` stays on the first-import page; a successful partial or empty
+import is enough. Later expiry or sync failures preserve access to saved data.
+Database read failures are shown as unavailable, not as a missing bank. Transaction
+APIs return JSON (`BANK_SETUP_REQUIRED`, HTTP 403; `BANK_UNAVAILABLE`, HTTP 503),
+not a page redirect. This is application onboarding, not a replacement for RLS.
+Seeded sample data is not a live connection: the demo login also needs to connect
+a bank before using financial pages. The seed and existing data are unchanged.
 
 ## Tink bank connection
 
 The existing login and dashboard stay in place. The bank integration has four
 parts: the shared Tink client, `lib/tink.ts` for the workflow, one
-`app/api/tink/route.ts` endpoint, and the `BankConnection` component.
+`app/api/tink/route.ts` endpoint, and the bank UI with shared `useBankSync` logic.
 The existing `convert.ts`, `reconcile.ts` and transaction classification are reused.
 
 1. Add `DATABASE_URL`, `DATABASE_CA_CERT`, `TINK_CLIENT_ID`,
@@ -57,9 +77,9 @@ The existing `convert.ts`, `reconcile.ts` and transaction classification are reu
    login instead of showing the bank picker. For deployment, use the deployed
    app URL ending in `/api/tink` in both places.
 3. The database needs all committed migrations and the category seed. Follow
-   `../supabase/README.md` to check the existing schema. The hosted project was
-   built manually and has no CLI migration history, so do not run a remote
-   `supabase db push` against it.
+   `../supabase/README.md` to check the existing schema and verified CLI migration
+   history. Hosted changes require explicit approval, backup and an inspected
+   dry run. Never run the sample seed against hosted.
 
    The configured seed includes sample users and transactions. Existing
    category data is retained.
@@ -71,12 +91,34 @@ The existing `convert.ts`, `reconcile.ts` and transaction classification are reu
    already added by hand to the hosted project and verified on 9 October 2026.
    It also accepts existing lease columns from the local prototype and does not
    require reseeding.
-4. Start the app, sign in and click **Add bank**. Enter the Tink Demo Bank user's
+4. Start the app, sign in and open **Add bank** from the avatar menu (or follow
+   onboarding to `/dashboard/bank`). Click **Add bank now**. Enter the Tink Demo Bank user's
    credentials in the hosted Tink Link login. The first sync starts automatically
-   after returning. **Refresh data** refreshes the existing bank login in the
+   after returning to the bank page. While the first import is running, this
+   page polls its status and opens the dashboard after data has been saved. If
+   the import finished before the page loaded, **Open dashboard** is available.
+   An aborted or failed bank login remains retryable on this page.
+   **Refresh data** on **Manage bank** refreshes the existing bank login in the
    background, waits for Tink to finish, then imports the new snapshot and
    updates the dashboard without opening Tink Link;
-   **Reconnect Demo Bank** handles an expired bank permission.
+   **Reconnect bank** handles an expired bank permission.
+
+The dashboard no longer contains bank-action buttons. Its separate background
+sync component retains automatic checks; opening an established bank's management
+page does not silently start a refresh. Missing local bank settings show a disabled
+**Add bank now** button and a configuration explanation instead of hiding it.
+The Tink redirect URI remains `/api/tink`; no console callback change is needed.
+
+Optional route integration test: with Docker running and the app's dev server
+stopped, run `npm run test:onboarding` from `web/`. Ports 3001, 55431, 55432 and
+55430 must be free. It creates an isolated temporary Supabase project, applies
+the local migrations and synthetic seed, and tests real Auth/RLS and Next.js HTTP
+responses. It covers new registration, profile-first onboarding, bank setup,
+first-import failure, stored-data access after expiry/errors, unavailable bank
+reads, transaction API gating and admin access without a bank. It never uses
+hosted credentials or calls Tink; bank secrets are explicitly cleared for the
+temporary app. The app and local test database are stopped on completion; local
+test data is discarded. This does not replace a real Google/Tink browser test.
 
 Automatic checks happen on dashboard visits, at most once every 15 minutes.
 Manual checks are limited to once a minute. A started sync continues after the
@@ -117,7 +159,7 @@ saved data and reports a failed update rather than claiming old data is new.
 Only healthy consents covering this user's saved accounts are refreshed.
 The refresh must reach `UPDATED` with a newer successful update timestamp,
 within 30 seconds, before transactions are fetched. A bank asking for renewed
-authentication shows **Reconnect Demo Bank**; the app never supplies bank
+authentication shows **Reconnect bank**; the app never supplies bank
 credentials itself. Dashboard visits import the available Tink snapshot;
 they do not start an on-demand bank refresh. An unchanged complete snapshot
 shows **No new transactions**. Refresh cannot create new bank transactions.
@@ -126,7 +168,7 @@ machine-readable `reason` alongside the error code; messages and bank data
 are never logged.
 
 A missing connected Tink user (404 from the authorization grant) requires
-**Reconnect Demo Bank**. Refresh preserves saved data and does not create an
+**Reconnect bank**. Refresh preserves saved data and does not create an
 empty replacement user. Reconnect creates a user for the same app login and
 starts a new Tink Link bank login, retaining local transaction history.
 Check the application's permanent-user entitlement in Tink when this happens
