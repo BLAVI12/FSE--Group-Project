@@ -5,6 +5,7 @@ import {
   consentIsHealthy,
   credentialsToRenew,
   failedLoginsToRemove,
+  loginsToRemoveByProvider,
   needsRelink,
 } from "../../supabase/functions/_shared/tink/consents.ts";
 
@@ -64,4 +65,29 @@ test("only failed logins without accounts are removed before a new connect", () 
     { credentialsId: "in-progress", status: "AUTHENTICATING", accountIds: [] },
   ]);
   assert.deepEqual(ids, ["user2", "user3", "gone"]);
+});
+
+test("a clean-up removes only the named providers' logins and keeps a working one", () => {
+  const consents = [
+    { credentialsId: "commerz", providerName: "de-demo-commerzbank-ob", status: "TEMPORARY_ERROR", accountIds: ["a", "b"], sessionExpiryDate: Date.UTC(2026, 9, 1) },
+    { credentialsId: "embedded", providerName: "de-demobank-open-banking-embedded-templates", status: "UPDATED", accountIds: ["giro", "spar"], sessionExpiryDate: Date.UTC(2026, 11, 31) },
+    { credentialsId: "password", providerName: "de-demobank-password", status: "UPDATED", accountIds: [] },
+  ];
+  assert.deepEqual(
+    loginsToRemoveByProvider(consents, ["de-demo-commerzbank-ob", "de-demobank-password"], now),
+    ["commerz", "password"]
+  );
+});
+
+test("a clean-up refuses when no healthy login with accounts would remain", () => {
+  const expiredOnly = [
+    { credentialsId: "commerz", providerName: "de-demo-commerzbank-ob", status: "UPDATED", accountIds: ["a"] },
+    { credentialsId: "embedded", providerName: "de-demobank-open-banking-embedded-templates", status: "SESSION_EXPIRED", accountIds: ["giro"] },
+  ];
+  assert.equal(loginsToRemoveByProvider(expiredOnly, ["de-demo-commerzbank-ob"], now), null);
+  const emptyOnly = [
+    { credentialsId: "commerz", providerName: "de-demo-commerzbank-ob", status: "UPDATED", accountIds: ["a"] },
+    { credentialsId: "password", providerName: "de-demobank-password", status: "UPDATED", accountIds: [] },
+  ];
+  assert.equal(loginsToRemoveByProvider(emptyOnly, ["de-demo-commerzbank-ob"], now), null);
 });

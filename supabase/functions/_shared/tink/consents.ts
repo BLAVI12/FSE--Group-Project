@@ -12,6 +12,7 @@
 /** One bank login of the Tink user, as GET /api/v1/provider-consents lists it. */
 export interface TinkProviderConsent {
   credentialsId?: string;
+  providerName?: string;
   accountIds?: string[];
   status?: string;
   sessionExpiryDate?: number | string;
@@ -85,4 +86,24 @@ export function failedLoginsToRemove(consents: TinkProviderConsent[]): string[] 
   return consents
     .filter((c) => c.credentialsId && c.status && FAILED_LOGIN.has(c.status) && !c.accountIds?.length)
     .map((c) => c.credentialsId as string);
+}
+
+/**
+ * Bank logins of the named providers, to delete by hand (maintenance, not part
+ * of the app). Returns null, so nothing is deleted, unless at least one other
+ * login stays that is healthy and has accounts: a clean-up must never leave the
+ * user without a working bank connection. Deleting a login also deletes its
+ * data at Tink; the transactions saved in our database stay.
+ */
+export function loginsToRemoveByProvider(
+  consents: TinkProviderConsent[],
+  providers: string[],
+  now = Date.now()
+): string[] | null {
+  const remove = consents.filter(
+    (c) => c.credentialsId && c.providerName !== undefined && providers.includes(c.providerName)
+  );
+  const keep = consents.filter((c) => !remove.includes(c));
+  const workingLoginStays = keep.some((c) => consentIsHealthy(c, now) && (c.accountIds?.length ?? 0) > 0);
+  return workingLoginStays ? remove.map((c) => c.credentialsId as string) : null;
 }

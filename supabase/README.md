@@ -249,6 +249,26 @@ select (select count(*) from public.categories)           as categories,
        (select count(*) from public.category_assignments) as assignments;
 ```
 
+**Demo login clean-up (planned 16 October 2026).** At Tink, the demo user had
+three bank logins: a Demo Commerzbank login (`de-demo-commerzbank-ob`, valid
+for only about a day, expired since 8 October) with the two empty accounts
+"Daily expenses" and "For holiday"; the working Tink Demo Bank login
+(`de-demobank-open-banking-embedded-templates`, Girokonto and Sparkonto, valid
+until 31 December 2026); and an empty Demo Bank password login. Because one
+expired login marks the whole connection expired, the demo user showed "Renew"
+every day. The clean-up, in this order, after the team agreed:
+
+1. `node scripts/clean-demo-bank-logins.mjs` shows the logins and what would
+   be removed; with `--apply` it removes only the Commerzbank and the empty
+   password login, and refuses if no healthy login with accounts would remain.
+2. `maintenance/2026-10-16-demo-login-cleanup.sql` in the SQL Editor: checks,
+   deletes the two empty accounts (only if they have no transactions), resets
+   the connection from EXPIRED to ACTIVE, checks again.
+3. As the demo user: open the dashboard, then Manage bank → Refresh data.
+
+Record here the date, the script's before/after output and the SQL results
+once it has run.
+
 The historical manual migrations now have verified CLI history. For future
 approved changes, check the linked project, take a backup, and use:
 
