@@ -24,36 +24,47 @@ export function ProfileMenu({
     if (!open) return;
 
     profileRef.current?.focus();
+    let focusCheck: number | undefined;
 
-    function handlePointerDown(event: PointerEvent) {
+    function handleOutsideInteraction(event: Event) {
       if (event.target instanceof Node && !rootRef.current?.contains(event.target)) {
         setOpen(false);
       }
     }
 
-    function handleEscape(event: KeyboardEvent) {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Tab") {
+        // Tabbing into browser chrome has no focusin target in the document.
+        // Check after native Tab navigation, without cancelling that navigation.
+        if (focusCheck !== undefined) window.cancelAnimationFrame(focusCheck);
+        focusCheck = window.requestAnimationFrame(() => {
+          if (!document.hasFocus() || !rootRef.current?.contains(document.activeElement)) {
+            setOpen(false);
+          }
+        });
+        return;
+      }
       if (event.key !== "Escape") return;
       event.preventDefault();
       setOpen(false);
       triggerRef.current?.focus();
     }
 
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleEscape);
+    // Safari can blur the focused item without focusing the clicked link/button.
+    // Wait for an actual outside focus target instead of hiding it before click.
+    document.addEventListener("pointerdown", handleOutsideInteraction);
+    document.addEventListener("focusin", handleOutsideInteraction);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("pointerdown", handleOutsideInteraction);
+      document.removeEventListener("focusin", handleOutsideInteraction);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (focusCheck !== undefined) window.cancelAnimationFrame(focusCheck);
     };
   }, [open]);
 
   return (
-    <div
-      ref={rootRef}
-      className="relative shrink-0"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-      }}
-    >
+    <div ref={rootRef} className="relative shrink-0">
       <button
         ref={triggerRef}
         type="button"
