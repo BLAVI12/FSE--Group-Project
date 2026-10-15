@@ -249,9 +249,9 @@ select (select count(*) from public.categories)           as categories,
        (select count(*) from public.category_assignments) as assignments;
 ```
 
-**Demo login clean-up (planned 16 October 2026).** At Tink, the demo user had
+**Demo login clean-up (done 16 October 2026).** At Tink, the demo user had
 three bank logins: a Demo Commerzbank login (`de-demo-commerzbank-ob`, valid
-for only about a day, expired since 8 October) with the two empty accounts
+for only about a day, expired since 8 October) with the two accounts
 "Daily expenses" and "For holiday"; the working Tink Demo Bank login
 (`de-demobank-open-banking-embedded-templates`, Girokonto and Sparkonto, valid
 until 31 December 2026); and an empty Demo Bank password login. Because one
@@ -262,12 +262,28 @@ every day. The clean-up, in this order, after the team agreed:
    be removed; with `--apply` it removes only the Commerzbank and the empty
    password login, and refuses if no healthy login with accounts would remain.
 2. `maintenance/2026-10-16-demo-login-cleanup.sql` in the SQL Editor: checks,
-   deletes the two empty accounts (only if they have no transactions), resets
-   the connection from EXPIRED to ACTIVE, checks again.
+   deletes the two Commerzbank accounts, resets the connection from EXPIRED to
+   ACTIVE, checks again.
 3. As the demo user: open the dashboard, then Manage bank → Refresh data.
 
-Record here the date, the script's before/after output and the SQL results
-once it has run.
+Result, run in the night of 15 to 16 October 2026 (Berlin time) with the
+team's OK:
+
+| Step | Result |
+|---|---|
+| Script, dry run | 3 logins listed; would remove 2 |
+| Script, `--apply` | Commerzbank and password login removed; only the Tink Demo Bank login (Girokonto, Sparkonto, valid until 31 December 2026) remains |
+| SQL check before | Girokonto 3,472 and Sparkonto 79 transactions; "Daily expenses" and "For holiday" **2 each** (not 0 as planned); status EXPIRED |
+| SQL fix | the two accounts deleted with their 4 transactions and 4 category assignments; status ACTIVE |
+| SQL check after | Girokonto and Sparkonto only; status ACTIVE |
+| Refresh data as the demo user | no new bank login needed; 13 new transactions (newest 15 October), sync complete, about 9 seconds |
+
+The 4 transactions were Demo Commerzbank test payments (+1.01 and −1.01 EUR,
+May 2025), saved on 8 October when that login was renewed. Since the planned
+guard ("no transactions") would have stopped the delete, the guard actually
+run allowed at most two transactions per account, all booked before 2026;
+the SQL file records it. Removing them also corrected "Available to spend",
+which counted both accounts (3,412.80 and 55,012.80 EUR) as checking accounts.
 
 The historical manual migrations now have verified CLI history. For future
 approved changes, check the linked project, take a backup, and use:
