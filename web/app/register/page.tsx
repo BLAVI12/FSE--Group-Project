@@ -141,7 +141,7 @@ function RegisterForm() {
           </h1>
 
           <p className="mt-2 text-slate-600">
-            Start managing your finances.
+            Start managing your student finances.
           </p>
 
           {!supabaseConfigured && <SupabaseSetupNotice />}
@@ -206,7 +206,7 @@ function RegisterForm() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
-                placeholder="you@example.com"
+                placeholder="student@example.com"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50"
               />
             </div>

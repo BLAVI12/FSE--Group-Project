@@ -127,19 +127,13 @@ const availableCurrency =
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            label="Total balance"
-            value={
-              accountCurrencies.size <= 1
-                ? formatMoney(totalBalance, balanceCurrency)
-                : "Multiple currencies"
-            }
-            tone={
-              accountCurrencies.size <= 1 && totalBalance < 0
-                ? "negative"
-                : "default"
-            }
-          />
-
+           label="Available to spend"
+  value={
+    checkingCurrencies.size <= 1
+      ? formatMoney(availableToSpend, availableCurrency)
+      : "Multiple currencies"
+  }
+/>
           <SummaryCard
             label={`${monthLabel} income`}
             value={formatMoney(dashboardData.monthlySummary.income)}
@@ -241,7 +235,7 @@ function SummaryCard({
 }: {
   label: string;
   value: string;
-  tone?: "default" | "positive" | "negative";
+  tone?: "default" | "positive";
   href?: string;
 }) {
   const content = (
@@ -249,11 +243,7 @@ function SummaryCard({
       <p className="text-sm text-slate-500">{label}</p>
       <p
         className={`mt-2 text-2xl font-bold ${
-          tone === "positive"
-            ? "text-emerald-700"
-            : tone === "negative"
-              ? "text-rose-700"
-              : "text-slate-950"
+          tone === "positive" ? "text-emerald-700" : "text-slate-950"
         }`}
       >
         {value}
@@ -285,11 +275,6 @@ function SummaryCard({
 }
 
 function AccountCard({ account }: { account: DashboardAccount }) {
-  const bookedIsNegative =
-    account.balance_booked !== null && account.balance_booked < 0;
-  const availableIsNegative =
-    account.balance_available !== null && account.balance_available < 0;
-
   return (
     <article className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -306,16 +291,11 @@ function AccountCard({ account }: { account: DashboardAccount }) {
         </span>
       </div>
       <p className="mt-6 text-sm text-slate-500">Booked balance</p>
-      <p
-        className={`mt-1 text-3xl font-bold ${bookedIsNegative ? "text-rose-700" : "text-slate-950"}`}
-      >
+      <p className="mt-1 text-3xl font-bold">
         {formatMoney(account.balance_booked, account.currency)}
       </p>
-      <p
-        className={`mt-4 text-sm ${availableIsNegative ? "font-semibold text-rose-700" : "text-slate-500"}`}
-      >
-        Available to spend:{" "}
-        {formatMoney(account.balance_available, account.currency)}
+      <p className="mt-4 text-sm text-slate-500">
+        Available: {formatMoney(account.balance_available, account.currency)}
       </p>
     </article>
   );

@@ -74,11 +74,11 @@ await check("a user can update their own profile but cannot promote themselves",
   const profile = await call(`/rest/v1/profiles?id=eq.${demoUser.id}`, {
     token: demo,
     method: "PATCH",
-    body: { username: "demo_user", city: "Berlin", country_code: "DE" },
+    body: { username: "demo_student", city: "Berlin", country_code: "DE" },
   });
   assert.equal(profile.status, 204, JSON.stringify(profile.body));
   const saved = await call(`/rest/v1/profiles?id=eq.${demoUser.id}&select=username,city,country_code`, { token: demo });
-  assert.deepEqual(saved.body, [{ username: "demo_user", city: "Berlin", country_code: "DE" }]);
+  assert.deepEqual(saved.body, [{ username: "demo_student", city: "Berlin", country_code: "DE" }]);
 
   const escalation = await call(`/rest/v1/user_roles?user_id=eq.${demoUser.id}`, {
     token: demo,

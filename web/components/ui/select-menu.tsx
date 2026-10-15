@@ -133,27 +133,18 @@ export function SelectMenu({
       }
     }
 
-    function handleResize() {
-      closeMenu();
-    }
-
-    function handleScroll(event: Event) {
-      // The listbox is intentionally scrollable. Scroll events are observed in
-      // the capture phase, so ignore events from the menu itself and only close
-      // when an ancestor/page scroll would detach it from its trigger.
-      const target = event.target;
-      if (target instanceof Node && menuRef.current?.contains(target)) return;
+    function handleViewportChange() {
       closeMenu();
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
 
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
     };
   }, [open]);
 
@@ -204,7 +195,7 @@ export function SelectMenu({
               aria-label={ariaLabel}
               aria-activedescendant={`${listboxId}-option-${activeIndex}`}
               tabIndex={-1}
-              className="fixed z-100 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-1.5 text-sm text-slate-900 shadow-xl shadow-slate-900/10 outline-none"
+              className="fixed z-100 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 text-sm text-slate-900 shadow-xl shadow-slate-900/10 outline-none"
               style={position}
               onKeyDown={handleMenuKeyDown}
             >

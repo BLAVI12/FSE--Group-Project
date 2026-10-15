@@ -16,7 +16,7 @@ const features = [
     number: "02",
     title: "Make a plan that fits",
     description:
-      "Set a monthly budget that works for your life, not the other way around.",
+      "Set a monthly budget that works for student life, not the other way around.",
     icon: "◷",
   },
   {
@@ -62,9 +62,9 @@ export default async function HomePage() {
           </p>
 
           <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.045em] text-slate-950 sm:text-6xl lg:text-7xl">
-            Life is expensive.
+            Student life is a lot.
             <span className="mt-2 block text-emerald-700">
-              Let&apos;s make your money behave.
+              Your money can feel simple.
             </span>
           </h1>
 
@@ -81,7 +81,7 @@ export default async function HomePage() {
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-sky-100 text-xs text-sky-800">$</span>
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-rose-100 text-xs text-rose-800">$</span>
               </div>
-              <span>Made for the real ups and downs of everyday life.</span>
+              <span>Made for the real ups and downs of student life.</span>
             </div>
           )}
         </div>

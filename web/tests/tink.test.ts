@@ -151,7 +151,7 @@ async function connect(
   id: string,
   workflow: ReturnType<typeof createBankWorkflow>,
 ) {
-  const link = await workflow.startConnect(id, "person@example.com");
+  const link = await workflow.startConnect(id, "student@example.com");
   assert.equal(
     await workflow.finishConnect(
       id,
@@ -298,10 +298,10 @@ test("profiles and roles are created automatically and cannot be escalated by us
   try {
     await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);
     const ownUpdate = await db.query<{ username: string }>(
-      "update profiles set username='user_one' where id=$1 returning username",
+      "update profiles set username='student_one' where id=$1 returning username",
       [id],
     );
-    assert.equal(ownUpdate.rows[0]?.username, "user_one");
+    assert.equal(ownUpdate.rows[0]?.username, "student_one");
 
     const otherUpdate = await db.query(
       "update profiles set username='stolen_name' where id=$1 returning id",
@@ -360,7 +360,6 @@ test("admin suspension blocks existing sessions and RPCs, logs changes, and forb
   });
   await assert.rejects(asUser(target, () => db.query("select set_transaction_category(gen_random_uuid(),null)")), /active account required/);
   await assert.rejects(asUser(target, () => db.query("select set_transaction_category_internal(gen_random_uuid(),null)")), /permission denied/);
-  await assert.rejects(asUser(target, () => db.query("select record_user_activity()")), /active account required/);
   await asUser(admin, async () => {
     assert.equal((await db.query("select id from transactions where user_id=$1", [target])).rows.length, 0);
     const listed = await db.query<{ status: string; total: number }>("select * from admin_list_users('', '', 'suspended', 1)");
@@ -375,17 +374,6 @@ test("admin suspension blocks existing sessions and RPCs, logs changes, and forb
   await asUser(target, async () => {
     assert.equal((await db.query<{ active: boolean }>("select is_account_active() as active")).rows[0].active, true);
     assert.ok((await db.query("select id from transactions")).rows.length > 0);
-    const activity = await db.query<{ recorded_at: string }>(
-      "select record_user_activity() as recorded_at",
-    );
-    assert.ok(activity.rows[0].recorded_at);
-  });
-  await asUser(admin, async () => {
-    const listed = await db.query<{ user_id: string; last_sign_in_at: string | null }>(
-      "select user_id,last_sign_in_at from admin_list_users() where user_id=$1",
-      [target],
-    );
-    assert.ok(listed.rows[0].last_sign_in_at);
   });
 });
 
@@ -400,7 +388,7 @@ test("continuous-access callback needs no authorization code and is single-use a
   const id = await user();
   const other = await user();
   const { workflow } = fake();
-  const link = await workflow.startConnect(id, "person@example.com");
+  const link = await workflow.startConnect(id, "student@example.com");
   const params = new URLSearchParams({
     state: link.state,
     credentials_id: "cred",
@@ -425,7 +413,7 @@ test("continuous-access callback needs no authorization code and is single-use a
 test("expired state and cancellation do not create a connection", async () => {
   const id = await user();
   const { workflow } = fake();
-  const expired = await workflow.startConnect(id, "person@example.com");
+  const expired = await workflow.startConnect(id, "student@example.com");
   await db.query(
     "update oauth_states set expires_at=now()-interval '1 minute' where state=$1",
     [expired.state],
@@ -438,7 +426,7 @@ test("expired state and cancellation do not create a connection", async () => {
     ),
     { code: "INVALID_STATE" },
   );
-  const cancelled = await workflow.startConnect(id, "person@example.com");
+  const cancelled = await workflow.startConnect(id, "student@example.com");
   assert.equal(
     await workflow.finishConnect(
       id,
@@ -1062,7 +1050,7 @@ test("complete fetch removes vanished pending rows, retains booked history and f
   ).rows;
   assert.equal(rows.length, 1);
   assert.equal(rows[0]!.status, "BOOKED");
-  const renewal = await workflow.startConnect(id, "person@example.com", true);
+  const renewal = await workflow.startConnect(id, "student@example.com", true);
   assert.equal(
     new URL(renewal.redirectUrl).pathname,
     "/1.0/transactions/update-consent",

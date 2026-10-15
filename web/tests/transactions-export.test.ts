@@ -66,36 +66,6 @@ test("export filters match the transaction explorer selection", () => {
   );
 });
 
-test("entry type filters keep internal transfers separate from income and spending", () => {
-  const income = transaction({ id: "income", amount: 1000 });
-  const spending = transaction({ id: "spending", amount: -1000 });
-  const transfer = transaction({
-    id: "transfer",
-    amount: 2500,
-    is_transfer: true,
-  });
-  const rows = [income, spending, transfer];
-
-  assert.deepEqual(
-    filterTransactionsForExport(rows, accounts, { entryType: "income" }).map(
-      ({ id }) => id,
-    ),
-    ["income"],
-  );
-  assert.deepEqual(
-    filterTransactionsForExport(rows, accounts, { entryType: "spending" }).map(
-      ({ id }) => id,
-    ),
-    ["spending"],
-  );
-  assert.deepEqual(
-    filterTransactionsForExport(rows, accounts, { entryType: "transfer" }).map(
-      ({ id }) => id,
-    ),
-    ["transfer"],
-  );
-});
-
 test("CSV escapes descriptions and account names and includes an Excel-friendly BOM", () => {
   const csv = transactionsToCsv([transaction()], accounts);
   assert.ok(csv.startsWith("\uFEFFdate,description,category,account"));

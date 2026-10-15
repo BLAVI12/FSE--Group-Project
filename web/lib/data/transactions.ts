@@ -33,8 +33,6 @@ export type SpendingMonth = {
   spending: number;
   income: number;
   net: number;
-  transfersIn: number;
-  transfersOut: number;
 };
 
 export class TransactionsDataError extends Error {
@@ -171,44 +169,21 @@ export function aggregateSpendingMonths(
   currency: string,
 ): SpendingMonth[] {
   const summaries = new Map(
-    months.map((month) => [
-      month,
-      {
-        month,
-        spending: 0,
-        income: 0,
-        net: 0,
-        transfersIn: 0,
-        transfersOut: 0,
-      },
-    ]),
+    months.map((month) => [month, { month, spending: 0, income: 0, net: 0 }]),
   );
 
   for (const transaction of transactions) {
-    if (
-      transaction.status !== "BOOKED" ||
-      transaction.is_excluded ||
-      transaction.currency !== currency
-    ) continue;
+    if (!countsTowardsTrend(transaction) || transaction.currency !== currency)
+      continue;
     const summary = summaries.get(transaction.booked_date?.slice(0, 7) ?? "");
     if (!summary) continue;
-
-    if (transaction.is_transfer) {
-      summary.transfersIn += transaction.amount > 0 ? transaction.amount : 0;
-      summary.transfersOut += transaction.amount < 0 ? -transaction.amount : 0;
-    } else {
-      summary.spending += transaction.amount < 0 ? -transaction.amount : 0;
-      summary.income += transaction.amount > 0 ? transaction.amount : 0;
-      summary.net += transaction.amount;
-    }
+    summary.spending += transaction.amount < 0 ? -transaction.amount : 0;
+    summary.income += transaction.amount > 0 ? transaction.amount : 0;
+    summary.net += transaction.amount;
     if (
-      ![
-        summary.spending,
-        summary.income,
-        summary.net,
-        summary.transfersIn,
-        summary.transfersOut,
-      ].every(Number.isSafeInteger)
+      ![summary.spending, summary.income, summary.net].every(
+        Number.isSafeInteger,
+      )
     ) {
       throw new TransactionsDataError();
     }
