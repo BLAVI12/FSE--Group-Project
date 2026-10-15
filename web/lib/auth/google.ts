@@ -11,6 +11,8 @@ export async function startGoogleOAuth(flow: GoogleAuthFlow) {
     provider: "google",
     options: {
       redirectTo: googleOAuthCallbackUrl(window.location.origin, flow),
+      // Without this, Google reuses the browser's last account without asking.
+      queryParams: { prompt: "select_account" },
     },
   });
 }

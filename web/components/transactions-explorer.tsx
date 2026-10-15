@@ -4,9 +4,15 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { SelectMenu } from "@/components/ui/select-menu";
 import {
+  categoryIdToSave,
+  categoryMenuOptions,
+  categoryNameAfterSave,
+} from "@/lib/data/category-options";
+import {
   aggregateSpendingMonths,
   countsTowardsTrend,
   getMonthKeys,
+  getMonthKeysSince,
   type SpendingMonth,
   type SpendingTransaction,
   type TransactionAccount,
@@ -14,7 +20,7 @@ import {
 } from "@/lib/data/transactions";
 
 const ALL = "all";
-const UNCAT = "Uncategorised";
+const UNCAT = "Uncategorized";
 const ROWS_PER_PAGE = 20;
 const inputControl =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50";
@@ -144,9 +150,11 @@ export function TransactionsExplorer({
     categoryId: string | null,
   ) {
     if (savingId) return;
-    const categoryName = categoryId
-      ? availableCategories.find((item) => item.id === categoryId)?.name ?? null
-      : null;
+    const categoryName = categoryNameAfterSave(
+      categoryId,
+      availableCategories,
+      transaction.description,
+    );
     const previous = Object.prototype.hasOwnProperty.call(
       categoryOverrides,
       transaction.id,
@@ -181,23 +189,15 @@ export function TransactionsExplorer({
 
   const months = useMemo(() => {
     const current = new Date(now);
-    let count = Number(period);
     if (period === ALL) {
       const dates = transactions
         .flatMap((transaction) =>
           transaction.booked_date ? [transaction.booked_date] : [],
         )
         .sort();
-      const earliest = new Date(`${dates[0] ?? now.slice(0, 10)}T00:00:00Z`);
-      count = Math.max(
-        1,
-        (current.getUTCFullYear() - earliest.getUTCFullYear()) * 12 +
-          current.getUTCMonth() -
-          earliest.getUTCMonth() +
-          1,
-      );
+      return getMonthKeysSince(dates[0]?.slice(0, 7), current);
     }
-    return getMonthKeys(current, count);
+    return getMonthKeys(current, Number(period));
   }, [now, period, transactions]);
 
   const filtered = useMemo(
@@ -287,7 +287,7 @@ export function TransactionsExplorer({
     const params = new URLSearchParams({ currency });
     if (account !== ALL) params.set("account", account);
     if (category !== ALL)
-      params.set("category", category === UNCAT ? "__uncategorised__" : category);
+      params.set("category", category);
     if (entryType !== ALL) params.set("type", entryType);
     if (search.trim()) params.set("search", search.trim().slice(0, 100));
     if (!selectedMonth) params.set("undated", "include");
@@ -636,17 +636,11 @@ export function TransactionsExplorer({
                       value={categoryIdByName.get(transaction.category ?? "") ?? ""}
                       disabled={savingId === transaction.id}
                       compact
-                      options={[
-                        { value: "", label: UNCAT },
-                        ...availableCategories.map((item) => ({
-                          value: item.id,
-                          label: item.name,
-                        })),
-                      ]}
-                      onValueChange={(nextCategoryId) =>
+                      options={categoryMenuOptions(availableCategories)}
+                      onValueChange={(menuValue) =>
                         void saveCategory(
                           transaction,
-                          nextCategoryId || null,
+                          categoryIdToSave(menuValue),
                         )
                       }
                     />

@@ -1,7 +1,9 @@
+import { NAME_MAX_CODEPOINTS, requiredNameError } from "./names.ts";
+
 export const PROFILE_LIMITS = {
   username: 30,
-  firstName: 100,
-  lastName: 100,
+  firstName: NAME_MAX_CODEPOINTS,
+  lastName: NAME_MAX_CODEPOINTS,
   street: 200,
   postalCode: 20,
   city: 100,
@@ -72,6 +74,11 @@ export function validateProfile(values: ProfileValues):
   const countryCode = optional(values.countryCode)?.toUpperCase() ?? null;
   const errors: Partial<Record<ProfileField, string>> = {};
 
+  const firstNameError = requiredNameError(values.firstName, "First name");
+  const lastNameError = requiredNameError(values.lastName, "Last name");
+  if (firstNameError) errors.firstName = firstNameError;
+  if (lastNameError) errors.lastName = lastNameError;
+
   if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(username)) {
     errors.username =
       "Use 3–30 lowercase letters, numbers, underscores or hyphens.";
@@ -83,8 +90,6 @@ export function validateProfile(values: ProfileValues):
     number,
     string,
   ]> = [
-    ["firstName", firstName, PROFILE_LIMITS.firstName, "First name"],
-    ["lastName", lastName, PROFILE_LIMITS.lastName, "Last name"],
     ["street", street, PROFILE_LIMITS.street, "Street"],
     ["postalCode", postalCode, PROFILE_LIMITS.postalCode, "Postal code"],
     ["city", city, PROFILE_LIMITS.city, "City"],

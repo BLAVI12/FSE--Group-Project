@@ -61,7 +61,7 @@ export function filterTransactionsForExport(
     ) return false;
     if (
       search &&
-      !`${transaction.description} ${transaction.category ?? "Uncategorised"} ${accountNames.get(transaction.account_id) ?? ""}`
+      !`${transaction.description} ${transaction.category ?? "Uncategorized"} ${accountNames.get(transaction.account_id) ?? ""}`
         .toLocaleLowerCase("en-GB")
         .includes(search)
     )
@@ -92,7 +92,7 @@ export function transactionsToCsv(
     transaction.booked_date ?? "",
     spreadsheetSafeText(transaction.description),
     spreadsheetSafeText(transaction.category ?? ""),
-    accountNames.get(transaction.account_id) ?? "Bank account",
+    spreadsheetSafeText(accountNames.get(transaction.account_id) ?? "Bank account"),
     transaction.status,
     centsToDecimal(transaction.amount),
     transaction.currency,

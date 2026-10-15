@@ -1,25 +1,31 @@
 # Financial Planner
 
-Starter repository for a financial planning app. The structure is intentionally framework-neutral and ready for a future Supabase integration.
+Finance planner for students: a Next.js web app in `web/`, deployed on Vercel
+at https://fse-group-project.vercel.app, with Supabase for the database and
+login, and a bank connection through Tink (Demo Bank sandbox).
 
 ## Project structure
 
 ```text
+web/                  Next.js app: pages, API routes, components (see web/README.md)
 src/
-	components/       Shared UI components
-	features/         Feature-specific modules
-	lib/supabase/     Supabase client and helpers
-	pages/            App views
-	styles/           Global styles and design tokens
+	features/         Shared JavaScript: categorisation and exact amounts, auth helpers
+	lib/supabase/     Supabase client for the shared code
 supabase/
-	functions/        Edge Functions
-	migrations/       Database migrations
-tests/              Automated tests
+	migrations/       Database schema, applied in file-name order
+	seed.sql          Demo login and sample data
+	seed-data/        Category list; seeds/ holds the SQL generated from it
+	functions/_shared/tink/   Tink client and bank-data rules, used by the web app
+tests/                Tests for the shared code; tests/database/ checks the database
+docs/                 Data model (fintech-erm.md)
 ```
 
 ## Supabase setup
 
-Copy `.env.example` to `.env.local` and add your Supabase project URL and publishable key. Never put a Supabase secret or service-role key in client-side environment variables.
+The web app has its own settings file; see `web/README.md`. For the scripts in
+`scripts/`, copy `.env.example` to `.env.local` and add your Supabase project
+URL and publishable key. Never put a Supabase secret or service-role key in
+client-side environment variables.
 
 ## Authentication foundation
 
@@ -87,10 +93,15 @@ web app exposes this flow on both `/login` and `/register`.
 
 ## Bank data (Tink)
 
-Code shared by the Supabase Edge Functions lives in `supabase/functions/_shared/`.
-`tink/convert.ts` turns Tink's accounts and transactions into our rows (amounts
+The bank connection runs in the web app, in the server route `web/app/api/tink`
+with `web/lib/tink.ts`; its settings and setup are in `web/README.md`. The Tink
+code it uses lives in `supabase/functions/_shared/tink/` (the folder name comes
+from an earlier plan to run it as Supabase Edge Functions). `client.ts` talks
+to Tink, `consents.ts` decides when a bank permission must be renewed, and
+`errors.ts` decides what the user is told when the bank or Tink fails.
+`convert.ts` turns Tink's accounts and transactions into our rows (amounts
 as integer cents from Tink's varying decimal scale, booked/pending status,
-transfer flag); `tink/reconcile.ts` decides which stored transaction each
+transfer flag); `reconcile.ts` decides which stored transaction each
 incoming one is, so a repeated sync never duplicates rows. Both are pure
 functions with tests in `tests/tink/`, run against 309 real Demo Bank
 transactions in `tests/fixtures/`.

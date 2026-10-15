@@ -1,15 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "./config";
-
-const protectedRoutes = ["/dashboard"];
-const guestOnlyRoutes = ["/login", "/register"];
-
-function matchesRoute(pathname: string, routes: string[]) {
-  return routes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
-}
+import { profileAccessDecision } from "../auth/profile-completion";
+import { bankAccessDecision, bankAccessProblem } from "../auth/bank-access";
+import { protectedRoutes, guestOnlyRoutes, matchesRoute, profileRoute, bankRoute } from "../auth/routes";
 
 function redirectWithRefreshedCookies(url: URL, response: NextResponse) {
   const redirectResponse = NextResponse.redirect(url);
@@ -64,6 +58,31 @@ export async function updateSession(request: NextRequest) {
       // The database throttles writes, so this keeps the admin's activity
       // timestamp fresh without updating a row on every request.
       await supabase.rpc("record_user_activity");
+    }
+    if (!error && active === true && data?.claims?.sub) {
+      const decision = await profileAccessDecision(supabase, data.claims.sub, pathname);
+      if (decision !== "allow") {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: decision === "complete"
+            ? "Please complete your username, first name and last name in your profile."
+            : "Your profile could not be verified." }, { status: 403 });
+        }
+        const profileUrl = request.nextUrl.clone();
+        profileUrl.pathname = profileRoute;
+        profileUrl.search = "";
+        return redirectWithRefreshedCookies(profileUrl, response);
+      }
+      const bankDecision = await bankAccessDecision(supabase, data.claims.sub, pathname);
+      if (bankDecision !== "allow") {
+        if (pathname.startsWith("/api/")) {
+          const problem = bankAccessProblem(bankDecision);
+          return NextResponse.json(problem.body, { status: problem.status, headers: { "Cache-Control": "no-store" } });
+        }
+        const bankUrl = request.nextUrl.clone();
+        bankUrl.pathname = bankRoute;
+        bankUrl.search = bankDecision === "unavailable" ? "?bank=unavailable" : "";
+        return redirectWithRefreshedCookies(bankUrl, response);
+      }
     }
   }
 

@@ -18,11 +18,13 @@ login. It is sandbox data with no real personal or financial information.
 | `..._record_live_changes.sql` | Records changes made by hand on the hosted database: `amount_exact` filled from the cents on insert, sync columns on `connections` |
 | `..._profiles_and_roles.sql` | Editable personal profiles, application roles, admin checks and their RLS policies |
 | `..._admin_management.sql` | Account suspension, bounded user lookup, serialized admin changes and audit log |
+| `..._bank_sync_lease.sql` | Per-user sync claims and expiry; abandoned attempts can recover without a long database transaction |
 | `seed.sql` | Demo login, its connection, 2 accounts and 3,534 transactions |
 | `seeds/transaction-categories.sql` | Generated, repeatable category, keyword, and exclusion seed |
 
 The reasoning behind the schema is recorded in the team's `DECISIONS.md`
-(ADR-0005, ADR-0006 and ADR-0008), which moves into this repository next.
+(ADR-0005, ADR-0006 and ADR-0008), kept in the shared project folder outside
+this repository.
 
 ## Demo login
 
@@ -120,13 +122,81 @@ are separate future features.
 
 ## Hosted project
 
+### Verified state and application, 11 October 2026
+
+The hosted project has CLI migration history. Before this deployment it had
+11 entries through `20261008000002_admin_management`. Schema inspection
+confirmed that `20261009000001_bank_sync_lease` already existed and matched
+the committed migration: nullable UUID/timestamptz lease columns, the paired
+null constraint, and browser SELECT-only access. Its missing history entry
+was therefore marked applied, without executing its SQL again:
+
+```sh
+supabase migration repair --linked --status applied 20261009000001
+supabase migration list --linked
+supabase db push --linked --dry-run --include-all
+```
+
+Protected local schema/data backups were taken before any history repair or
+migration. The plain dry run requested `--include-all` because the two
+registration migrations precede the already recorded bank-sync version.
+The dry run with that flag listed **exactly**:
+
+- `20261008000003_registration_names.sql`
+- `20261008000004_registration_name_fallback.sql`
+
+Both were then applied on **11 October 2026** with:
+
+```sh
+supabase db push --linked --include-all
+supabase migration list --linked
+```
+
+The resulting list has **14 matching Local/Remote entries**: the eight
+`2026100300000…` migrations, `20261004000001`, all four `2026100800000…`
+migrations, and `20261009000001`. No migrations from this branch remain
+pending. The final hosted signup trigger matches `...0004` exactly. Comparing
+the exports confirmed that the rest of the schema and all exported public
+table rows were unchanged, including 7 profiles, 7 roles, 10 accounts and
+14,215 transactions. No seed or profile backfill was run.
+
+All local CI checks passed after the Main update: 55 root tests, typecheck,
+category-seed check, 109 web tests, lint, production build, database SQL checks,
+and 16 Auth/Data API access checks in a disposable local Supabase instance.
+This does not substitute for the still-pending interactive Google signup test.
+
+### 8 October 2026 migration record
+
+At the last verified application in this project's work log, migrations
+`20261008000001_profiles_and_roles` and `20261008000002_admin_management`
+were present on hosted. Admin management was applied with the linked Supabase
+CLI (`db push --linked`) after backup and verification; its incorrect history
+entry was first repaired with `migration repair --status reverted`.
+The original application event for `...0001` is not reconstructed here.
+
+At that stage, the registration migrations had not yet been applied. Their
+application and verification are recorded above under 11 October 2026.
+
 The hosted project `FSE--Group-Project` was set up on 3 October 2026 by
 running the first six migrations and `seed.sql` in the SQL Editor.
 
-The hosted setup below is historical documentation of work applied manually
-before this repository had CLI migration tracking. Do not apply new migrations
-or seeds through the Dashboard. New changes belong in migration/seed files and
-must be applied through the Supabase CLI only after the target is approved.
+The setup below is historical documentation of manual work before CLI
+migration tracking. It is not the current deployment procedure. New schema
+changes belong in migration files and are applied through the CLI only after
+project approval, backup, history/schema verification and review of the dry
+run. Do not apply new migration files through the SQL Editor or rerun seeds on
+hosted. If history is inconsistent, stop: never infer applied status from a
+version number alone. Repair history only after verifying the existing schema.
+
+### Bank-sync deployment
+
+`20261009000001_bank_sync_lease.sql` records the lease schema used by the
+prototype. It was added to the hosted project by hand from that prototype and
+verified identical to the committed migration on 9 October 2026: both
+`public.connections.sync_claim_id` and `sync_expires_at` are present, the
+`connections_sync_claim_check` constraint matches, and browsers retain SELECT
+only. Its initially missing CLI entry was reconciled on 11 October 2026, as
+recorded above. The bank-sync migration SQL was not executed again.
 
 Then check the existing hosted seed with:
 
@@ -147,7 +217,7 @@ the sync on 3 October).
 from this repository and the hosted database produce the same output from
 `tests/database/schema-fingerprint.sql` (tables, columns, constraints,
 indexes, policies, grants, functions, triggers). All of it was applied by hand
-in the SQL Editor, so the hosted project has no CLI migration history. One
+in the SQL Editor; it had no CLI migration history **at that time**. One
 table on the hosted database belongs to no migration: `Mastertabelle`, a
 manual upload of the 3,534 Demo Bank transactions. RLS is on and it has no
 policies, so the API cannot read it; the app does not use it.
@@ -179,16 +249,53 @@ select (select count(*) from public.categories)           as categories,
        (select count(*) from public.category_assignments) as assignments;
 ```
 
-Because the migrations were applied by hand, the Supabase CLI does not know
-about them. After explicit project approval, mark the verified migrations as
-applied (`supabase migration repair --status applied <versions>`), and then
-use:
+The historical manual migrations now have verified CLI history. For future
+approved changes, check the linked project, take a backup, and use:
 
 ```sh
-supabase db push --project-ref <APPROVED_PROJECT_REF>
+supabase migration list --linked
+supabase db push --linked --dry-run
+# Only after confirming that the preview lists exactly the approved files:
+supabase db push --linked
+supabase migration list --linked
 ```
 
+If pending migrations precede the latest remote version, the CLI may require
+`--include-all`; add it to both the dry run and the application, and inspect
+the complete preview again. If any unexpected file appears, stop and
+investigate. Do not add `--include-seed` for hosted schema deployments.
+
 ## Rebuilding locally
+
+### Names at registration
+
+Migration `20261008000003_registration_names.sql` copies `first_name` and
+`last_name` from signup metadata into each new profile. Google metadata can
+instead provide `given_name` and `family_name` if those keys are present;
+Google OAuth is not guaranteed to retain them (Supabase commonly stores
+`name`/`full_name`). Full names are never split automatically. Missing, non-string, empty or
+overlength values remain null and can be edited in the Profile tab. No names
+are guessed from a display name, and existing profiles are not backfilled.
+Email/password registration requires separate first and last name fields.
+The web app checks persisted profile names after either login method. Users
+with an incomplete username or names (including existing accounts) must complete the Profile
+tab before accessing other dashboard pages or web API routes. Profile saving
+requires a username and both names server-side; address fields remain optional. This is an
+application onboarding check, not a new database privilege or RLS restriction.
+The database trigger works even when email confirmation means signup does not
+immediately return a session. Apply this migration through the approved
+migration process before relying on signup names in the hosted project.
+
+Migration `20261008000004_registration_name_fallback.sql` treats JSON null as
+missing when falling back to `given_name`/`family_name`. It replaces only the
+trigger function and does not backfill any existing profiles. Apply both
+registration migrations in order on new environments; both are already
+applied on hosted. Web validation counts up to 100
+Unicode codepoints, matching PostgreSQL length; HTML maxlength allows up to
+200 UTF-16 units so supplementary characters are not blocked prematurely.
+The local demo seed fills missing username and names with `demo_student`,
+`Demo`, `Student`, while retaining already saved values.
+
 
 With the Supabase CLI and Docker: `supabase start`, then `supabase db reset`
 applies every migration and configured seed file. **`supabase db reset`
@@ -197,11 +304,5 @@ instance. The migrations need Supabase's `auth` schema, so plain PostgreSQL is
 not sufficient. The repository config runs `seed.sql` followed by the
 generated transaction-category seed.
 
-The hosted project has migration history from manual SQL Editor application;
-the CLI's migration history must be reconciled before a future approved remote
-push. Do not run a remote command until the target project is explicitly
-approved. Once approved and linked, the migration application command is:
-
-```sh
-supabase db push --project-ref <APPROVED_PROJECT_REF>
-```
+Hosted now has matching CLI migration history. The rebuild/reset commands above
+are still for disposable local databases only; never use them against hosted.

@@ -3,11 +3,14 @@
 import {
   useActionState,
   useState,
+  useEffect,
   type ChangeEvent,
   type InputHTMLAttributes,
 } from "react";
+import { useRouter } from "next/navigation";
 import { updateProfile } from "@/app/dashboard/profile/actions";
 import type { ProfileWithRole } from "@/lib/data/profile";
+import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
 import {
   PROFILE_LIMITS,
   USERNAME_HTML_PATTERN,
@@ -24,10 +27,16 @@ const inputClass =
 export function ProfileForm({
   profile,
   email,
+  continueTo,
 }: {
   profile: ProfileWithRole;
   email: string;
+  continueTo?: "/dashboard" | "/dashboard/bank";
 }) {
+  const router = useRouter();
+  // Keep the original onboarding destination when revalidation replaces the
+  // server profile with its newly complete version after a successful save.
+  const [onboardingDestination] = useState(continueTo);
   const [state, formAction, pending] = useActionState(
     updateProfile,
     initialState,
@@ -41,6 +50,13 @@ export function ProfileForm({
     city: profile.city ?? "",
     countryCode: profile.country_code ?? "",
   });
+
+  useEffect(() => {
+    if (state.status === "success" && onboardingDestination) {
+      router.replace(onboardingDestination);
+      router.refresh();
+    }
+  }, [state.status, onboardingDestination, router]);
 
   function bind(field: ProfileField) {
     return {
@@ -95,7 +111,7 @@ export function ProfileForm({
           Personal details
         </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Only add information you want to keep with this account.
+          First and last name are required. Address details remain optional.
         </p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <TextField
@@ -103,16 +119,18 @@ export function ProfileForm({
             name="firstName"
             {...bind("firstName")}
             error={state.errors?.firstName}
-            maxLength={PROFILE_LIMITS.firstName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="given-name"
+            required
           />
           <TextField
             label="Last name"
             name="lastName"
             {...bind("lastName")}
             error={state.errors?.lastName}
-            maxLength={PROFILE_LIMITS.lastName}
+            maxLength={NAME_INPUT_MAX_LENGTH}
             autoComplete="family-name"
+            required
           />
         </div>
       </section>

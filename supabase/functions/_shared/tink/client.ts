@@ -5,6 +5,8 @@ import {
   accountsNeedingRelink,
   credentialsToRenew,
   failedLoginsToRemove,
+  consentIsHealthy,
+  needsRelink,
   type TinkProviderConsent,
 } from "./consents.ts";
 
@@ -30,6 +32,7 @@ const LINK_SCOPES =
 // What our backend needs to read the user's data during a sync.
 const DATA_SCOPES =
   "accounts:read,balances:read,transactions:read,provider-consents:read";
+const REFRESH_SCOPES = "provider-consents:read,credentials:read,credentials:refresh";
 
 // What our backend needs to remove a failed bank login (Tink docs: "Managing
 // consents" > "Delete a consent"). Asked for only when it is used.
@@ -48,6 +51,8 @@ export interface TinkConfig {
   locale: string;
   /** Tink Link's test mode, which offers Demo Bank. True for the sandbox. */
   testMode: boolean;
+  /** Preselect the sandbox login instead of showing the bank picker. */
+  demoProvider?: string;
   timeoutMs: number;
 }
 
@@ -55,6 +60,8 @@ export interface TinkClientOptions {
   fetch?: typeof fetch;
   /** Clock for the client-token cache; tests move it forward. */
   now?: () => number;
+  /** Total function budget, in addition to the per-request timeout. */
+  signal?: AbortSignal;
 }
 
 interface TokenResponse {
@@ -67,22 +74,39 @@ interface CodeResponse {
   code: string;
 }
 
+interface Credentials {
+  id: string;
+  status: string;
+  updated: number;
+  statusUpdated?: number;
+  detailedError?: { details?: { reason?: string } };
+}
+
+type TinkOperation = "oauth-token" | "authorization-grant" | "provider-consents" |
+  "credentials-status" | "credentials-refresh" | "accounts" | "transactions";
+
 export class TinkError extends Error {
   readonly status: number;
   readonly code: string;
   readonly trackingId: string | undefined;
+  readonly reason: string | undefined;
+  readonly operation: TinkOperation | undefined;
 
   constructor(
     message: string,
     status: number,
     code: string,
     trackingId?: string,
+    reason?: string,
+    operation?: TinkOperation,
   ) {
     super(message);
     this.name = "TinkError";
     this.status = status;
     this.code = code;
     this.trackingId = trackingId;
+    this.reason = reason;
+    this.operation = operation;
   }
 }
 
@@ -108,6 +132,7 @@ export function tinkConfigFromEnv(
     market: get("TINK_MARKET") ?? "DE",
     locale: get("TINK_LOCALE") ?? "en_US",
     testMode: (get("TINK_TEST_MODE") ?? "true") !== "false",
+    demoProvider: get("TINK_DEMO_PROVIDER") ?? "de-demobank-password",
     timeoutMs,
   };
 }
@@ -156,7 +181,11 @@ export function createTinkClient(
     try {
       return await fetchFn(`${API_BASE}${path}`, {
         ...init,
-        signal: AbortSignal.timeout(config.timeoutMs),
+        signal: AbortSignal.any([
+          AbortSignal.timeout(config.timeoutMs),
+          ...(options.signal ? [options.signal] : []),
+          ...(init.signal ? [init.signal] : []),
+        ]),
       });
     } catch (error) {
       if (
@@ -173,7 +202,7 @@ export function createTinkClient(
     }
   }
 
-  async function responseJson<T>(response: Response): Promise<T> {
+  async function responseJson<T>(response: Response, operation?: TinkOperation): Promise<T> {
     const text = await response.text();
     let body: unknown = null;
     try {
@@ -200,13 +229,14 @@ export function createTinkClient(
       );
       const trackingId =
         typeof record.tracking_id === "string" ? record.tracking_id : undefined;
-      throw new TinkError(message, response.status, code, trackingId);
+      throw new TinkError(message, response.status, code, trackingId, undefined, operation);
     }
     if (body === null)
       throw new TinkError(
         "Tink returned an empty response",
         502,
         "EMPTY_RESPONSE",
+        undefined, undefined, operation,
       );
     return body as T;
   }
@@ -224,7 +254,8 @@ export function createTinkClient(
       },
       body: new URLSearchParams(values),
     });
-    return responseJson<T>(response);
+    return responseJson<T>(response, path === "/api/v1/oauth/token" ? "oauth-token" :
+      path.startsWith("/api/v1/oauth/authorization-grant") ? "authorization-grant" : undefined);
   }
 
   /** Our application's own token (client credentials), cached until a minute before expiry. */
@@ -292,19 +323,33 @@ export function createTinkClient(
     externalUserId: string,
     scope: string,
   ): Promise<string> {
-    const { code } = await postForm<CodeResponse>(
-      "/api/v1/oauth/authorization-grant",
-      { external_user_id: externalUserId, scope },
-      await clientToken(),
-    );
+    let code: string;
+    try {
+      ({ code } = await postForm<CodeResponse>(
+        "/api/v1/oauth/authorization-grant",
+        { external_user_id: externalUserId, scope },
+        await clientToken(),
+      ));
+    } catch (error) {
+      if (error instanceof TinkError && error.status === 404 && error.operation === "authorization-grant")
+        throw new TinkError("The connected Tink user cannot be found", 404,
+          "TINK_USER_NOT_FOUND", error.trackingId, undefined, error.operation);
+      throw error;
+    }
     return (await exchangeAuthorizationCode(code)).access_token;
   }
 
-  async function getData<T>(path: string, userToken: string): Promise<T> {
+  async function getData<T>(path: string, userToken: string, signal?: AbortSignal): Promise<T> {
     const response = await tinkFetch(path, {
       headers: { authorization: `Bearer ${userToken}` },
+      signal,
     });
-    return responseJson<T>(response);
+    const operation: TinkOperation | undefined =
+      path.startsWith("/api/v1/credentials/") ? "credentials-status" :
+      path.startsWith("/api/v1/provider-consents") ? "provider-consents" :
+      path.startsWith("/data/v2/accounts") ? "accounts" :
+      path.startsWith("/data/v2/transactions") ? "transactions" : undefined;
+    return responseJson<T>(response, operation);
   }
 
   /** Follows nextPageToken to the end, refusing to loop or run away. */
@@ -387,6 +432,63 @@ export function createTinkClient(
     if (!response.ok) await responseJson<unknown>(response); // throws a TinkError
   }
 
+  /** A queued refresh is not complete until the successful update timestamp advances. */
+  async function refreshCredentials(userToken: string, id: string, signal: AbortSignal) {
+    const path = `/api/v1/credentials/${encodeURIComponent(id)}`;
+    const read = async () => {
+      const credentials = await getData<Credentials>(`${path}?detailedError=true`, userToken, signal);
+      if (credentials.id !== id || typeof credentials.status !== "string" ||
+          !Number.isFinite(credentials.updated))
+        throw new TinkError("Invalid bank refresh status", 502, "UNEXPECTED_RESPONSE");
+      return credentials;
+    };
+    const before = await read();
+    if (needsRelink(before.status) || before.status.startsWith("AWAITING_"))
+      throw new TinkError("The bank requires reconnection", 409, "BANK_RECONNECT_REQUIRED");
+    // Tink: Refresh credentials, POST /api/v1/credentials/{id}/refresh.
+    // Match Tink Link's credentials-refresh product context. No bank credentials
+    // or authentication are supplied; 204 only means the refresh was queued.
+    const response = await tinkFetch(`${path}/refresh?authenticate=false`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${userToken}`, "content-type": "application/json" },
+      body: JSON.stringify({ productNames: ["PRODUCT_ACCOUNT_AGGREGATION"] }),
+      signal,
+    });
+    if (!response.ok) await responseJson<unknown>(response, "credentials-refresh");
+    let progressed = false;
+    for (;;) {
+      const credentials = await read();
+      if (credentials.status === "UPDATED" && credentials.updated > before.updated) return;
+      // Tink may briefly return the previous attempt's TEMPORARY_ERROR after
+      // accepting a retry. Only a status belonging to the new attempt can fail it.
+      progressed ||= credentials.status !== before.status || credentials.updated > before.updated ||
+        (credentials.statusUpdated !== undefined && before.statusUpdated !== undefined &&
+          credentials.statusUpdated > before.statusUpdated);
+      if (progressed && (needsRelink(credentials.status) || credentials.status.startsWith("AWAITING_")))
+        throw new TinkError("The bank requires reconnection", 409, "BANK_RECONNECT_REQUIRED");
+      if (progressed && credentials.status === "TEMPORARY_ERROR") {
+        const reason = credentials.detailedError?.details?.reason;
+        const reconnect = ["SESSION_EXPIRED", "USER_ACTION_REQUIRED", "USER_ACTION_REQUIRED_UNSIGNED_AGREEMENT",
+          "STATIC_CREDENTIALS_INCORRECT"].includes(reason ?? "");
+        throw new TinkError("The bank refresh failed", reconnect ? 409 : 503,
+          reconnect ? "BANK_RECONNECT_REQUIRED" : "BANK_REFRESH_FAILED", undefined, reason);
+      }
+      await new Promise<void>((resolve, reject) => {
+        const aborted = () => {
+          clearTimeout(timer);
+          signal.removeEventListener("abort", aborted);
+          reject(new TinkError("Bank refresh timed out", 504, "TINK_TIMEOUT"));
+        };
+        const timer = setTimeout(() => {
+          signal.removeEventListener("abort", aborted);
+          resolve();
+        }, 1000);
+        signal.addEventListener("abort", aborted, { once: true });
+        if (signal.aborted) aborted();
+      });
+    }
+  }
+
   return {
     /**
      * A single-use code that lets Tink Link add a bank to the permanent Tink
@@ -423,7 +525,9 @@ export function createTinkClient(
         authorization_code: authorizationCode,
         market: config.market,
         locale: config.locale,
-        ...(config.testMode ? { test: "true" } : {}),
+        ...(config.testMode
+          ? { test: "true", input_provider: config.demoProvider ?? "de-demobank-password" }
+          : {}),
         state,
       }).toString();
       return url.toString();
@@ -448,11 +552,36 @@ export function createTinkClient(
       return url.toString();
     },
 
-    exchangeAuthorizationCode,
-
     /** A short-lived user token for reading data; kept in memory only (ADR-0008). */
     userAccessToken(externalUserId: string): Promise<string> {
       return grantUserToken(externalUserId, DATA_SCOPES);
+    },
+
+    /** Refresh only healthy logins covering this app user's saved accounts. */
+    async refreshBank(externalUserId: string, providerAccountIds: string[]): Promise<void> {
+      try {
+        const token = await grantUserToken(externalUserId, REFRESH_SCOPES);
+        const consents = await fetchProviderConsents(token);
+        if (accountsNeedingRelink(consents, providerAccountIds, now()).length)
+          throw new TinkError("The bank requires reconnection", 409, "BANK_RECONNECT_REQUIRED");
+        const owned = new Set(providerAccountIds);
+        const ids = new Set(consents.filter((consent) =>
+          consent.credentialsId && consentIsHealthy(consent, now()) &&
+          consent.accountIds?.some((id) => owned.has(id)),
+        ).map((consent) => consent.credentialsId!));
+        if (!ids.size)
+          throw new TinkError("No connected bank can be refreshed", 409, "NO_REFRESHABLE_BANK");
+        const signal = AbortSignal.any([
+          AbortSignal.timeout(30_000),
+          ...(options.signal ? [options.signal] : []),
+        ]);
+        for (const id of ids) await refreshCredentials(token, id, signal);
+      } catch (error) {
+        if (error instanceof TinkError && (error.status === 403 ||
+            (error.status === 400 && error.code === "invalid_scope")))
+          throw new TinkError("On-demand bank refresh is not enabled", 403, "BANK_REFRESH_NOT_ALLOWED");
+        throw error;
+      }
     },
 
     /**
