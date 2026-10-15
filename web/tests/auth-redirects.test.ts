@@ -25,7 +25,7 @@ test("uses the fallback when no destination is supplied", () => {
 test("builds a Google registration callback URL", () => {
   assert.equal(
     googleOAuthCallbackUrl("http://localhost:3000", "register"),
-    "http://localhost:3000/auth/callback?next=%2Fdashboard&flow=register",
+    "http://localhost:3000/auth/callback?next=%2Fdashboard%2Fbank&flow=register",
   );
 });
 

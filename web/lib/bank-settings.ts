@@ -1,5 +1,5 @@
-// Which bank settings the server is missing. The dashboard hides "Connect
-// bank" while any is missing, instead of offering a button that can only fail.
+// Which bank settings the server is missing. The bank page disables connection
+// actions while any is missing; dashboard background sync is also disabled.
 const REQUIRED = [
   "DATABASE_URL",
   "TINK_CLIENT_ID",

@@ -6,6 +6,8 @@ import { loadOwnProfile, ProfileDataError } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
 import { hasCompleteProfile } from "@/lib/auth/profile-completion";
 import { profileGreeting } from "@/lib/greeting";
+import { loadOwnBankConnection, BankDataError } from "@/lib/data/bank";
+import { bankPhase, type BankConnectionData } from "@/lib/bank-connection-state";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -46,10 +48,22 @@ export default async function ProfilePage() {
     );
   }
 
+  let connection: BankConnectionData | null = null;
+  let bankUnavailable = false;
+  try {
+    connection = await loadOwnBankConnection(supabase, user.id);
+  } catch (error) {
+    if (!(error instanceof BankDataError)) throw error;
+    bankUnavailable = true;
+  }
+  const complete = hasCompleteProfile(profile);
+
   return (
     <main className="min-h-screen bg-[#fbfcfa] text-slate-900">
       <DashboardHeader
         activePage="profile"
+        bankConnection={connection}
+        bankUnavailable={bankUnavailable}
         showAdmin={profile.role === "admin"}
         greeting={
           <p className="mt-1 break-words text-sm text-slate-500 sm:ml-[50px]">
@@ -70,12 +84,13 @@ export default async function ProfilePage() {
           account.
         </p>
 
-        {!hasCompleteProfile(profile) && (
+        {!complete && (
           <p role="status" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-            Please enter your username, first name and last name and save your profile before continuing to the dashboard.
+            Please enter your username, first name and last name and save your profile to continue. If you have not connected a bank yet, that is the next step.
           </p>
         )}
-        <ProfileForm profile={profile} email={user.email ?? "Not available"} />
+        <ProfileForm profile={profile} email={user.email ?? "Not available"}
+          continueTo={!complete ? (!bankUnavailable && bankPhase(connection) === "ready" ? "/dashboard" : "/dashboard/bank") : undefined} />
       </div>
     </main>
   );

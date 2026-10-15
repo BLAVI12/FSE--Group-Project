@@ -5,9 +5,13 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export function ProfileMenu({
   active = false,
+  bankActive = false,
+  bankLabel,
   children,
 }: {
   active?: boolean;
+  bankActive?: boolean;
+  bankLabel: string;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -58,7 +62,7 @@ export function ProfileMenu({
         aria-controls={menuId}
         onClick={() => setOpen((current) => !current)}
         className={`flex h-11 w-11 items-center justify-center rounded-full border bg-emerald-50 text-emerald-800 transition hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700 ${
-          active || open ? "border-emerald-400 ring-2 ring-emerald-100" : "border-emerald-200"
+          active || bankActive || open ? "border-emerald-400 ring-2 ring-emerald-100" : "border-emerald-200"
         }`}
       >
         <svg aria-hidden="true" viewBox="0 0 40 40" className="h-9 w-9" fill="none">
@@ -89,6 +93,19 @@ export function ProfileMenu({
             <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
           </svg>
           Profile
+        </Link>
+        <Link
+          href="/dashboard/bank"
+          aria-current={bankActive ? "page" : undefined}
+          onClick={() => setOpen(false)}
+          className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-emerald-700 ${
+            bankActive ? "bg-emerald-50 text-emerald-800" : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+          }`}
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m3 9 9-6 9 6H3ZM4 21h16M6 12v6m6-6v6m6-6v6" />
+          </svg>
+          {bankLabel}
         </Link>
         <div className="my-1 border-t border-slate-100" />
         {children}

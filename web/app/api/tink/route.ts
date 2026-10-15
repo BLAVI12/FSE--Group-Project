@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
       bankFailure(error);
     }
   }
-  const url = new URL(user ? "/dashboard" : "/login", request.nextUrl.origin);
+  const url = new URL(user ? "/dashboard/bank" : "/login", request.nextUrl.origin);
   url.searchParams.set("bank", user ? outcome : "login_required");
   const response = NextResponse.redirect(url);
   response.cookies.set(STATE_COOKIE, "", { path: CALLBACK_PATH, maxAge: 0 });

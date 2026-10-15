@@ -9,7 +9,7 @@ export function googleOAuthCallbackUrl(
   const callbackUrl = new URL("/auth/callback", origin);
   callbackUrl.searchParams.set(
     "next",
-    flow === "login" ? "/dashboard?bank=login" : "/dashboard",
+    flow === "login" ? "/dashboard?bank=login" : "/dashboard/bank",
   );
   callbackUrl.searchParams.set("flow", flow);
   return callbackUrl.toString();

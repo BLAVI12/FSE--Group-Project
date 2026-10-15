@@ -3,9 +3,11 @@
 import {
   useActionState,
   useState,
+  useEffect,
   type ChangeEvent,
   type InputHTMLAttributes,
 } from "react";
+import { useRouter } from "next/navigation";
 import { updateProfile } from "@/app/dashboard/profile/actions";
 import type { ProfileWithRole } from "@/lib/data/profile";
 import { NAME_INPUT_MAX_LENGTH } from "@/lib/names";
@@ -25,10 +27,16 @@ const inputClass =
 export function ProfileForm({
   profile,
   email,
+  continueTo,
 }: {
   profile: ProfileWithRole;
   email: string;
+  continueTo?: "/dashboard" | "/dashboard/bank";
 }) {
+  const router = useRouter();
+  // Keep the original onboarding destination when revalidation replaces the
+  // server profile with its newly complete version after a successful save.
+  const [onboardingDestination] = useState(continueTo);
   const [state, formAction, pending] = useActionState(
     updateProfile,
     initialState,
@@ -42,6 +50,13 @@ export function ProfileForm({
     city: profile.city ?? "",
     countryCode: profile.country_code ?? "",
   });
+
+  useEffect(() => {
+    if (state.status === "success" && onboardingDestination) {
+      router.replace(onboardingDestination);
+      router.refresh();
+    }
+  }, [state.status, onboardingDestination, router]);
 
   function bind(field: ProfileField) {
     return {
