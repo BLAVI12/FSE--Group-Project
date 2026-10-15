@@ -25,7 +25,10 @@ function formatMoney(cents: number | null, currency = "EUR") {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
-  }).format(cents / 100);
+  })
+    .formatToParts(cents / 100)
+    .map(({ type, value }) => (type === "minusSign" ? "\u2212\u00a0" : value))
+    .join("");
 }
 
 function formatDate(value: string | null) {
