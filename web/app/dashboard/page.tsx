@@ -27,7 +27,7 @@ function formatMoney(cents: number | null, currency = "EUR") {
     currency,
   })
     .formatToParts(cents / 100)
-    .map(({ type, value }) => (type === "minusSign" ? "\u2212\u00a0" : value))
+    .map(({ type, value }) => (type === "minusSign" ? "\u2212" : value))
     .join("");
 }
 
