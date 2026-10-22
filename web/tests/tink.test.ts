@@ -1661,17 +1661,19 @@ test("missing bank references import for both users and preserve rows across ref
   assert.deepEqual(await saved(other), otherBefore);
 });
 
-// Connections from earlier tests count as already synced in this slot, so the
-// scheduled sync only sees the users each test prepares.
-async function scheduledSlot() {
-  await db.query("update public.connections set sync_attempted_at=now()");
-  return new Date(Date.now() - 60_000);
+// Connections from earlier tests count as already refreshed in this slot, so
+// the scheduled sync only sees the users each test prepares. The slot started
+// `minutesAgo`.
+async function scheduledSlot(minutesAgo = 1) {
+  await db.query("update public.connections set bank_refresh_attempted_at=now()");
+  return new Date(Date.now() - minutesAgo * 60_000);
 }
 
 async function lastAttempt(id: string, hoursAgo: number) {
   await db.query(
     `update public.connections set sync_attempted_at=now()-make_interval(hours=>$2),
-     last_synced=now()-make_interval(hours=>$2) where user_id=$1`,
+     last_synced=now()-make_interval(hours=>$2),
+     bank_refresh_attempted_at=now()-make_interval(hours=>$2) where user_id=$1`,
     [id, hoursAgo],
   );
 }
@@ -1728,4 +1730,36 @@ test("a failed scheduled sync keeps the saved data and is not retried in the sam
   const calls = snapshot.calls;
   assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
   assert.equal(snapshot.calls, calls);
+});
+
+test("a dashboard visit in the slot does not replace the scheduled bank refresh; Refresh data does", async () => {
+  const { workflow, snapshot } = fake();
+  const [visitor, refresher] = [await user(), await user()];
+  for (const id of [visitor, refresher]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  const slot = await scheduledSlot(30);
+  await lastAttempt(visitor, 3);
+  await lastAttempt(refresher, 3);
+  const latest = transaction("2", "New purchase", "BOOKED", "-599");
+  latest.dates = { booked: "2026-10-08" };
+  snapshot.bankTransactions = [...snapshot.transactions, latest];
+
+  // Both open the dashboard (a cached import) inside the slot; one also presses
+  // Refresh data. Their last attempt is then a few minutes old.
+  await workflow.sync(visitor);
+  await workflow.sync(refresher, true);
+  await db.query(
+    "update public.connections set sync_attempted_at=now()-interval '5 minutes' where user_id=any($1::uuid[])",
+    [[visitor, refresher]],
+  );
+  assert.equal((await db.query("select id from transactions where user_id=$1", [visitor])).rows.length, 1,
+    "the dashboard visit imported only the cached snapshot");
+  snapshot.refreshUsers.length = 0;
+
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 0 });
+  assert.deepEqual(snapshot.refreshUsers, [visitor]);
+  assert.equal((await db.query("select id from transactions where user_id=$1", [visitor])).rows.length, 2);
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
 });

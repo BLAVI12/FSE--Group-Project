@@ -149,17 +149,26 @@ sync asks the bank for new data first, like **Refresh data**.
   `remaining` is 0 (at most 50 calls per run), so one slow bank never pushes
   the others past the 60-second function limit.
 - **At most four a day:** the day has four six-hour slots (UTC). A user is due
-  only if they had no sync or attempt in the current slot, so a late, repeated
-  or manual run never syncs anyone twice in a slot. A user who pressed
-  **Refresh data** in this slot is skipped. A failed attempt also counts and is
-  tried again in the next slot.
+  only if the bank was not asked for new data in the current slot
+  (`connections.bank_refresh_attempted_at`), so a late, repeated or manual run
+  never refreshes anyone twice in a slot. Pressing **Refresh data** counts; a
+  dashboard visit does not, because it only re-reads Tink's copy. A failed
+  attempt also counts and is tried again in the next slot.
+- **Red or green:** a user whose sync failed does not stop the others, but the
+  run ends red so someone looks at the Vercel logs. A user whose bank login
+  expired is not a failure: the app asks them to reconnect.
 - **Left out:** expired connections (the person must reconnect in Tink Link),
   suspended users, and connections with a sync already running.
-- **Setup, once:** `CRON_SECRET` in Vercel (Production, then redeploy), and in
-  GitHub **Settings > Secrets and variables > Actions** the secret
-  `CRON_SECRET` (same value) and the variable `APP_URL`
-  (`https://<vercel-app>.vercel.app`). Without `APP_URL` the workflow is
-  skipped. Test it with **Actions > Scheduled bank sync > Run workflow**.
+- **Setup, once:**
+  1. The migration `20261023000001_bank_refresh_attempt.sql` on the hosted
+     database (`../supabase/README.md`, dry run first). Without it the route
+     fails and the workflow turns red.
+  2. `CRON_SECRET` in Vercel (Production, then redeploy).
+  3. In GitHub **Settings > Secrets and variables > Actions**: the secret
+     `CRON_SECRET` (same value) and the variable `APP_URL`
+     (`https://<vercel-app>.vercel.app`). Without `APP_URL` the workflow is
+     skipped.
+  4. Test it with **Actions > Scheduled bank sync > Run workflow**.
 - GitHub turns off scheduled workflows in a public repository after 60 days
   without commits; **Run workflow** or a new commit turns it back on.
 

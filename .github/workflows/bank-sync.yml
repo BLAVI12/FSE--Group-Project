@@ -40,7 +40,10 @@ jobs:
             exit 1
           fi
           # One user per call; the cap stops a runaway loop. Users left over
-          # are synced in the next run.
+          # are synced in the next run. A user whose sync failed does not stop
+          # the others, but turns the run red at the end. "expired" is not a
+          # failure: that person has to reconnect in the app.
+          failed=0
           for call in $(seq 1 50); do
             if ! body=$(curl --silent --show-error --fail-with-body --max-time 75 \
               --request POST --header "Authorization: Bearer $CRON_SECRET" \
@@ -49,6 +52,17 @@ jobs:
               exit 1
             fi
             echo "Call $call: $body"
-            [ "$(jq -r '.remaining' <<<"$body")" -gt 0 ] || exit 0
+            if [ "$(jq -r '.status' <<<"$body")" = "failed" ]; then
+              failed=$((failed + 1))
+            fi
+            if [ "$(jq -r '.remaining' <<<"$body")" -eq 0 ]; then
+              break
+            fi
+            if [ "$call" -eq 50 ]; then
+              echo "::warning::Stopped after 50 calls; the rest follow in the next run."
+            fi
           done
-          echo "::warning::Stopped after 50 calls; the rest follow in the next run."
+          if [ "$failed" -gt 0 ]; then
+            echo "::error::$failed user(s) could not be synced. The Vercel logs show the error codes."
+            exit 1
+          fi
