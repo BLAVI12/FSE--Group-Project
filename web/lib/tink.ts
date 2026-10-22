@@ -63,6 +63,13 @@ export interface SyncResult {
   skippedTransactions?: number;
 }
 
+export interface ScheduledSyncResult {
+  status: SyncResult["status"] | "failed" | "none_due";
+  remaining: number;
+  /** Set when status is "failed"; for logging by code only (lib/bank-error.ts). */
+  error?: unknown;
+}
+
 export interface SyncClaim {
   status: "syncing";
   claimId: string;
@@ -679,6 +686,37 @@ export function createBankWorkflow(
         if (expired) return { status: "expired", lastSynced: connection.last_synced?.toISOString() ?? null };
         throw error;
       }
+    },
+
+    /**
+     * One step of the scheduled sync (app/api/cron/bank-sync): refreshes the
+     * bank data of the user who has waited longest, if they had no sync or
+     * attempt in this slot yet. Expired, suspended and busy users are left
+     * out; an attempt counts even if it fails, so a broken login is tried
+     * again only in the next slot. Reports how many users are still due.
+     */
+    async scheduledSync(slotStart: Date): Promise<ScheduledSyncResult> {
+      const due = (await pool.query<{ user_id: string }>(
+        `select c.user_id from public.connections c
+         join public.user_roles r on r.user_id=c.user_id and r.status='active'
+         where c.provider='tink' and c.live_sync_enabled and c.status<>'EXPIRED'
+           and c.tink_external_user_id=c.user_id::text
+           and (c.sync_claim_id is null or c.sync_expires_at<=$2)
+           and coalesce(greatest(c.sync_attempted_at,c.last_synced),'-infinity')<$1
+         order by coalesce(greatest(c.sync_attempted_at,c.last_synced),'-infinity'), c.user_id`,
+        [slotStart, new Date(now())],
+      )).rows.map((row) => row.user_id);
+      for (const [index, userId] of due.entries()) {
+        const remaining = due.length - index - 1;
+        const claim = await this.prepareSync(userId);
+        if (claim.status !== "syncing") continue;
+        try {
+          return { status: (await this.runSync(userId, claim.claimId, true)).status, remaining };
+        } catch (error) {
+          return { status: "failed", remaining, error };
+        }
+      }
+      return { status: "none_due", remaining: 0 };
     },
 
     /** Synchronous convenience for tests and non-serverless callers. */

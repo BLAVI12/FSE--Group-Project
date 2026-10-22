@@ -1660,3 +1660,72 @@ test("missing bank references import for both users and preserve rows across ref
   assert.equal(after[0]!.category, "My category");
   assert.deepEqual(await saved(other), otherBefore);
 });
+
+// Connections from earlier tests count as already synced in this slot, so the
+// scheduled sync only sees the users each test prepares.
+async function scheduledSlot() {
+  await db.query("update public.connections set sync_attempted_at=now()");
+  return new Date(Date.now() - 60_000);
+}
+
+async function lastAttempt(id: string, hoursAgo: number) {
+  await db.query(
+    `update public.connections set sync_attempted_at=now()-make_interval(hours=>$2),
+     last_synced=now()-make_interval(hours=>$2) where user_id=$1`,
+    [id, hoursAgo],
+  );
+}
+
+test("scheduled sync refreshes each due user once per slot, longest-waiting first, and skips expired and suspended users", async () => {
+  const { workflow, snapshot } = fake();
+  const [first, second, expired, suspended, current] = [await user(), await user(), await user(), await user(), await user()];
+  for (const id of [first, second, expired, suspended, current]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  const slot = await scheduledSlot();
+  await lastAttempt(second, 2);
+  await lastAttempt(first, 3);
+  await lastAttempt(expired, 4);
+  await db.query("update public.connections set status='EXPIRED' where user_id=$1", [expired]);
+  await lastAttempt(suspended, 5);
+  await db.query("update public.user_roles set status='suspended' where user_id=$1", [suspended]);
+  snapshot.refreshUsers.length = 0;
+
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 1 });
+  assert.deepEqual(snapshot.refreshUsers, [first], "a scheduled sync asks the bank for new data");
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 0 });
+  assert.deepEqual(snapshot.refreshUsers, [first, second]);
+  const calls = snapshot.calls;
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
+  assert.equal(snapshot.calls, calls, "nobody is synced twice in one slot");
+  const states = (await db.query<{ user_id: string; status: string }>(
+    "select user_id,status from public.connections where user_id=any($1::uuid[])",
+    [[expired, suspended]],
+  )).rows;
+  assert.deepEqual(new Map(states.map((row) => [row.user_id, row.status])),
+    new Map([[expired, "EXPIRED"], [suspended, "ACTIVE"]]));
+});
+
+test("a failed scheduled sync keeps the saved data and is not retried in the same slot", async () => {
+  const { workflow, snapshot } = fake();
+  const id = await user();
+  await connect(id, workflow);
+  await workflow.sync(id);
+  const saved = (await db.query("select id from public.transactions where user_id=$1", [id])).rows;
+  const slot = await scheduledSlot();
+  await lastAttempt(id, 3);
+  snapshot.refreshFailure = true;
+
+  const result = await workflow.scheduledSync(slot);
+  assert.equal(result.status, "failed");
+  assert.equal(result.remaining, 0);
+  assert.ok(result.error instanceof TinkError);
+  assert.equal(result.error.code, "BANK_REFRESH_NOT_ALLOWED");
+  assert.equal((await db.query<{ status: string }>(
+    "select status from public.connections where user_id=$1", [id])).rows[0]!.status, "ERROR");
+  assert.deepEqual((await db.query("select id from public.transactions where user_id=$1", [id])).rows, saved);
+  const calls = snapshot.calls;
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
+  assert.equal(snapshot.calls, calls);
+});

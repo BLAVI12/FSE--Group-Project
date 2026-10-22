@@ -1,0 +1,54 @@
+# Updates every connected user's bank data four times a day, without anyone
+# opening the app. GitHub runs the schedule (Vercel's free plan allows only one
+# cron job a day); the app decides who is due, so a late, repeated or manual
+# run never syncs a user more than once per six-hour slot (web/lib/scheduled-sync.ts).
+#
+# Needs, in the repository settings under Secrets and variables > Actions:
+# - variable APP_URL: the live address, for example https://fse-group-project.vercel.app
+# - secret CRON_SECRET: the same value as CRON_SECRET in Vercel (at least 32 characters)
+# Without APP_URL the job is skipped.
+
+name: Scheduled bank sync
+
+on:
+  schedule:
+    # Mid-slot (03:17, 09:17, 15:17, 21:17 UTC), so a delayed start stays in its slot.
+    - cron: "17 3,9,15,21 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: bank-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync due users
+    if: vars.APP_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Call the sync route until no user is due
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::The CRON_SECRET secret is not set."
+            exit 1
+          fi
+          # One user per call; the cap stops a runaway loop. Users left over
+          # are synced in the next run.
+          for call in $(seq 1 50); do
+            if ! body=$(curl --silent --show-error --fail-with-body --max-time 75 \
+              --request POST --header "Authorization: Bearer $CRON_SECRET" \
+              "${APP_URL%/}/api/cron/bank-sync"); then
+              echo "::error::Call $call failed: $body"
+              exit 1
+            fi
+            echo "Call $call: $body"
+            [ "$(jq -r '.remaining' <<<"$body")" -gt 0 ] || exit 0
+          done
+          echo "::warning::Stopped after 50 calls; the rest follow in the next run."

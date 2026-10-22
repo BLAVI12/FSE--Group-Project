@@ -94,7 +94,9 @@ web app exposes this flow on both `/login` and `/register`.
 ## Bank data (Tink)
 
 The bank connection runs in the web app, in the server route `web/app/api/tink`
-with `web/lib/tink.ts`; its settings and setup are in `web/README.md`. The Tink
+with `web/lib/tink.ts`; its settings and setup are in `web/README.md`. A GitHub
+Actions schedule (`.github/workflows/bank-sync.yml`) also updates every user's
+bank data four times a day through `web/app/api/cron/bank-sync`. The Tink
 code it uses lives in `supabase/functions/_shared/tink/` (the folder name comes
 from an earlier plan to run it as Supabase Edge Functions). `client.ts` talks
 to Tink, `consents.ts` decides when a bank permission must be renewed, and
