@@ -165,7 +165,8 @@ async function connect(
 
 async function due(id: string) {
   await db.query(
-    "update public.connections set sync_attempted_at=now()-interval '20 minutes',last_synced=now()-interval '20 minutes' where user_id=$1",
+    `update public.connections set sync_attempted_at=now()-interval '20 minutes',last_synced=now()-interval '20 minutes',
+     bank_refresh_attempted_at=now()-interval '20 minutes' where user_id=$1`,
     [id],
   );
 }
@@ -704,7 +705,7 @@ test("automatic and manual refreshes request reconnect when Tink accounts disapp
   }
 });
 
-test("automatic and manual refreshes are limited; sample connections never call Tink", async () => {
+test("automatic and manual refreshes are limited separately; sample connections never call Tink", async () => {
   const id = await user();
   const { workflow, snapshot } = fake();
   await db.query(
@@ -716,9 +717,17 @@ test("automatic and manual refreshes are limited; sample connections never call 
   assert.equal(snapshot.calls, initialCalls);
   await connect(id, workflow);
   await workflow.sync(id);
-  const calls = snapshot.calls;
+  let calls = snapshot.calls;
   assert.equal((await workflow.sync(id)).status, "current");
+  assert.equal(snapshot.calls, calls);
+  // The cached import right after sign-in does not block Refresh data, which
+  // waits only for the previous bank refresh.
+  snapshot.refreshes.length = 0;
+  assert.equal((await workflow.sync(id, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"]);
+  calls = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "current");
+  assert.equal((await workflow.sync(id)).status, "current");
   assert.equal(snapshot.calls, calls);
 });
 
@@ -979,7 +988,7 @@ test("incomplete transactions do not block usable rows or delete saved pending r
     "select sync_complete from connections where user_id=$1", [id],
   )).rows[0]!.sync_complete, false);
   const calls = snapshot.calls;
-  assert.equal((await workflow.sync(id, true)).status, "partial");
+  assert.equal((await workflow.sync(id)).status, "partial");
   assert.equal(snapshot.calls, calls, "partial snapshots still respect the retry interval");
 
   await due(id);

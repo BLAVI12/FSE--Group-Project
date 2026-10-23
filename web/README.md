@@ -124,8 +124,9 @@ temporary app. The app and local test database are stopped on completion; local
 test data is discarded. This does not replace a real Google/Tink browser test.
 
 Automatic checks happen on dashboard visits, at most once every 15 minutes.
-Manual checks are limited to once a minute. A started sync continues after the
-response. The workflow
+**Refresh data** is limited to once a minute, counted from the last bank refresh
+only, so the automatic check right after sign-in does not block it. A started
+sync continues after the response. The workflow
 claims a 90-second lease for the signed-in user, releases the database, fetches
 all pages, and then saves in one transaction. An expired lease can be retried;
 a late worker cannot overwrite a newer attempt. Failed fetches preserve saved

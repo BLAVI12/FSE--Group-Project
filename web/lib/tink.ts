@@ -479,7 +479,10 @@ export function createBankWorkflow(
         }
         const abandoned = Boolean(connection.sync_claim_id);
         const interval = manual ? MANUAL_INTERVAL_MS : AUTO_INTERVAL_MS;
-        const sinceAttempt = now() - (connection.sync_attempted_at?.valueOf() ?? 0);
+        // A bank refresh waits only for the last bank refresh: the cached
+        // import a dashboard visit starts right after sign-in must not block it.
+        const lastAttempt = manual ? connection.bank_refresh_attempted_at : connection.sync_attempted_at;
+        const sinceAttempt = now() - (lastAttempt?.valueOf() ?? 0);
         if (!abandoned && (sinceAttempt < interval || (!manual && connection.sync_complete &&
             connection.last_synced && now() - connection.last_synced.valueOf() < interval))) {
           await db.query("commit");
