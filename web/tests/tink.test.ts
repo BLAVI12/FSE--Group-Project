@@ -1082,6 +1082,50 @@ test("complete fetch removes vanished pending rows, retains booked history and f
   );
 });
 
+test("one expired bank login stops only its own accounts; the others keep syncing and refreshing", async () => {
+  const id = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  const connection = async () => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  await connect(id, workflow);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: true });
+  const status = await workflow.status(id);
+  assert.equal(status.state, "synced");
+  assert.equal(status.needsRenewal, true);
+
+  // Refresh data still asks the bank through the healthy login and saves its new data.
+  snapshot.bankTransactions = [...snapshot.transactions, transaction("2", "New purchase")];
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"]);
+  assert.equal((await db.query("select id from transactions where user_id=$1", [id])).rows.length, 2);
+
+  // Reconnect renews exactly the expired login.
+  const renewal = await workflow.startConnect(id, "person@example.com", true);
+  assert.equal(new URL(renewal.redirectUrl).searchParams.get("credentials_id"), "old");
+  snapshot.consents[1]!.status = "UPDATED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: false });
+
+  // Only when no account has a healthy login left does the connection expire.
+  for (const consent of snapshot.consents) consent.status = "SESSION_EXPIRED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "expired");
+  assert.equal((await connection()).status, "EXPIRED");
+  const calls = snapshot.calls;
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "expired");
+  assert.equal(snapshot.calls, calls, "an expired connection is not synced until it is renewed");
+});
+
 test("same IBAN is matched within each user and reconnect preserves the local account", async () => {
   const id = await user();
   const other = await user();

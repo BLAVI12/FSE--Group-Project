@@ -4,6 +4,8 @@ export type BankConnectionData = {
   status: "ACTIVE" | "EXPIRED" | "ERROR";
   live_sync_enabled: boolean;
   last_synced: string | null;
+  /** Some accounts wait for a renewed bank login; the others keep syncing. */
+  needs_renewal: boolean;
 };
 
 export function bankPhase(connection: BankConnectionData | null) {
@@ -13,7 +15,7 @@ export function bankPhase(connection: BankConnectionData | null) {
 
 export function bankMenuLabel(connection: BankConnectionData | null) {
   if (!connection?.live_sync_enabled) return "Add bank";
-  return connection.status === "EXPIRED" ? "Renew bank connection" : "Manage bank";
+  return connection.status === "EXPIRED" || connection.needs_renewal ? "Renew bank connection" : "Manage bank";
 }
 
 export function bankAutomaticAction(

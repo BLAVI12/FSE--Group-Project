@@ -7,7 +7,7 @@ import { loadOwnBankConnection, BankDataError } from "../lib/data/bank.ts";
 import { requiresBankSetup } from "../lib/auth/routes.ts";
 import { dashboardNavigationItems } from "../lib/dashboard-navigation.ts";
 
-const ready: BankConnectionData = { status: "ACTIVE", live_sync_enabled: true, last_synced: "2026-10-13T10:00:00Z" };
+const ready: BankConnectionData = { status: "ACTIVE", live_sync_enabled: true, last_synced: "2026-10-13T10:00:00Z", needs_renewal: false };
 const first: BankConnectionData = { ...ready, last_synced: null };
 
 function client(data: unknown, error: object | null = null, rejects = false) {
@@ -38,12 +38,12 @@ test("later expiry and refresh errors preserve financial access, first-import er
 test("bank loader reads only the signed-in user's own Tink metadata", async () => {
   const { supabase, calls } = client(ready);
   assert.deepEqual(await loadOwnBankConnection(supabase, "own-user"), ready);
-  assert.deepEqual(calls, ["connections", "status,live_sync_enabled,last_synced", ["user_id", "own-user"], ["provider", "tink"]]);
+  assert.deepEqual(calls, ["connections", "status,live_sync_enabled,last_synced,needs_renewal", ["user_id", "own-user"], ["provider", "tink"]]);
 });
 
 test("failed and malformed reads are unavailable, never a new-user or ready state", async () => {
   for (const input of [client(null, { message: "Private DB message" }), client(null, null, true),
-    client({ ...ready, last_synced: "" }), client({ ...ready, live_sync_enabled: "true" }), client({ ...ready, status: "UNKNOWN" })]) {
+    client({ ...ready, last_synced: "" }), client({ ...ready, live_sync_enabled: "true" }), client({ ...ready, needs_renewal: null }), client({ ...ready, status: "UNKNOWN" })]) {
     assert.equal(await bankAccessDecision(input.supabase, "own-user", "/dashboard"), "unavailable");
     await assert.rejects(loadOwnBankConnection(input.supabase, "own-user"), BankDataError);
   }
@@ -80,6 +80,7 @@ test("dropdown labels reflect setup, management and renewal without trusting tra
   assert.equal(bankMenuLabel(ready), "Manage bank");
   assert.equal(bankMenuLabel({ ...ready, status: "ERROR" }), "Manage bank");
   assert.equal(bankMenuLabel({ ...ready, status: "EXPIRED" }), "Renew bank connection");
+  assert.equal(bankMenuLabel({ ...ready, needs_renewal: true }), "Renew bank connection");
 });
 
 test("onboarding hides financial tabs but retains existing admin navigation", () => {

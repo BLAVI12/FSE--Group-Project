@@ -4,8 +4,8 @@ import {
   type TinkClient,
   jwtSubject,
   TinkError,
-  accountsNeedingRelink,
   credentialsToRenew,
+  relinkScope,
 } from "../../supabase/functions/_shared/tink/client.ts";
 import {
   toAccountValues,
@@ -47,6 +47,7 @@ interface Connection {
   last_synced: Date | null;
   sync_attempted_at: Date | null;
   bank_refresh_attempted_at: Date | null;
+  needs_renewal: boolean;
   sync_claim_id: string | null;
   sync_expires_at: Date | null;
 }
@@ -92,6 +93,8 @@ export interface BankStatus {
   syncComplete?: boolean;
   lastSynced?: string | null;
   syncAttemptedAt?: string | null;
+  /** Some accounts wait for a renewed bank login while the others keep syncing. */
+  needsRenewal?: boolean;
   transactionFingerprint?: string;
 }
 
@@ -316,6 +319,7 @@ export function createBankWorkflow(
         syncComplete: connection.sync_complete,
         lastSynced,
         syncAttemptedAt,
+        needsRenewal: connection.needs_renewal,
         ...(state === "synced"
           ? { transactionFingerprint: await transactionFingerprint(pool, userId) }
           : {}),
@@ -426,7 +430,7 @@ export function createBankWorkflow(
           values ($1,'tink',$2,$3,'ACTIVE',false,true)
           on conflict (user_id,provider) do update set tink_user_id=coalesce(excluded.tink_user_id,connections.tink_user_id),
           tink_external_user_id=excluded.tink_external_user_id,status='ACTIVE',sync_complete=false,
-          live_sync_enabled=true,sync_attempted_at=null,sync_claim_id=null,sync_expires_at=null returning id`,
+          needs_renewal=false,live_sync_enabled=true,sync_attempted_at=null,sync_claim_id=null,sync_expires_at=null returning id`,
             [userId, jwtSubject(token), saved.tink_external_user_id],
           )
         ).rows[0]!;
@@ -641,18 +645,21 @@ export function createBankWorkflow(
               rules,
             );
           }
-          const expired =
-            accountsNeedingRelink(
-              consents,
-              accounts.map((a) => a.id),
-              now(),
-            ).length > 0;
+          // An expired bank login stops only the accounts no healthy login
+          // covers. The connection expires, and syncing stops, only when that
+          // is every account.
+          const relink = relinkScope(
+            consents,
+            accounts.map((a) => a.id),
+            now(),
+          );
+          const expired = relink === "all";
           const complete = skippedTransactions === 0;
           const updated = (
             await db.query<{ last_synced: Date }>(
-              `update public.connections set status=$2,
+              `update public.connections set status=$2,needs_renewal=$4,
             sync_complete=$3,sync_cursor=null,last_synced=now(),sync_claim_id=null,sync_expires_at=null where id=$1 returning last_synced`,
-              [connection.id, expired ? "EXPIRED" : "ACTIVE", complete],
+              [connection.id, expired ? "EXPIRED" : "ACTIVE", complete, relink !== "none"],
             )
           ).rows[0]!;
           await db.query("commit");
