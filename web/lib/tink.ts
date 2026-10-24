@@ -46,6 +46,7 @@ interface Connection {
   sync_complete: boolean;
   last_synced: Date | null;
   sync_attempted_at: Date | null;
+  bank_refresh_attempted_at: Date | null;
   sync_claim_id: string | null;
   sync_expires_at: Date | null;
 }
@@ -61,6 +62,13 @@ export interface SyncResult {
     | "retry_later";
   lastSynced?: string | null;
   skippedTransactions?: number;
+}
+
+export interface ScheduledSyncResult {
+  status: SyncResult["status"] | "failed" | "none_due";
+  remaining: number;
+  /** Set when status is "failed"; for logging by code only (lib/bank-error.ts). */
+  error?: unknown;
 }
 
 export interface SyncClaim {
@@ -434,7 +442,11 @@ export function createBankWorkflow(
       }
     },
 
-    /** Claim quickly, then release the database connection before contacting Tink. */
+    /**
+     * Claim quickly, then release the database connection before contacting Tink.
+     * `manual` means the claim is for a bank refresh (runSync with refreshBank),
+     * which is recorded in bank_refresh_attempted_at for the scheduled sync.
+     */
     async prepareSync(userId: string, manual = false): Promise<SyncResult | SyncClaim> {
       const db = await pool.connect();
       try {
@@ -467,7 +479,10 @@ export function createBankWorkflow(
         }
         const abandoned = Boolean(connection.sync_claim_id);
         const interval = manual ? MANUAL_INTERVAL_MS : AUTO_INTERVAL_MS;
-        const sinceAttempt = now() - (connection.sync_attempted_at?.valueOf() ?? 0);
+        // A bank refresh waits only for the last bank refresh: the cached
+        // import a dashboard visit starts right after sign-in must not block it.
+        const lastAttempt = manual ? connection.bank_refresh_attempted_at : connection.sync_attempted_at;
+        const sinceAttempt = now() - (lastAttempt?.valueOf() ?? 0);
         if (!abandoned && (sinceAttempt < interval || (!manual && connection.sync_complete &&
             connection.last_synced && now() - connection.last_synced.valueOf() < interval))) {
           await db.query("commit");
@@ -478,8 +493,9 @@ export function createBankWorkflow(
         const claimId = randomUUID();
         await db.query(
           `update public.connections set sync_attempted_at=$2,status='ACTIVE',sync_complete=false,
-           sync_claim_id=$3,sync_expires_at=$4 where id=$1`,
-          [connection.id, new Date(now()), claimId, new Date(now() + SYNC_LEASE_MS)],
+           sync_claim_id=$3,sync_expires_at=$4,
+           bank_refresh_attempted_at=case when $5 then $2 else bank_refresh_attempted_at end where id=$1`,
+          [connection.id, new Date(now()), claimId, new Date(now() + SYNC_LEASE_MS), manual],
         );
         await db.query("commit");
         return { status: "syncing", claimId, lastSynced, transactionFingerprint: beforeTransactions };
@@ -679,6 +695,38 @@ export function createBankWorkflow(
         if (expired) return { status: "expired", lastSynced: connection.last_synced?.toISOString() ?? null };
         throw error;
       }
+    },
+
+    /**
+     * One step of the scheduled sync (app/api/cron/bank-sync): refreshes the
+     * bank data of the user who has waited longest, if the bank was not asked
+     * for new data in this slot yet ("Refresh data" counts; a dashboard visit,
+     * which only re-reads Tink's copy, does not). Expired, suspended and busy
+     * users are left out; an attempt counts even if it fails, so a broken login
+     * is tried again only in the next slot. Reports how many users are still due.
+     */
+    async scheduledSync(slotStart: Date): Promise<ScheduledSyncResult> {
+      const due = (await pool.query<{ user_id: string }>(
+        `select c.user_id from public.connections c
+         join public.user_roles r on r.user_id=c.user_id and r.status='active'
+         where c.provider='tink' and c.live_sync_enabled and c.status<>'EXPIRED'
+           and c.tink_external_user_id=c.user_id::text
+           and (c.sync_claim_id is null or c.sync_expires_at<=$2)
+           and coalesce(c.bank_refresh_attempted_at,'-infinity')<$1
+         order by c.bank_refresh_attempted_at nulls first, c.user_id`,
+        [slotStart, new Date(now())],
+      )).rows.map((row) => row.user_id);
+      for (const [index, userId] of due.entries()) {
+        const remaining = due.length - index - 1;
+        const claim = await this.prepareSync(userId, true);
+        if (claim.status !== "syncing") continue;
+        try {
+          return { status: (await this.runSync(userId, claim.claimId, true)).status, remaining };
+        } catch (error) {
+          return { status: "failed", remaining, error };
+        }
+      }
+      return { status: "none_due", remaining: 0 };
     },
 
     /** Synchronous convenience for tests and non-serverless callers. */
