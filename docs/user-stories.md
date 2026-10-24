@@ -165,8 +165,11 @@ reconnecting.
 - Refreshing twice in a row changes nothing the second time.
 - A transaction that Tink renumbers is recognised and not saved twice; a
   pending transaction that gets booked is updated in place.
-- A refresh that fails part-way changes nothing: the data of the last
-  successful refresh stays.
+- A refresh that fails changes no saved accounts or transactions: the data of
+  the last successful refresh stays.
+- A refresh in which some transactions are incomplete still saves the usable
+  transactions and the updated balances, skips the incomplete ones, keeps
+  every pending transaction and tells the user to refresh again later.
 - Open: bank data is refreshed automatically up to four times a day, also while
   nobody uses the app (pull request #58).
 
@@ -178,7 +181,7 @@ reconnecting.
 
 **Verified by:** [`tests/tink/reconcile.test.ts`](../tests/tink/reconcile.test.ts);
 [`web/tests/tink.test.ts`](../web/tests/tink.test.ts) (renumbered and changed
-transactions, failed fetches, limits between refreshes)
+transactions, failed fetches, incomplete snapshots, limits between refreshes)
 
 ### User story 6: Clear messages when the bank connection fails
 

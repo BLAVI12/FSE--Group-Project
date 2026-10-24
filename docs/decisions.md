@@ -29,25 +29,29 @@ documented elsewhere by the team.
 
 **Context.** Bank account aggregation needs a PSD2-licensed provider. Plaid is
 better known but US-first, with thinner European coverage; we are building for
-German users. Separately, accessing *real* accounts requires registration as an
-Account Information Service Provider with BaFin plus a commercial agreement with
-Tink, neither available to a student project.
+German users. Separately, using Tink with *real* accounts needs a commercial
+agreement with Tink and a matching regulatory arrangement: either our own
+licence as an Account Information Service Provider or a setup in which Tink's
+licence covers the service, which Tink offers depending on the contract.
+Neither was within reach of a student project.
 
 **Decision.** Tink, against its sandbox and Demo Bank test users.
 
 **Consequences.** Realistic German data (the sandbox returns Edeka, Aldi,
 Miete, Deutsche Bahn rather than US merchants), which makes the categorisation
-work meaningful. The integration is production-shaped: the same API, the same
-consent flow and the same data model would work against real German banks with
-only a credentials change. What separates us from production is regulatory, not
-technical.
+work meaningful. The integration uses Tink's production API, consent flow and
+data model, so the design carries over. It is not one settings change away from
+production, though. Going live would need the commercial and regulatory
+arrangement above, code changes (the bank route refuses to start unless
+`TINK_TEST_MODE` is on) and testing against real banks, whose consent renewals,
+history limits, data quality and error cases we have not seen.
 
 The costs are real. Tink's documentation is thinner than Plaid's, so more was
 learned by experiment than by reading. And we cannot demonstrate behaviour
 against real data, which is messier: real bank descriptions carry location codes
-and reference numbers rather than clean merchant names, and PSD2 typically
-limits initial history to 90 days rather than the six years the sandbox gives
-us. Our categorisation accuracy would drop against real accounts.
+and reference numbers rather than clean merchant names, and many banks return a
+much shorter history (often around 90 days) than the six years the sandbox
+gives us. Our categorisation accuracy would drop against real accounts.
 
 **Later.** Tink's free sandbox turned out to delete our Tink users after about
 a day (known limitations in the [root README](../README.md)). Tink keeps users
@@ -76,8 +80,8 @@ provider's ids are ordinary columns. Accounts are matched on **IBAN**;
 transactions were matched on **`providerTransactionId`** (changed by
 [decision 6](#decision-6-transactions-are-identified-by-their-content)).
 
-Had we keyed on Tink's ids, re-linking a bank, which PSD2's 90-day consent
-expiry guarantees will happen, would have silently doubled every balance, and
+Had we keyed on Tink's ids, re-linking a bank, which happens whenever the bank
+requires renewed authentication, would have silently doubled every balance, and
 the bug would only have surfaced months in.
 
 **2. Money as integer cents, never a decimal or float.** Tink sends amounts as
@@ -101,7 +105,7 @@ nobody thinks we missed them: `currency` is stored on transactions even though
 it technically depends on the account (multi-currency accounts exist, and it
 removes a join from every query), and balances are stored rather than summed
 from transactions (Tink's value is authoritative, and summing is only correct
-with complete history, which a real 90-day integration would not have).
+with complete history, which a real bank connection usually does not have).
 
 ---
 

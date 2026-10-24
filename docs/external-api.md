@@ -73,9 +73,22 @@ request and never stored.
 
 ## How failures are handled
 
-The rule behind every row: **a failure never changes or loses saved data**,
-the user is told what to do in plain words, and the log gets a known error
-code, never bank data, tokens or Tink's free-text messages.
+Two different outcomes are kept apart:
+
+- **A failed sync changes no saved accounts or transactions.** Everything is
+  fetched first and written in one database transaction, so a failure before
+  or during the write rolls back completely; the data of the last successful
+  sync stays.
+- **A partial import is a successful sync.** When some transactions are
+  incomplete, the sync still saves what is usable: new and changed
+  transactions and the updated accounts and balances. It skips the incomplete
+  transactions, does not delete any pending transaction (it might only be
+  missing from this fetch) and marks the connection as incomplete, so the user
+  is asked to refresh again later.
+
+In both cases the user is told what to do in plain words, and the log gets a
+known error code or counts, never bank data, tokens or Tink's free-text
+messages.
 
 | Failure | What the app does | What the user sees |
 |---|---|---|
@@ -85,7 +98,7 @@ code, never bank data, tokens or Tink's free-text messages.
 | The bank permission has expired | Detected from Tink's list of bank permissions, also before Tink changes the status. The connection is marked expired and not synced again until the user renews it. | "Your bank login needs to be renewed. Please reconnect your bank." Reconnect opens Tink's renewal page for exactly that bank login. |
 | Tink no longer knows the user (`USER_NOT_FOUND`) or returns no accounts | Treated like an expired permission. On reconnect, a new Tink user is created; saved accounts are matched by IBAN, so history and categories stay. | "Please reconnect your bank." |
 | The bank asks for a new login during **Refresh data** | Recognised from the bank login's status; no data is fetched. | "Please reconnect your bank." |
-| Some transactions are incomplete (no booking date, no amount) | The usable ones are saved, the rest skipped and counted. Pending transactions are not deleted after an incomplete fetch, because they might only be missing from it. | "Some transactions are incomplete. Try Refresh again later." |
+| Some transactions are incomplete (no booking date, no amount) | A partial import (see above): the usable transactions and the updated balances are saved, the rest skipped and counted. Pending transactions are not deleted after an incomplete fetch, because they might only be missing from it. | "Available bank data loaded. Some transactions are incomplete. Try Refresh again later." |
 | An amount is too large to store exactly | The whole sync stops before writing anything. | "The last update failed." |
 | A transaction page repeats or there are too many pages | The walk stops (at most 500 pages of 100) instead of looping. | "The last update failed." |
 | Two syncs at the same time (two tabs, or a page reload) | The first claims a 90-second lease; the second is told a sync is running. An abandoned lease expires, and a late worker cannot overwrite a newer one. | The page waits for the running sync. |
@@ -112,7 +125,9 @@ the settings check. Tests never call the real Tink API.
   PSD2 allows without the user present
   ([decision 7](decisions.md#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day)).
 - **Demo Bank only.** The bank route refuses to start unless `TINK_TEST_MODE`
-  is on. Real banks need a production Tink app and a PSD2 licence or partner.
+  is on. Real banks would need a commercial and regulatory arrangement with
+  Tink, code changes and testing against real banks
+  ([decision 1](decisions.md#decision-1-tink-as-the-data-source-sandbox-only)).
 - **Tink's free sandbox deletes users** after about a day; affected users are
   asked to reconnect, and their saved data stays. Details in the known
   limitations of the [root README](../README.md).
