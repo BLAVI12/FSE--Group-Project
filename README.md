@@ -122,7 +122,8 @@ transactions in `tests/fixtures/`.
   the person to reconnect; their saved accounts, transactions and categories
   stay.
 - **Demo Bank only.** The bank connection refuses to start with
-  `TINK_TEST_MODE=false`. Real banks need a production Tink app and contract.
+  `TINK_TEST_MODE=false`. Real banks would need a commercial and regulatory
+  arrangement with Tink, code changes and testing against real banks.
 - **One bank per user.** After the first bank is connected, the app offers
   only **Manage bank** for it, not a second bank.
 
