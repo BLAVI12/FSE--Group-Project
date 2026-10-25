@@ -1,8 +1,11 @@
 # Financial Planner
 
-Finance planner for students: a Next.js web app in `web/`, deployed on Vercel
+Personal finance planner: a Next.js web app in `web/`, deployed on Vercel
 at https://fse-group-project.vercel.app, with Supabase for the database and
 login, and a bank connection through Tink (Demo Bank sandbox).
+
+The project documentation (user stories with acceptance criteria, the Tink
+integration, decisions) starts at [docs/README.md](docs/README.md).
 
 ## Project structure
 
@@ -17,7 +20,7 @@ supabase/
 	seed-data/        Category list; seeds/ holds the SQL generated from it
 	functions/_shared/tink/   Tink client and bank-data rules, used by the web app
 tests/                Tests for the shared code; tests/database/ checks the database
-docs/                 Data model (fintech-erm.md)
+docs/                 Project documentation: user stories, Tink integration, decisions, data model
 ```
 
 ## Supabase setup
