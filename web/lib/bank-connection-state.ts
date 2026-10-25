@@ -18,6 +18,19 @@ export function bankMenuLabel(connection: BankConnectionData | null) {
   return connection.status === "EXPIRED" || connection.needs_renewal ? "Renew bank connection" : "Manage bank";
 }
 
+export const RENEWAL_NOTICE =
+  "One of your bank logins needs to be renewed: its accounts keep their last saved data until you reconnect.";
+
+/**
+ * The latest update's message plus the renewal notice when only some bank
+ * logins expired. The notice never replaces the message: a failed update must
+ * stay visible.
+ */
+export function withRenewalNotice(message: string, renewal: boolean, busy: boolean) {
+  if (!renewal || busy) return message;
+  return message ? `${message} ${RENEWAL_NOTICE}` : RENEWAL_NOTICE;
+}
+
 export function bankAutomaticAction(
   connection: BankConnectionData | null,
   configured: boolean,

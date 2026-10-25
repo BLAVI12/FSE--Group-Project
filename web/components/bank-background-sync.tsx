@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { BankConnectionData } from "@/lib/bank-connection-state";
+import { withRenewalNotice, type BankConnectionData } from "@/lib/bank-connection-state";
 import { useBankSync } from "@/lib/use-bank-sync";
 
 export function BankBackgroundSync({ configured, connection }: {
@@ -13,7 +13,7 @@ export function BankBackgroundSync({ configured, connection }: {
   return (
     <p className="mt-4 text-sm text-slate-600" role="status" aria-live="polite">
       {expired ? "Your bank permission needs renewal. Your saved data remains available."
-        : renewal && !busy ? "One of your bank logins needs renewal. Your other accounts keep updating." : message}
+        : withRenewalNotice(message, renewal, busy)}
       {(expired || (renewal && !busy)) && <> <Link href="/dashboard/bank" className="font-semibold text-emerald-800 underline focus-visible:outline-2 focus-visible:outline-emerald-700">Manage bank</Link></>}
     </p>
   );

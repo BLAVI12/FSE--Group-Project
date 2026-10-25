@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { formatGermanDateTime } from "@/lib/time";
-import { bankPhase, type BankConnectionData } from "@/lib/bank-connection-state";
+import { bankPhase, withRenewalNotice, type BankConnectionData } from "@/lib/bank-connection-state";
 import { useBankSync } from "@/lib/use-bank-sync";
 
 export function BankConnection({ configured, connection, outcome }: {
@@ -67,8 +67,7 @@ export function BankConnection({ configured, connection, outcome }: {
 
       <p className={`mt-4 text-sm ${configured ? "text-slate-600" : "text-amber-800"}`} role="status" aria-live="polite">
         {!configured ? "Bank connection is not configured in this environment. Please contact the project team; your existing data has not been changed."
-          : message || (expired ? "Renew your bank permission to update your data. Saved data remains available."
-            : renewal ? "One of your bank logins needs to be renewed. Your other accounts keep updating; reconnect to update the rest."
+          : withRenewalNotice(message, renewal && !expired, busy) || (expired ? "Renew your bank permission to update your data. Saved data remains available."
             : live ? "Refresh updates your existing bank connection without opening Tink Link."
               : "Your dashboard and transactions will become available after connecting your bank and completing the first import.")}
       </p>

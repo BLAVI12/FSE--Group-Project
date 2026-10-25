@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { bankPhase, bankMenuLabel, bankAutomaticAction, bankImportReady, type BankConnectionData } from "../lib/bank-connection-state.ts";
+import { bankPhase, bankMenuLabel, bankAutomaticAction, bankImportReady, RENEWAL_NOTICE, withRenewalNotice, type BankConnectionData } from "../lib/bank-connection-state.ts";
 import { bankAccessDecision, bankAccessProblem } from "../lib/auth/bank-access.ts";
 import { loadOwnBankConnection, BankDataError } from "../lib/data/bank.ts";
 import { requiresBankSetup } from "../lib/auth/routes.ts";
@@ -112,4 +112,12 @@ test("only a recorded initial import unlocks onboarding, including partial/empty
     assert.equal(bankImportReady({ connected: true, state, lastSynced: null }), false);
   }
   assert.equal(bankImportReady({ connected: false, state: "not_connected", lastSynced: ready.last_synced }), false);
+});
+
+test("the renewal notice is added to the latest update's message and never hides a failure", () => {
+  const failure = "The bank update failed. Your saved data is still available. Please try Refresh again.";
+  assert.equal(withRenewalNotice(failure, true, false), `${failure} ${RENEWAL_NOTICE}`);
+  assert.equal(withRenewalNotice("", true, false), RENEWAL_NOTICE);
+  assert.equal(withRenewalNotice("Updating your bank data…", true, true), "Updating your bank data…");
+  assert.equal(withRenewalNotice(failure, false, false), failure);
 });

@@ -17,7 +17,6 @@ const messages: Record<string, string> = {
   current: "Showing your saved bank data. Please wait one minute between manual refreshes.",
   synced: "Bank data checked. Showing the latest available transactions.",
   partial: "Available bank data loaded. Some transactions are incomplete. Try Refresh again later.",
-  renewal: "Bank data updated. One of your bank logins needs to be renewed: its accounts keep their last saved data until you reconnect.",
   not_connected: "Connect your bank to start using your dashboard.",
 };
 
@@ -87,10 +86,9 @@ export function useBankSync({ configured, connection, outcome, mode, onImported 
       setRenewal(Boolean(status.needsRenewal));
       const unchanged = status.state === "synced" && beforeTransactions !== undefined &&
         status.transactionFingerprint === beforeTransactions;
-      const updated = status.state === "synced" || status.state === "partial";
-      setMessage(updated && status.needsRenewal ? messages.renewal
-        : unchanged ? "No new transactions. The bank returned the same data as before."
-          : status.state === "error" ? syncFailure : messages[status.state] ?? syncFailure);
+      setMessage(unchanged
+        ? "No new transactions. The bank returned the same data as before."
+        : status.state === "error" ? syncFailure : messages[status.state] ?? syncFailure);
       if (bankImportReady(status)) onImported?.();
       if (["synced", "partial", "expired", "error", "not_connected"].includes(status.state)) router.refresh();
     } catch (error) {

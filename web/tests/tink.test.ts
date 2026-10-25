@@ -1126,6 +1126,45 @@ test("one expired bank login stops only its own accounts; the others keep syncin
   assert.equal(snapshot.calls, calls, "an expired connection is not synced until it is renewed");
 });
 
+test("connections expired by the previous release are re-evaluated once by the per-account rule", async () => {
+  const mixed = await user();
+  const gone = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  for (const id of [mixed, gone]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  // The previous release expired the whole connection for one expired login.
+  await db.query("update connections set status='EXPIRED' where user_id = any($1::uuid[])", [[mixed, gone]]);
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  await due(mixed);
+  assert.equal((await workflow.sync(mixed, true)).status, "expired", "stuck before the repair");
+  assert.deepEqual(snapshot.refreshes, []);
+
+  await db.exec(await readFile(
+    new URL("../../supabase/migrations/20261025000001_reevaluate_expired.sql", import.meta.url), "utf8",
+  ));
+  const state = async (id: string) => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: false });
+  assert.equal((await workflow.sync(mixed, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"], "the healthy login is refreshed again");
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: true });
+
+  // A connection whose Tink user is gone expires again on its next sync, data unchanged.
+  const before = (await db.query("select * from transactions where user_id=$1", [gone])).rows;
+  snapshot.missingUser = gone;
+  await due(gone);
+  assert.equal((await workflow.sync(gone)).status, "expired");
+  assert.equal((await state(gone)).status, "EXPIRED");
+  assert.deepEqual((await db.query("select * from transactions where user_id=$1", [gone])).rows, before);
+});
+
 test("same IBAN is matched within each user and reconnect preserves the local account", async () => {
   const id = await user();
   const other = await user();
