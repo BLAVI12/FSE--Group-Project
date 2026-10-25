@@ -108,6 +108,27 @@ incoming one is, so a repeated sync never duplicates rows. Both are pure
 functions with tests in `tests/tink/`, run against 309 real Demo Bank
 transactions in `tests/fixtures/`.
 
+### Known limitations
+
+- **Tink's free sandbox deletes our users.** Tink keeps users and their data
+  longer than 24 hours only for Enterprise customers with permanent users ([Tink
+  Docs](https://docs.tink.com/entries/articles/ingest-accounts-and-transactions));
+  our sandbox app is not one. By 24 October 2026, 6 of the 7 app users with a
+  bank connection had lost their Tink user at least once (Tink answers
+  `USER_NOT_FOUND`). In a controlled test, two users connected on 23 October
+  were still there after 10 hours and gone after 38 hours, untouched. One user
+  created on 2 October has not been deleted; we don't know why. We ruled out our
+  own code (no version of it ever deleted a Tink user) and two people sharing
+  one Demo Bank login (two app users on the same Demo Bank login stayed healthy
+  side by side). Support is not available to sandbox apps. Effect: the app asks
+  the person to reconnect; their saved accounts, transactions and categories
+  stay.
+- **Demo Bank only.** The bank connection refuses to start with
+  `TINK_TEST_MODE=false`. Real banks would need a commercial and regulatory
+  arrangement with Tink, code changes and testing against real banks.
+- **One bank per user.** After the first bank is connected, the app offers
+  only **Manage bank** for it, not a second bank.
+
 ## Checks
 
 Needs Node 24 or later.
