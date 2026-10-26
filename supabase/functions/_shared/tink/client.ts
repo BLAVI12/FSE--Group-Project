@@ -7,10 +7,11 @@ import {
   failedLoginsToRemove,
   consentIsHealthy,
   needsRelink,
+  relinkScope,
   type TinkProviderConsent,
 } from "./consents.ts";
 
-export { accountsNeedingRelink, credentialsToRenew, failedLoginsToRemove };
+export { accountsNeedingRelink, credentialsToRenew, failedLoginsToRemove, relinkScope };
 
 const API_BASE = "https://api.tink.com";
 const LINK_URL = "https://link.tink.com/1.0/transactions/connect-accounts";
@@ -562,15 +563,17 @@ export function createTinkClient(
       try {
         const token = await grantUserToken(externalUserId, REFRESH_SCOPES);
         const consents = await fetchProviderConsents(token);
-        if (accountsNeedingRelink(consents, providerAccountIds, now()).length)
-          throw new TinkError("The bank requires reconnection", 409, "BANK_RECONNECT_REQUIRED");
         const owned = new Set(providerAccountIds);
+        // One expired login must not hold back the others: every healthy login
+        // is refreshed, and a reconnect is needed only when none is left.
         const ids = new Set(consents.filter((consent) =>
           consent.credentialsId && consentIsHealthy(consent, now()) &&
           consent.accountIds?.some((id) => owned.has(id)),
         ).map((consent) => consent.credentialsId!));
         if (!ids.size)
-          throw new TinkError("No connected bank can be refreshed", 409, "NO_REFRESHABLE_BANK");
+          throw accountsNeedingRelink(consents, providerAccountIds, now()).length
+            ? new TinkError("The bank requires reconnection", 409, "BANK_RECONNECT_REQUIRED")
+            : new TinkError("No connected bank can be refreshed", 409, "NO_REFRESHABLE_BANK");
         const signal = AbortSignal.any([
           AbortSignal.timeout(30_000),
           ...(options.signal ? [options.signal] : []),
@@ -594,6 +597,21 @@ export function createTinkClient(
       const ids = failedLoginsToRemove(await fetchProviderConsents(token));
       for (const id of ids) await deleteCredentials(token, id);
       return ids.length;
+    },
+
+    /** The user's bank logins as Tink lists them. Reads only. */
+    async bankLogins(externalUserId: string): Promise<TinkProviderConsent[]> {
+      return fetchProviderConsents(await grantUserToken(externalUserId, CLEANUP_SCOPES));
+    },
+
+    /**
+     * Deletes the given bank logins of the user. For maintenance by hand
+     * (scripts/clean-demo-bank-logins.mjs), never called by the app: Tink deletes
+     * the login's data with it, while the transactions saved in our database stay.
+     */
+    async removeBankLogins(externalUserId: string, credentialsIds: string[]): Promise<void> {
+      const token = await grantUserToken(externalUserId, CLEANUP_SCOPES);
+      for (const id of credentialsIds) await deleteCredentials(token, id);
     },
 
     fetchAccounts(userToken: string): Promise<TinkAccount[]> {

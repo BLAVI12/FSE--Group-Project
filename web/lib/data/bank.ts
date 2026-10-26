@@ -9,12 +9,13 @@ export async function loadOwnBankConnection(
 ): Promise<BankConnectionData | null> {
   try {
     const { data, error } = await supabase.from("connections")
-      .select("status,live_sync_enabled,last_synced")
+      .select("status,live_sync_enabled,last_synced,needs_renewal")
       .eq("user_id", userId).eq("provider", "tink").maybeSingle();
     if (error) throw new BankDataError("Your bank connection could not be verified.");
     if (!data) return null;
     if (!["ACTIVE", "EXPIRED", "ERROR"].includes(data.status) ||
       typeof data.live_sync_enabled !== "boolean" ||
+      typeof data.needs_renewal !== "boolean" ||
       (data.last_synced !== null && (typeof data.last_synced !== "string" ||
         !Number.isFinite(Date.parse(data.last_synced))))) {
       throw new BankDataError("Your bank connection could not be verified.");

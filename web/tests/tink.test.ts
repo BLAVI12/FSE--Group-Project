@@ -165,7 +165,8 @@ async function connect(
 
 async function due(id: string) {
   await db.query(
-    "update public.connections set sync_attempted_at=now()-interval '20 minutes',last_synced=now()-interval '20 minutes' where user_id=$1",
+    `update public.connections set sync_attempted_at=now()-interval '20 minutes',last_synced=now()-interval '20 minutes',
+     bank_refresh_attempted_at=now()-interval '20 minutes' where user_id=$1`,
     [id],
   );
 }
@@ -704,7 +705,7 @@ test("automatic and manual refreshes request reconnect when Tink accounts disapp
   }
 });
 
-test("automatic and manual refreshes are limited; sample connections never call Tink", async () => {
+test("automatic and manual refreshes are limited separately; sample connections never call Tink", async () => {
   const id = await user();
   const { workflow, snapshot } = fake();
   await db.query(
@@ -716,9 +717,17 @@ test("automatic and manual refreshes are limited; sample connections never call 
   assert.equal(snapshot.calls, initialCalls);
   await connect(id, workflow);
   await workflow.sync(id);
-  const calls = snapshot.calls;
+  let calls = snapshot.calls;
   assert.equal((await workflow.sync(id)).status, "current");
+  assert.equal(snapshot.calls, calls);
+  // The cached import right after sign-in does not block Refresh data, which
+  // waits only for the previous bank refresh.
+  snapshot.refreshes.length = 0;
+  assert.equal((await workflow.sync(id, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"]);
+  calls = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "current");
+  assert.equal((await workflow.sync(id)).status, "current");
   assert.equal(snapshot.calls, calls);
 });
 
@@ -979,7 +988,7 @@ test("incomplete transactions do not block usable rows or delete saved pending r
     "select sync_complete from connections where user_id=$1", [id],
   )).rows[0]!.sync_complete, false);
   const calls = snapshot.calls;
-  assert.equal((await workflow.sync(id, true)).status, "partial");
+  assert.equal((await workflow.sync(id)).status, "partial");
   assert.equal(snapshot.calls, calls, "partial snapshots still respect the retry interval");
 
   await due(id);
@@ -1071,6 +1080,89 @@ test("complete fetch removes vanished pending rows, retains booked history and f
     new URL(renewal.redirectUrl).searchParams.get("credentials_id"),
     "cred",
   );
+});
+
+test("one expired bank login stops only its own accounts; the others keep syncing and refreshing", async () => {
+  const id = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  const connection = async () => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  await connect(id, workflow);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: true });
+  const status = await workflow.status(id);
+  assert.equal(status.state, "synced");
+  assert.equal(status.needsRenewal, true);
+
+  // Refresh data still asks the bank through the healthy login and saves its new data.
+  snapshot.bankTransactions = [...snapshot.transactions, transaction("2", "New purchase")];
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"]);
+  assert.equal((await db.query("select id from transactions where user_id=$1", [id])).rows.length, 2);
+
+  // Reconnect renews exactly the expired login.
+  const renewal = await workflow.startConnect(id, "person@example.com", true);
+  assert.equal(new URL(renewal.redirectUrl).searchParams.get("credentials_id"), "old");
+  snapshot.consents[1]!.status = "UPDATED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: false });
+
+  // Only when no account has a healthy login left does the connection expire.
+  for (const consent of snapshot.consents) consent.status = "SESSION_EXPIRED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "expired");
+  assert.equal((await connection()).status, "EXPIRED");
+  const calls = snapshot.calls;
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "expired");
+  assert.equal(snapshot.calls, calls, "an expired connection is not synced until it is renewed");
+});
+
+test("connections expired by the previous release are re-evaluated once by the per-account rule", async () => {
+  const mixed = await user();
+  const gone = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  for (const id of [mixed, gone]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  // The previous release expired the whole connection for one expired login.
+  await db.query("update connections set status='EXPIRED' where user_id = any($1::uuid[])", [[mixed, gone]]);
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  await due(mixed);
+  assert.equal((await workflow.sync(mixed, true)).status, "expired", "stuck before the repair");
+  assert.deepEqual(snapshot.refreshes, []);
+
+  await db.exec(await readFile(
+    new URL("../../supabase/migrations/20261025000001_reevaluate_expired.sql", import.meta.url), "utf8",
+  ));
+  const state = async (id: string) => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: false });
+  assert.equal((await workflow.sync(mixed, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"], "the healthy login is refreshed again");
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: true });
+
+  // A connection whose Tink user is gone expires again on its next sync, data unchanged.
+  const before = (await db.query("select * from transactions where user_id=$1", [gone])).rows;
+  snapshot.missingUser = gone;
+  await due(gone);
+  assert.equal((await workflow.sync(gone)).status, "expired");
+  assert.equal((await state(gone)).status, "EXPIRED");
+  assert.deepEqual((await db.query("select * from transactions where user_id=$1", [gone])).rows, before);
 });
 
 test("same IBAN is matched within each user and reconnect preserves the local account", async () => {
@@ -1497,6 +1589,43 @@ test("failed-login clean-up deletes only failed logins that never got accounts",
   );
 });
 
+test("maintenance clean-up lists logins and deletes only the chosen ones", async () => {
+  calls.length = 0;
+  const deleted: string[] = [];
+  handler = (url, init) => {
+    const auth = tinkAuth(url);
+    if (auth) return auth;
+    if (url.pathname === "/api/v1/oauth/authorization-grant")
+      return json(200, { code: "cleanup-code" });
+    if (url.pathname === "/api/v1/provider-consents") {
+      return json(200, {
+        providerConsents: [
+          { credentialsId: "commerz", providerName: "de-demo-commerzbank-ob", status: "TEMPORARY_ERROR", accountIds: ["a"] },
+          { credentialsId: "embedded", providerName: "de-demobank-open-banking-embedded-templates", status: "UPDATED", accountIds: ["giro"] },
+        ],
+      });
+    }
+    if (init.method === "DELETE") {
+      deleted.push(url.pathname);
+      return new Response(null, { status: 204 });
+    }
+    throw new Error(`unexpected ${url.pathname}`);
+  };
+
+  const logins = await client.bankLogins("demo-user");
+  assert.deepEqual(logins.map((login) => login.providerName), [
+    "de-demo-commerzbank-ob",
+    "de-demobank-open-banking-embedded-templates",
+  ]);
+  await client.removeBankLogins("demo-user", ["commerz"]);
+  assert.deepEqual(deleted, ["/api/v1/credentials/commerz"]);
+  assert.ok(
+    calls
+      .filter((c) => c.path === "/api/v1/oauth/authorization-grant")
+      .every((c) => c.form?.get("scope") === "provider-consents:read,credentials:write"),
+  );
+});
+
 // Bank consent checks.
 test("a healthy overlapping consent covers an account despite an expired old login", () => {
   const consents = [
@@ -1622,4 +1751,107 @@ test("missing bank references import for both users and preserve rows across ref
   assert.deepEqual(after.map((row) => row.provider_transaction_id), ["bank-1", "bank-2", "bank-3", "bank-4"]);
   assert.equal(after[0]!.category, "My category");
   assert.deepEqual(await saved(other), otherBefore);
+});
+
+// Connections from earlier tests count as already refreshed in this slot, so
+// the scheduled sync only sees the users each test prepares. The slot started
+// `minutesAgo`.
+async function scheduledSlot(minutesAgo = 1) {
+  await db.query("update public.connections set bank_refresh_attempted_at=now()");
+  return new Date(Date.now() - minutesAgo * 60_000);
+}
+
+async function lastAttempt(id: string, hoursAgo: number) {
+  await db.query(
+    `update public.connections set sync_attempted_at=now()-make_interval(hours=>$2),
+     last_synced=now()-make_interval(hours=>$2),
+     bank_refresh_attempted_at=now()-make_interval(hours=>$2) where user_id=$1`,
+    [id, hoursAgo],
+  );
+}
+
+test("scheduled sync refreshes each due user once per slot, longest-waiting first, and skips expired and suspended users", async () => {
+  const { workflow, snapshot } = fake();
+  const [first, second, expired, suspended, current] = [await user(), await user(), await user(), await user(), await user()];
+  for (const id of [first, second, expired, suspended, current]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  const slot = await scheduledSlot();
+  await lastAttempt(second, 2);
+  await lastAttempt(first, 3);
+  await lastAttempt(expired, 4);
+  await db.query("update public.connections set status='EXPIRED' where user_id=$1", [expired]);
+  await lastAttempt(suspended, 5);
+  await db.query("update public.user_roles set status='suspended' where user_id=$1", [suspended]);
+  snapshot.refreshUsers.length = 0;
+
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 1 });
+  assert.deepEqual(snapshot.refreshUsers, [first], "a scheduled sync asks the bank for new data");
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 0 });
+  assert.deepEqual(snapshot.refreshUsers, [first, second]);
+  const calls = snapshot.calls;
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
+  assert.equal(snapshot.calls, calls, "nobody is synced twice in one slot");
+  const states = (await db.query<{ user_id: string; status: string }>(
+    "select user_id,status from public.connections where user_id=any($1::uuid[])",
+    [[expired, suspended]],
+  )).rows;
+  assert.deepEqual(new Map(states.map((row) => [row.user_id, row.status])),
+    new Map([[expired, "EXPIRED"], [suspended, "ACTIVE"]]));
+});
+
+test("a failed scheduled sync keeps the saved data and is not retried in the same slot", async () => {
+  const { workflow, snapshot } = fake();
+  const id = await user();
+  await connect(id, workflow);
+  await workflow.sync(id);
+  const saved = (await db.query("select id from public.transactions where user_id=$1", [id])).rows;
+  const slot = await scheduledSlot();
+  await lastAttempt(id, 3);
+  snapshot.refreshFailure = true;
+
+  const result = await workflow.scheduledSync(slot);
+  assert.equal(result.status, "failed");
+  assert.equal(result.remaining, 0);
+  assert.ok(result.error instanceof TinkError);
+  assert.equal(result.error.code, "BANK_REFRESH_NOT_ALLOWED");
+  assert.equal((await db.query<{ status: string }>(
+    "select status from public.connections where user_id=$1", [id])).rows[0]!.status, "ERROR");
+  assert.deepEqual((await db.query("select id from public.transactions where user_id=$1", [id])).rows, saved);
+  const calls = snapshot.calls;
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
+  assert.equal(snapshot.calls, calls);
+});
+
+test("a dashboard visit in the slot does not replace the scheduled bank refresh; Refresh data does", async () => {
+  const { workflow, snapshot } = fake();
+  const [visitor, refresher] = [await user(), await user()];
+  for (const id of [visitor, refresher]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  const slot = await scheduledSlot(30);
+  await lastAttempt(visitor, 3);
+  await lastAttempt(refresher, 3);
+  const latest = transaction("2", "New purchase", "BOOKED", "-599");
+  latest.dates = { booked: "2026-10-08" };
+  snapshot.bankTransactions = [...snapshot.transactions, latest];
+
+  // Both open the dashboard (a cached import) inside the slot; one also presses
+  // Refresh data. Their last attempt is then a few minutes old.
+  await workflow.sync(visitor);
+  await workflow.sync(refresher, true);
+  await db.query(
+    "update public.connections set sync_attempted_at=now()-interval '5 minutes' where user_id=any($1::uuid[])",
+    [[visitor, refresher]],
+  );
+  assert.equal((await db.query("select id from transactions where user_id=$1", [visitor])).rows.length, 1,
+    "the dashboard visit imported only the cached snapshot");
+  snapshot.refreshUsers.length = 0;
+
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "synced", remaining: 0 });
+  assert.deepEqual(snapshot.refreshUsers, [visitor]);
+  assert.equal((await db.query("select id from transactions where user_id=$1", [visitor])).rows.length, 2);
+  assert.deepEqual(await workflow.scheduledSync(slot), { status: "none_due", remaining: 0 });
 });

@@ -60,9 +60,10 @@ a bank before using financial pages. The seed and existing data are unchanged.
 ## Tink bank connection
 
 The bank integration has four parts: the shared Tink client in
-`../supabase/functions/_shared/tink/`, `lib/tink.ts` for the workflow, one
-`app/api/tink/route.ts` endpoint, and the bank UI with shared `useBankSync` logic. Only that
-route reads the database password and the Tink secret.
+`../supabase/functions/_shared/tink/`, `lib/tink.ts` for the workflow, the `app/api/tink/route.ts` endpoint, the
+scheduled-sync endpoint `app/api/cron/bank-sync/route.ts`, and the bank UI with
+shared `useBankSync` logic. Only these two routes read the database password and
+the Tink secret, through `lib/bank-workflow.ts`.
 
 ### Settings
 
@@ -78,6 +79,7 @@ Server-only values: never give them a `NEXT_PUBLIC_` name. Locally they go in
 | `TINK_TEST_MODE` | `true` (the default). The app supports Demo Bank only; with `false` the bank route refuses to start. |
 | `TINK_DEMO_PROVIDER` | Optional, default `de-demobank-password`: Tink Link opens this Demo Bank login directly instead of a bank list. Tested 9 October 2026: both accounts imported and the login has no expiry date. |
 | `TINK_MARKET`, `TINK_LOCALE`, `TINK_TIMEOUT_MS` | Optional, defaults `DE`, `en_US` and `20000`. |
+| `CRON_SECRET` | Only for the scheduled sync (see below): a random value of at least 32 characters, for example from `openssl rand -hex 32`. The same value goes in the GitHub secret `CRON_SECRET`. Without it the scheduled-sync route refuses every call. |
 
 In `.env.local`, put the certificate in double quotes; the line breaks inside
 the quotes are kept. If the database password contains `@ : / ? # %`, write
@@ -122,14 +124,57 @@ temporary app. The app and local test database are stopped on completion; local
 test data is discarded. This does not replace a real Google/Tink browser test.
 
 Automatic checks happen on dashboard visits, at most once every 15 minutes.
-Manual checks are limited to once a minute. A started sync continues after the
-response; there is no scheduled sync while the app is closed. The workflow
+**Refresh data** is limited to once a minute, counted from the last bank refresh
+only, so the automatic check right after sign-in does not block it. A started
+sync continues after the response. The workflow
 claims a 90-second lease for the signed-in user, releases the database, fetches
 all pages, and then saves in one transaction. An expired lease can be retried;
 a late worker cannot overwrite a newer attempt. Failed fetches preserve saved
 balances, transactions and categories. Tink calls share a 45-second budget,
 and browser requests also time out so a failed request does not leave controls
 disabled indefinitely.
+
+### Scheduled sync
+
+Four times a day the app also updates every user's bank data while nobody has
+it open. A dashboard visit only re-reads what Tink already has; the scheduled
+sync asks the bank for new data first, like **Refresh data**.
+
+- **Who starts it:** the GitHub Actions workflow
+  `../.github/workflows/bank-sync.yml`, at 03:17, 09:17, 15:17 and 21:17 UTC.
+  Vercel's free plan runs a cron job only once a day. The workflow calls
+  `POST /api/cron/bank-sync` with `Authorization: Bearer <CRON_SECRET>`; any
+  other call gets `401`, and without `CRON_SECRET` set the route answers `503`.
+- **One user per call:** each call syncs the user who has waited longest and
+  answers `{ "status": …, "remaining": n }`. The workflow calls again until
+  `remaining` is 0 (at most 50 calls per run), so one slow bank never pushes
+  the others past the 60-second function limit.
+- **At most four a day:** the day has four six-hour slots (UTC). A user is due
+  only if the bank was not asked for new data in the current slot
+  (`connections.bank_refresh_attempted_at`), so a late, repeated or manual run
+  never refreshes anyone twice in a slot. Pressing **Refresh data** counts; a
+  dashboard visit does not, because it only re-reads Tink's copy. A failed
+  attempt also counts and is tried again in the next slot.
+- **Red or green:** a user whose sync failed does not stop the others, but the
+  run ends red so someone looks at the Vercel logs. A user whose bank login
+  expired is not a failure: the app asks them to reconnect.
+- **Left out:** expired connections (the person must reconnect in Tink Link),
+  suspended users, and connections with a sync already running. A connection
+  expires only when none of its accounts has a healthy bank login left; if one
+  of several logins expires, the others keep syncing and the bank page offers
+  **Reconnect bank** next to **Refresh data** (`connections.needs_renewal`).
+- **Setup, once:**
+  1. The migration `20261023000001_bank_refresh_attempt.sql` on the hosted
+     database (`../supabase/README.md`, dry run first). Without it the route
+     fails and the workflow turns red.
+  2. `CRON_SECRET` in Vercel (Production, then redeploy).
+  3. In GitHub **Settings > Secrets and variables > Actions**: the secret
+     `CRON_SECRET` (same value) and the variable `APP_URL`
+     (`https://<vercel-app>.vercel.app`). Without `APP_URL` the workflow is
+     skipped.
+  4. Test it with **Actions > Scheduled bank sync > Run workflow**.
+- GitHub turns off scheduled workflows in a public repository after 60 days
+  without commits; **Run workflow** or a new commit turns it back on.
 
 Each app user has a separate Tink identity, even when two people enter the same
 Demo Bank username. A slow import does not hold a database connection while

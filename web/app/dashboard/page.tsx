@@ -25,7 +25,10 @@ function formatMoney(cents: number | null, currency = "EUR") {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
-  }).format(cents / 100);
+  })
+    .formatToParts(cents / 100)
+    .map(({ type, value }) => (type === "minusSign" ? "\u2212" : value))
+    .join("");
 }
 
 function formatDate(value: string | null) {
@@ -131,7 +134,7 @@ export default async function DashboardPage() {
                 : "Multiple currencies"
             }
             tone={
-              availableToSpend !== null && availableToSpend < 0
+              checkingCurrencies.size <= 1 && availableToSpend !== null && availableToSpend < 0
                 ? "negative"
                 : "default"
             }
