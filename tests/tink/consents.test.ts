@@ -7,6 +7,7 @@ import {
   failedLoginsToRemove,
   loginsToRemoveByProvider,
   needsRelink,
+  relinkScope,
 } from "../../supabase/functions/_shared/tink/consents.ts";
 
 // Ported from the test build (minimal-slice/test/mapping.test.ts), where these
@@ -44,6 +45,16 @@ test("an account needs a re-link only when every consent covering it is unhealth
   assert.deepEqual(accountsNeedingRelink([fresh, failedLogin], ["giro"], now), []);
   // No consent mentions the account: no evidence either way, leave it alone.
   assert.deepEqual(accountsNeedingRelink([], ["giro"], now), []);
+});
+
+test("one expired login concerns only its own accounts; the connection expires when all are uncovered", () => {
+  const giroLogin = { status: "UPDATED", accountIds: ["giro"] };
+  const sparLogin = { status: "SESSION_EXPIRED", accountIds: ["spar"] };
+  assert.equal(relinkScope([giroLogin, { ...sparLogin, status: "UPDATED" }], ["giro", "spar"], now), "none");
+  assert.equal(relinkScope([giroLogin, sparLogin], ["giro", "spar"], now), "some");
+  assert.equal(relinkScope([{ ...giroLogin, status: "SESSION_EXPIRED" }, sparLogin], ["giro", "spar"], now), "all");
+  // An account no consent mentions is no evidence of expiry.
+  assert.equal(relinkScope([sparLogin], ["giro", "spar"], now), "some");
 });
 
 test("the login to renew is an unhealthy consent covering an account that needs it", () => {

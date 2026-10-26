@@ -646,7 +646,7 @@ test("bank authentication requested during background refresh preserves data and
   const failedCalls = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "expired");
   assert.equal(snapshot.calls, failedCalls, "a further Refresh does not overwrite Reconnect with a partial-data message");
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/update-consent");
   assert.equal(new URL(link.redirectUrl).searchParams.get("credentials_id"), "cred");
 });
@@ -669,7 +669,7 @@ test("a missing Tink user requests reconnect and restores the owned bank login w
   assert.equal(snapshot.createdUsers.length, 0, "Refresh never silently creates an empty user");
   assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
   assert.deepEqual(await workflow.status(other), otherStatus);
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
   assert.deepEqual(snapshot.createdUsers, [id]);
   assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
@@ -700,7 +700,7 @@ test("automatic and manual refreshes request reconnect when Tink accounts disapp
       )).rows,
       saved,
     );
-    const link = await workflow.startConnect(id, "student@example.com", true);
+    const link = await workflow.startConnect(id, "person@example.com", true);
     assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
   }
 });
@@ -914,7 +914,7 @@ test("duplicate credentials retain the verified user's history and active sync c
   const claim = await workflow.prepareSync(id, true);
   assert.equal(claim.status, "syncing");
   if (claim.status !== "syncing") throw new Error("expected sync claim");
-  const link = await workflow.startConnect(id, "student@example.com");
+  const link = await workflow.startConnect(id, "person@example.com");
   assert.equal(await workflow.finishConnect(id, new URLSearchParams({
     state: link.state, error: "INVALID_STATE", error_reason: "INVALID_STATE_DUPLICATE_CREDENTIALS",
   }), link.state), "already_connected");
@@ -935,7 +935,7 @@ test("a legacy shared Tink identity cannot sync and reconnect binds to the curre
   const before = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "expired");
   assert.equal(snapshot.calls, before, "never requests a shared identity's data");
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   const state = (await db.query<{ tink_external_user_id: string }>(
     "select tink_external_user_id from oauth_states where state=$1", [link.state],
   )).rows[0]!;
@@ -1133,6 +1133,89 @@ test("a payment Tink briefly returns as pending and booked keeps one row; catego
     assert.equal(after[0]!.category, bookedChoice ?? during[1]!.category);
     assert.deepEqual(await manual(after[0]!.id), bookedChoice ? [bookedChoice] : []);
   }
+});
+
+test("one expired bank login stops only its own accounts; the others keep syncing and refreshing", async () => {
+  const id = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  const connection = async () => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  await connect(id, workflow);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: true });
+  const status = await workflow.status(id);
+  assert.equal(status.state, "synced");
+  assert.equal(status.needsRenewal, true);
+
+  // Refresh data still asks the bank through the healthy login and saves its new data.
+  snapshot.bankTransactions = [...snapshot.transactions, transaction("2", "New purchase")];
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"]);
+  assert.equal((await db.query("select id from transactions where user_id=$1", [id])).rows.length, 2);
+
+  // Reconnect renews exactly the expired login.
+  const renewal = await workflow.startConnect(id, "person@example.com", true);
+  assert.equal(new URL(renewal.redirectUrl).searchParams.get("credentials_id"), "old");
+  snapshot.consents[1]!.status = "UPDATED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "synced");
+  assert.deepEqual(await connection(), { status: "ACTIVE", needs_renewal: false });
+
+  // Only when no account has a healthy login left does the connection expire.
+  for (const consent of snapshot.consents) consent.status = "SESSION_EXPIRED";
+  await due(id);
+  assert.equal((await workflow.sync(id)).status, "expired");
+  assert.equal((await connection()).status, "EXPIRED");
+  const calls = snapshot.calls;
+  await due(id);
+  assert.equal((await workflow.sync(id, true)).status, "expired");
+  assert.equal(snapshot.calls, calls, "an expired connection is not synced until it is renewed");
+});
+
+test("connections expired by the previous release are re-evaluated once by the per-account rule", async () => {
+  const mixed = await user();
+  const gone = await user();
+  const { workflow, snapshot } = fake();
+  snapshot.accounts = [account("giro", "DE001"), account("savings", "DE002", "50000")];
+  for (const id of [mixed, gone]) {
+    await connect(id, workflow);
+    await workflow.sync(id);
+  }
+  // The previous release expired the whole connection for one expired login.
+  await db.query("update connections set status='EXPIRED' where user_id = any($1::uuid[])", [[mixed, gone]]);
+  snapshot.consents = [
+    { credentialsId: "cred", accountIds: ["giro"], status: "UPDATED" },
+    { credentialsId: "old", accountIds: ["savings"], status: "SESSION_EXPIRED" },
+  ];
+  await due(mixed);
+  assert.equal((await workflow.sync(mixed, true)).status, "expired", "stuck before the repair");
+  assert.deepEqual(snapshot.refreshes, []);
+
+  await db.exec(await readFile(
+    new URL("../../supabase/migrations/20261025000001_reevaluate_expired.sql", import.meta.url), "utf8",
+  ));
+  const state = async (id: string) => (await db.query<{ status: string; needs_renewal: boolean }>(
+    "select status,needs_renewal from connections where user_id=$1", [id],
+  )).rows[0]!;
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: false });
+  assert.equal((await workflow.sync(mixed, true)).status, "synced");
+  assert.deepEqual(snapshot.refreshes, ["cred"], "the healthy login is refreshed again");
+  assert.deepEqual(await state(mixed), { status: "ACTIVE", needs_renewal: true });
+
+  // A connection whose Tink user is gone expires again on its next sync, data unchanged.
+  const before = (await db.query("select * from transactions where user_id=$1", [gone])).rows;
+  snapshot.missingUser = gone;
+  await due(gone);
+  assert.equal((await workflow.sync(gone)).status, "expired");
+  assert.equal((await state(gone)).status, "EXPIRED");
+  assert.deepEqual((await db.query("select * from transactions where user_id=$1", [gone])).rows, before);
 });
 
 test("same IBAN is matched within each user and reconnect preserves the local account", async () => {

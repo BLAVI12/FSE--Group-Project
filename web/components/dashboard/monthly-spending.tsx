@@ -1,21 +1,11 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 import type { DashboardTransaction } from "@/lib/data/dashboard";
 import { countsTowardTotals } from "@/lib/data/totals";
-
-const chartColors = [
-  "#047857",
-  "#2563eb",
-  "#b45309",
-  "#be185d",
-  "#6d28d9",
-  "#be123c",
-  "#0e7490",
-  "#4d7c0f",
-  "#c2410c",
-  "#64748b",
-];
+import { getCategory, getSpendingCategoryColors } from "@/lib/category-colors";
+import { getGermanMonthKey } from "@/lib/time";
 
 function formatMoney(cents: number, currency: string) {
   return new Intl.NumberFormat("en-GB", {
@@ -37,16 +27,18 @@ function formatDate(value: string | null) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function getCategory(transaction: DashboardTransaction) {
-  return transaction.category?.trim() || "Uncategorized";
-}
-
 function MonthlySpendingPanel({
   monthLabel,
   transactions,
+  categoryColors,
+  selectedCategory,
+  onSelectCategory,
 }: {
   monthLabel: string;
   transactions: DashboardTransaction[];
+  categoryColors: Map<string, string>;
+  selectedCategory: string | null;
+  onSelectCategory: (name: string) => void;
 }) {
   const spendingTransactions = transactions.filter(
     (transaction) => transaction.amount < 0 && countsTowardTotals(transaction),
@@ -59,14 +51,13 @@ function MonthlySpendingPanel({
   }
 
   const categories = [...totals.entries()]
-    .map(([name, amount], index) => ({
+    .map(([name, amount]) => ({
       name,
       amount,
-      color: chartColors[index % chartColors.length],
+      color: categoryColors.get(name) ?? "#64748b",
     }))
     .sort((first, second) => second.amount - first.amount);
   const total = categories.reduce((sum, category) => sum + category.amount, 0);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const selectedTransactions = spendingTransactions.filter(
     (transaction) =>
       selectedCategory !== null && getCategory(transaction) === selectedCategory,
@@ -93,15 +84,13 @@ function MonthlySpendingPanel({
     },
     { items: [], fractionOffset: 0 },
   ).items;
-  const selectCategory = (name: string) =>
-    setSelectedCategory((selected) => (selected === name ? null : name));
   const handleSegmentKeyDown = (
     event: KeyboardEvent<SVGCircleElement>,
     name: string,
   ) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      selectCategory(name);
+      onSelectCategory(name);
     }
   };
 
@@ -140,7 +129,7 @@ function MonthlySpendingPanel({
                       cy="50"
                       fill="none"
                       key={segment.name}
-                      onClick={() => selectCategory(segment.name)}
+                      onClick={() => onSelectCategory(segment.name)}
                       onKeyDown={(event) =>
                         handleSegmentKeyDown(event, segment.name)
                       }
@@ -173,7 +162,7 @@ function MonthlySpendingPanel({
                         ? "bg-emerald-50 text-emerald-950"
                         : "bg-transparent"
                     }`}
-                    onClick={() => selectCategory(category.name)}
+                    onClick={() => onSelectCategory(category.name)}
                     type="button"
                   >
                     <span className="flex min-w-0 items-center gap-2">
@@ -192,65 +181,93 @@ function MonthlySpendingPanel({
               ))}
             </ul>
           </div>
-
-          {selectedCategory ? (
-            <div className="mt-6 border-t border-slate-100 pt-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h4 className="font-semibold">{selectedCategory} transactions</h4>
-                <span className="text-sm text-slate-500">
-                  {selectedTransactions.length} in {monthLabel}
-                </span>
-              </div>
-              <div className="mt-3 divide-y divide-slate-100">
-                {selectedTransactions.map((transaction) => (
-                  <div
-                    className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 text-sm"
-                    key={transaction.id}
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{transaction.description}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {formatDate(transaction.booked_date)} · {transaction.status}
-                      </p>
-                    </div>
-                    <span
-                      className={`font-semibold ${
-                        transaction.amount > 0 ? "text-emerald-700" : "text-slate-900"
-                      }`}
-                    >
-                      {transaction.amount > 0 ? "+" : transaction.amount < 0 ? "-" : ""}
-                      {formatMoney(Math.abs(transaction.amount), transaction.currency)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="mt-5 border-t border-slate-100 pt-4 text-sm text-slate-500">
-              Select a category to see its transactions for {monthLabel}.
-            </p>
-          )}
         </>
       ) : (
         <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
           No spending recorded for {monthLabel}.
         </div>
       )}
+
+      {selectedCategory ? (
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h4 className="font-semibold">{selectedCategory} transactions</h4>
+            <span className="text-sm text-slate-500">
+              {selectedTransactions.length} in {monthLabel}
+            </span>
+          </div>
+          {selectedTransactions.length > 0 ? (
+            <div className="mt-3 divide-y divide-slate-100">
+              {selectedTransactions.map((transaction) => (
+                <div
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 text-sm"
+                  key={transaction.id}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{transaction.description}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatDate(transaction.booked_date)} · {transaction.status}
+                    </p>
+                  </div>
+                  <span className="font-semibold text-slate-900">
+                    -{formatMoney(Math.abs(transaction.amount), transaction.currency)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">
+              No {selectedCategory} transactions in {monthLabel}.
+            </p>
+          )}
+        </div>
+      ) : categories.length > 0 ? (
+        <p className="mt-5 border-t border-slate-100 pt-4 text-sm text-slate-500">
+          Select a category to see its transactions for {monthLabel}.
+        </p>
+      ) : null}
     </article>
   );
 }
 
 export function MonthlySpending({
+  currentMonthStart,
   currentMonthLabel,
   previousMonthLabel,
   currentMonthTransactions,
   previousMonthTransactions,
 }: {
+  currentMonthStart: string;
   currentMonthLabel: string;
   previousMonthLabel: string;
   currentMonthTransactions: DashboardTransaction[];
   previousMonthTransactions: DashboardTransaction[];
 }) {
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const categoryColors = getSpendingCategoryColors(
+    currentMonthTransactions,
+    previousMonthTransactions,
+  );
+  const selectCategory = (name: string) =>
+    setSelectedCategory((selected) => (selected === name ? null : name));
+
+  useEffect(() => {
+    const refreshIfMonthChanged = () => {
+      if (getGermanMonthKey(new Date()) !== currentMonthStart.slice(0, 7)) {
+        router.refresh();
+      }
+    };
+
+    refreshIfMonthChanged();
+    const interval = window.setInterval(refreshIfMonthChanged, 60_000);
+    window.addEventListener("focus", refreshIfMonthChanged);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshIfMonthChanged);
+    };
+  }, [currentMonthStart, router]);
+
   return (
     <section className="mt-10">
       <div>
@@ -264,10 +281,16 @@ export function MonthlySpending({
         <MonthlySpendingPanel
           monthLabel={currentMonthLabel}
           transactions={currentMonthTransactions}
+          categoryColors={categoryColors}
+          selectedCategory={selectedCategory}
+          onSelectCategory={selectCategory}
         />
         <MonthlySpendingPanel
           monthLabel={previousMonthLabel}
           transactions={previousMonthTransactions}
+          categoryColors={categoryColors}
+          selectedCategory={selectedCategory}
+          onSelectCategory={selectCategory}
         />
       </div>
     </section>

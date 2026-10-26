@@ -109,11 +109,11 @@ try {
     getAll:()=>[...cookies].map(([name,value])=>({name,value})),
     setAll:values=>values.forEach(({name,value})=>cookies.set(name,value)),
   }});
-  const registered = await newAuth.auth.signUp({email:'onboarding-test@example.com',password:'synthetic-local-test-only',options:{data:{first_name:'Test',last_name:'Student'}}});
+  const registered = await newAuth.auth.signUp({email:'onboarding-test@example.com',password:'synthetic-local-test-only',options:{data:{first_name:'Test',last_name:'User'}}});
   assert.equal(registered.error,null,'Local registration failed');
   const registeredId = registered.data.user?.id;
   assert.match(registeredId ?? '',/^[0-9a-f-]{36}$/);
-  assert.equal(sql(`select first_name || '|' || last_name from public.profiles where id='${registeredId}';`),'Test|Student'); passed++;
+  assert.equal(sql(`select first_name || '|' || last_name from public.profiles where id='${registeredId}';`),'Test|User'); passed++;
   await redirect('/dashboard/bank','/dashboard/profile');
   await redirect('/dashboard','/dashboard/profile');
   sql(`update public.profiles set username='onboarding_test' where id='${registeredId}';`);
@@ -179,7 +179,7 @@ try {
   await redirect('/dashboard','/dashboard/profile');
   await redirect('/dashboard/bank','/dashboard/profile');
   assert.ok((await html('/dashboard/profile')).includes('Please enter your username')); passed++;
-  sql(`update public.profiles set username='demo_student' where id='${user}';`);
+  sql(`update public.profiles set username='demo_user' where id='${user}';`);
   connection('live_sync_enabled=false');
   await redirect('/dashboard','/dashboard/bank');
   sql(`update public.user_roles set status='suspended' where user_id='${user}';`);
