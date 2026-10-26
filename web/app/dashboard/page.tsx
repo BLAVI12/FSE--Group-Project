@@ -153,6 +153,7 @@ export default async function DashboardPage() {
         </section>
 
         <MonthlySpending
+          currentMonthStart={dashboardData.monthStart}
           currentMonthLabel={monthLabel}
           previousMonthLabel={previousMonthLabel}
           currentMonthTransactions={dashboardData.currentMonthTransactions}

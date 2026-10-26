@@ -3,6 +3,18 @@
 // makes the server and the browser render the same text.
 export const APP_TIME_ZONE = "Europe/Berlin";
 
+/** Year and month on the German calendar, including around UTC midnight. */
+export function getGermanMonthKey(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: APP_TIME_ZONE,
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  return `${year}-${month}`;
+}
+
 /** A moment on the German clock, e.g. "06/10/2026, 14:24:22 CEST". */
 export function formatGermanDateTime(value: string | Date) {
   return new Intl.DateTimeFormat("en-GB", {
