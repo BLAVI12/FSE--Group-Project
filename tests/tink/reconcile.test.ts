@@ -93,3 +93,30 @@ test("the same transaction arriving through two consents is stored once", () => 
   const plan = planTransactions([], [tx("1001", "2026-09-28", -2999, "Edeka"), tx("1001", "2026-09-28", -2999, "Edeka")]);
   assert.equal(plan.inserts.length, 1);
 });
+
+test("a payment Tink briefly returns as pending and booked leaves no booked duplicate", () => {
+  // Seen on the live site: Coffee Fellows on 8 October was stored twice.
+  const hold = stored(tx("1026", "2026-10-08", -249, "Coffee Fellows", "PENDING"));
+  // While it books, Tink returns both versions; the booked one is new.
+  const during = planTransactions([hold], [
+    tx("1003", "2026-10-08", -249, "Coffee Fellows", "PENDING"),
+    tx("1004", "2026-10-08", -249, "Coffee Fellows"),
+  ]);
+  assert.deepEqual(during.inserts.map((t) => [t.status, t.occurrence]), [["BOOKED", 2]]);
+  const booked = stored(during.inserts[0]!, 2);
+
+  // Then only the booked version: it stays with the booked row and the
+  // pending hold is removed, so one payment remains.
+  const after = planTransactions([hold, booked], [tx("1026", "2026-10-08", -249, "Coffee Fellows")]);
+  assert.deepEqual(after.deletes, [hold.id]);
+  assert.equal(after.inserts.length, 0);
+  assert.ok(after.updates.every((u) => u.id === booked.id), "the pending hold is not booked as a second payment");
+});
+
+test("a pending payment that books keeps its row and category when Tink returns only the booked version", () => {
+  const hold = stored(tx("1003", "2026-10-08", -249, "Coffee Fellows", "PENDING"));
+  const plan = planTransactions([hold], [tx("1004", "2026-10-08", -249, "Coffee Fellows")]);
+  assert.equal(plan.updates[0]?.id, hold.id);
+  assert.equal(plan.updates[0]?.values.status, "BOOKED");
+  assert.deepEqual([plan.inserts.length, plan.deletes.length], [0, 0]);
+});

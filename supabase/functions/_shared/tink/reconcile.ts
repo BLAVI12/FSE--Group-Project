@@ -8,7 +8,8 @@
  * 1001) that shifts whenever new transactions arrive, so it cannot be the
  * identity. It remains a fallback for rows whose content changed.
  *
- *   1. Pair by content. Identical same-day entries pair up in order.
+ *   1. Pair by content, rows with the same status (booked or pending) first.
+ *      Identical same-day entries pair up in order.
  *   2. Pair what is left by Tink's id: a bank with stable ids correcting a
  *      booked description, or a pending row booking with a new amount. Only
  *      when the two also share the merchant, or the amount and date: Demo
@@ -73,12 +74,21 @@ export function planTransactions(stored: StoredTransaction[], incoming: Transact
     group.push(s);
     storedByContent.set(contentKey(s), group);
   }
+  // Same status first: while a payment books, Demo Bank can return both its
+  // pending and its booked version. Once the pending one is gone, the booked
+  // one must keep pairing with the stored booked row, or the stored pending row
+  // is booked as well and the booked row stays behind as a duplicate.
   const pairs: [StoredTransaction, TransactionValues][] = [];
-  const unpairedFromTink: TransactionValues[] = [];
-  for (const t of fromTink) {
-    const match = storedByContent.get(contentKey(t))?.shift();
-    if (match) pairs.push([match, t]);
-    else unpairedFromTink.push(t);
+  let unpairedFromTink = fromTink;
+  for (const sameStatus of [true, false]) {
+    const rest: TransactionValues[] = [];
+    for (const t of unpairedFromTink) {
+      const group = storedByContent.get(contentKey(t)) ?? [];
+      const index = group.findIndex((s) => !sameStatus || s.status === t.status);
+      if (index >= 0) pairs.push([group.splice(index, 1)[0]!, t]);
+      else rest.push(t);
+    }
+    unpairedFromTink = rest;
   }
 
   // 2. Pair the rest by Tink's id, if the rows plausibly are one transaction.
