@@ -357,14 +357,17 @@ suspend or reactivate accounts, **so that** I can deal with misuse.
   open.
 - Every change needs a reason and is written to an audit log.
 - Users cannot make themselves administrators.
-- Open: the time of a user's last sign-in is not updated yet (issue #43; its
-  migration is not yet applied to the live database).
+- The admin list shows each user's **Last activity**: the later of their last
+  sign-in and their last use of the app, recorded at most every 5 minutes while
+  they use it (issue #43).
 - Open: administrators can read users' names and addresses.
 
 **Status:** Partly
 
 **Implemented in:** [`web/app/dashboard/admin`](../web/app/dashboard/admin),
-[`supabase/migrations/20261008000002_admin_management.sql`](../supabase/migrations/20261008000002_admin_management.sql)
+[`supabase/migrations/20261008000002_admin_management.sql`](../supabase/migrations/20261008000002_admin_management.sql),
+[`supabase/migrations/20261012000001_user_activity.sql`](../supabase/migrations/20261012000001_user_activity.sql)
+(the activity time), [`web/lib/supabase/proxy.ts`](../web/lib/supabase/proxy.ts) (records it)
 
 **Verified by:** [`web/tests/tink.test.ts`](../web/tests/tink.test.ts)
 (suspension blocks open sessions; roles cannot be raised by the user)

@@ -92,7 +92,7 @@ not bypass the RLS policies protecting accounts or transactions.
 
 Apply `20261008000002_admin_management.sql` before deploying the updated app.
 Existing accounts default to `active`. The admin lookup searches usernames and
-filters role/status in pages of 20; it returns registration and last sign-in
+filters role/status in pages of 20; it returns registration and last activity
 timestamps, not addresses, emails or financial details.
 
 Suspension restricts application access; it is not an Auth ban or deletion.
@@ -109,8 +109,16 @@ reason and confirmation. Only active admins can read the audit log, which stores
 actor/target IDs, action, old/new values and reason. Reasons must not contain
 financial or sensitive personal data. This release retains records until a
 separate retention policy is agreed; no automatic purge is configured.
-The UI shows the latest 20 events. Account deletion and user-activity tracking
-are separate future features.
+The UI shows the latest 20 events. Account deletion is a separate future
+feature.
+
+**Last activity** (`20261012000001_user_activity.sql`, applied on 25 October
+2026). Supabase's own `last_sign_in_at` changes only when someone signs in, not
+while they keep using an open session. So `profiles.last_seen_at` records use
+of the app: on each request of a signed-in, active user, the app calls
+`record_user_activity()`, which writes the time at most every 5 minutes and
+only for the caller's own profile. `admin_list_users` returns the later of the
+two times, shown as **Last activity** on the admin page.
 
 ## Rules
 
