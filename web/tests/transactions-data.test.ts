@@ -59,6 +59,15 @@ test("monthly spending uses German calendar months and includes empty months acr
   ]);
 });
 
+test("three- and nine-month periods include the current month", () => {
+  const now = new Date("2026-10-26T12:00:00Z");
+  assert.deepEqual(getMonthKeys(now, 3), ["2026-08", "2026-09", "2026-10"]);
+  assert.deepEqual(getMonthKeys(now, 9), [
+    "2026-02", "2026-03", "2026-04", "2026-05", "2026-06",
+    "2026-07", "2026-08", "2026-09", "2026-10",
+  ]);
+});
+
 test("trends count booked income and expenses without transfers, exclusions or mixed currencies", () => {
   const entries = [
     transaction(),
