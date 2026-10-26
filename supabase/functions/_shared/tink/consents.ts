@@ -56,6 +56,20 @@ export function accountsNeedingRelink(
 }
 
 /**
+ * How many of the accounts need a re-link: "none", "some" (the others still
+ * have a healthy login and keep syncing) or "all" (nothing can be updated
+ * until the user reconnects).
+ */
+export function relinkScope(
+  consents: TinkProviderConsent[],
+  providerAccountIds: string[],
+  now = Date.now()
+): "none" | "some" | "all" {
+  const needing = accountsNeedingRelink(consents, providerAccountIds, now).length;
+  return needing === 0 ? "none" : needing === providerAccountIds.length ? "all" : "some";
+}
+
+/**
  * The bank login to send through Tink's update-consent flow: an unhealthy
  * consent covering one of the accounts that need a re-link. null if none.
  */

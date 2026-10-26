@@ -159,7 +159,10 @@ sync asks the bank for new data first, like **Refresh data**.
   run ends red so someone looks at the Vercel logs. A user whose bank login
   expired is not a failure: the app asks them to reconnect.
 - **Left out:** expired connections (the person must reconnect in Tink Link),
-  suspended users, and connections with a sync already running.
+  suspended users, and connections with a sync already running. A connection
+  expires only when none of its accounts has a healthy bank login left; if one
+  of several logins expires, the others keep syncing and the bank page offers
+  **Reconnect bank** next to **Refresh data** (`connections.needs_renewal`).
 - **Setup, once:**
   1. The migration `20261023000001_bank_refresh_attempt.sql` on the hosted
      database (`../supabase/README.md`, dry run first). Without it the route
