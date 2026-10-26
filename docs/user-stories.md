@@ -164,7 +164,10 @@ reconnecting.
   once a minute.
 - Refreshing twice in a row changes nothing the second time.
 - A transaction that Tink renumbers is recognised and not saved twice; a
-  pending transaction that gets booked is updated in place.
+  pending transaction that gets booked is updated in place. Exception: when
+  Tink briefly returns a payment as both pending and booked, the booked row
+  stays and the pending row is removed, so a category chosen on the pending
+  row is not carried over ([decision 6](decisions.md#decision-6-transactions-are-identified-by-their-content)).
 - A refresh that fails changes no saved accounts or transactions: the data of
   the last successful refresh stays.
 - A refresh in which some transactions are incomplete still saves the usable
@@ -373,7 +376,7 @@ suspend or reactivate accounts, **so that** I can deal with misuse.
 | Feature | What changed and why |
 |---|---|
 | Planner for students | First designed for students. Student-specific features would have widened the scope too far, so it became a planner for anyone with a current account. |
-| Monthly budget | Not built. The landing page shows a monthly budget as an example; the team decides whether to build it or remove the example, and records the reason here. |
+| Monthly budget | Dropped (decided 26 October 2026). The team focused on importing transactions correctly and classifying them correctly instead. |
 | Automatic bank updates | First planned twice a day; now up to four times a day, the most PSD2 allows without the user present ([decision 7](decisions.md#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day), pull request #58). |
 | Currencies | Euro only, and only banks in the EU (decided 25 October 2026). Totals add up amounts without converting currencies, so other currencies are out of scope rather than half supported. |
 | Investments | Out of scope on purpose: stocks, ETFs and crypto each need their own data source. Named as the next step. |

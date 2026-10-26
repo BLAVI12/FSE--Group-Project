@@ -122,6 +122,28 @@ are separate future features.
 
 ## Hosted project
 
+### 25 and 26 October 2026 migration record
+
+Applied with the team's agreement, each migration in one database
+transaction through the server's database connection and recorded in
+`supabase_migrations.schema_migrations` as the CLI does (the CLI could not run
+on the machine used):
+
+| Migration | Applied | Order relative to the code |
+|---|---|---|
+| `20261012000001_user_activity.sql` | 25 October, about 20:00 UTC | Merged on 15 October without being applied; the app's activity time (`record_user_activity`) needs it |
+| `20261023000001_bank_refresh_attempt.sql` | 25 October, about 20:00 UTC | After #58 was merged. It should have come first: the bank sync on the live site failed from about 19:30 UTC until it was applied |
+| `20261024000001_needs_renewal.sql` | 25 October, about 20:00 UTC | Before #61 (adds a column with a default, safe for the old code) |
+| `20261025000001_reevaluate_expired.sql` | 26 October, about 13:20 UTC | After #61's production deployment (11:44 UTC), as its comment requires. It set 5 expired connections back to `ACTIVE`; the next sync expires again those whose Tink user is gone. No bank data changed |
+
+Verified afterwards: the newest recorded version is `20261025000001`, and
+every migration in `migrations/` is recorded. **No migrations are pending.**
+
+One data repair on 26 October 2026, with the team's agreement: a duplicate
+booked transaction (Coffee Fellows, 8 October, -2.49 EUR) on one user, left
+behind by the bug fixed in #62, was deleted. Both copies had only the
+automatic category; the row was saved to a backup first.
+
 ### Verified state and application, 11 October 2026
 
 The hosted project has CLI migration history. Before this deployment it had
