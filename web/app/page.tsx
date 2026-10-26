@@ -14,9 +14,9 @@ const features = [
   },
   {
     number: "02",
-    title: "Make a plan that fits",
+    title: "Sorted for you",
     description:
-      "Set a monthly budget that works for your life, not the other way around.",
+      "Every transaction lands in a category automatically, and you can change any of them.",
     icon: "◷",
   },
   {
@@ -69,7 +69,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="mt-7 max-w-xl text-lg leading-8 text-slate-600">
-            An easier way to track spending, plan your budget, and feel a little
+            An easier way to track spending, see where your money goes, and feel a little
             more in control of what comes next.
           </p>
 
@@ -99,28 +99,13 @@ export default async function HomePage() {
                 <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
                   €680
                   <span className="ml-2 text-base font-medium text-slate-500">
-                    left to enjoy
+                    available to spend
                   </span>
                 </p>
               </div>
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
                 <PiggyBank className="h-8 w-8" />
               </span>
-            </div>
-
-            <div className="mt-7 flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700">Monthly budget</span>
-              <span className="text-slate-500">€820 of €1,500 spent</span>
-            </div>
-            <div
-              className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100"
-              role="progressbar"
-              aria-label="Monthly budget spent"
-              aria-valuenow={55}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div className="h-full w-[55%] rounded-full bg-emerald-500" />
             </div>
 
             <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4">
@@ -133,8 +118,8 @@ export default async function HomePage() {
                 <PiggyBank className="h-7 w-7" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-slate-800">A little progress counts</p>
-                <p className="mt-0.5 text-xs leading-5 text-slate-500">You checked in on your budget this week. Nice work!</p>
+                <p className="text-sm font-semibold text-slate-800">Categorised automatically</p>
+                <p className="mt-0.5 text-xs leading-5 text-slate-500">Every transaction has a category, ready when you check in.</p>
               </div>
               <span className="ml-auto text-xl text-rose-400" aria-hidden="true">✳</span>
             </div>
