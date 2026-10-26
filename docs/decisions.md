@@ -19,7 +19,7 @@ documented elsewhere by the team.
 | Decision 4 | [One connection per Tink user](#decision-4-one-connection-per-tink-user) | 3 Oct 2026 | Accepted |
 | Decision 5 | [Start Tink Link with Tink's documented delegated grant](#decision-5-start-tink-link-with-tinks-documented-delegated-grant) | 3 Oct 2026 | Accepted |
 | Decision 6 | [Transactions are identified by their content](#decision-6-transactions-are-identified-by-their-content) | 3 Oct 2026 | Accepted |
-| Decision 7 | [Scheduled bank sync through GitHub Actions, four times a day](#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day) | 23 Oct 2026 | Proposed in pull request #58 |
+| Decision 7 | [Scheduled bank sync through GitHub Actions, four times a day](#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day) | 23 Oct 2026 | Accepted |
 
 ---
 
@@ -255,7 +255,7 @@ instead of Tink's id.
 
 ## Decision 7: Scheduled bank sync through GitHub Actions, four times a day
 
-**Date:** 23 October 2026 · **Status:** Proposed in pull request #58
+**Date:** 23 October 2026 · **Status:** Accepted (pull request #58, merged 25 October 2026; first green run on the live site 26 October 2026)
 
 **Context.** [Decision 3](#decision-3-permanent-tink-users-and-scheduled-synchronisation)
 planned a scheduled sync, but until now data only updated when someone opened

@@ -129,6 +129,9 @@ transactions in `tests/fixtures/`.
 - **Demo Bank only.** The bank connection refuses to start with
   `TINK_TEST_MODE=false`. Real banks would need a commercial and regulatory
   arrangement with Tink, code changes and testing against real banks.
+- **Euro only.** Only banks in the EU with accounts in euro are in scope
+  (team decision, 25 October 2026). Totals add up amounts without converting
+  currencies, so an account in another currency would make them wrong.
 - **One bank per user.** After the first bank is connected, the app offers
   only **Manage bank** for it, not a second bank.
 
