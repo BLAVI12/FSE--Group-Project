@@ -76,26 +76,23 @@ export default async function DashboardPage() {
   }
 
   const checkingAccounts = dashboardData.accounts.filter(
-  (account) => account.type === "CHECKING",
-);
-
-const checkingCurrencies = new Set(
-  checkingAccounts.map((account) => account.currency),
-);
-
-const availableToSpend =
-  checkingAccounts.length > 0 &&
-  checkingAccounts.every((account) => account.balance_available !== null)
-    ? checkingAccounts.reduce(
-        (sum, account) => sum + (account.balance_available ?? 0),
-        0,
-      )
-    : null;
-
-const availableCurrency =
-  checkingCurrencies.size === 1
-    ? checkingAccounts[0]?.currency ?? "EUR"
-    : "EUR";
+    (account) => account.type === "CHECKING",
+  );
+  const checkingCurrencies = new Set(
+    checkingAccounts.map((account) => account.currency),
+  );
+  const availableToSpend =
+    checkingAccounts.length > 0 &&
+    checkingAccounts.every((account) => account.balance_available !== null)
+      ? checkingAccounts.reduce(
+          (sum, account) => sum + (account.balance_available ?? 0),
+          0,
+        )
+      : null;
+  const availableCurrency =
+    checkingCurrencies.size === 1
+      ? checkingAccounts[0]?.currency ?? "EUR"
+      : "EUR";
   const monthLabel = new Intl.DateTimeFormat("en-GB", {
     month: "long",
     year: "numeric",
@@ -142,7 +139,6 @@ const availableCurrency =
                 : "default"
             }
           />
-
           <SummaryCard
             label={`${monthLabel} income`}
             value={formatMoney(dashboardData.monthlySummary.income)}
@@ -160,6 +156,7 @@ const availableCurrency =
         </section>
 
         <MonthlySpending
+          currentMonthStart={dashboardData.monthStart}
           currentMonthLabel={monthLabel}
           previousMonthLabel={previousMonthLabel}
           currentMonthTransactions={dashboardData.currentMonthTransactions}

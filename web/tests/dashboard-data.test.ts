@@ -31,6 +31,18 @@ test("getPreviousMonthRange returns the previous month across a year boundary", 
   );
 });
 
+test("November dashboard compares November with October", () => {
+  const november = new Date("2026-10-31T23:00:00Z");
+  assert.deepEqual(getMonthRange(november), {
+    start: "2026-11-01",
+    end: "2026-12-01",
+  });
+  assert.deepEqual(getPreviousMonthRange(november), {
+    start: "2026-10-01",
+    end: "2026-11-01",
+  });
+});
+
 test("the month follows the German calendar, not UTC", () => {
   // 00:30 on 1 November in Germany (winter time) is still 31 October in UTC.
   const novemberInGermany = new Date("2026-10-31T23:30:00Z");

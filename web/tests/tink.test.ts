@@ -646,7 +646,7 @@ test("bank authentication requested during background refresh preserves data and
   const failedCalls = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "expired");
   assert.equal(snapshot.calls, failedCalls, "a further Refresh does not overwrite Reconnect with a partial-data message");
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/update-consent");
   assert.equal(new URL(link.redirectUrl).searchParams.get("credentials_id"), "cred");
 });
@@ -669,7 +669,7 @@ test("a missing Tink user requests reconnect and restores the owned bank login w
   assert.equal(snapshot.createdUsers.length, 0, "Refresh never silently creates an empty user");
   assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
   assert.deepEqual(await workflow.status(other), otherStatus);
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
   assert.deepEqual(snapshot.createdUsers, [id]);
   assert.deepEqual((await db.query("select id,account_id,amount,status,category from transactions where user_id=$1", [id])).rows, saved);
@@ -700,7 +700,7 @@ test("automatic and manual refreshes request reconnect when Tink accounts disapp
       )).rows,
       saved,
     );
-    const link = await workflow.startConnect(id, "student@example.com", true);
+    const link = await workflow.startConnect(id, "person@example.com", true);
     assert.equal(new URL(link.redirectUrl).pathname, "/1.0/transactions/connect-accounts");
   }
 });
@@ -914,7 +914,7 @@ test("duplicate credentials retain the verified user's history and active sync c
   const claim = await workflow.prepareSync(id, true);
   assert.equal(claim.status, "syncing");
   if (claim.status !== "syncing") throw new Error("expected sync claim");
-  const link = await workflow.startConnect(id, "student@example.com");
+  const link = await workflow.startConnect(id, "person@example.com");
   assert.equal(await workflow.finishConnect(id, new URLSearchParams({
     state: link.state, error: "INVALID_STATE", error_reason: "INVALID_STATE_DUPLICATE_CREDENTIALS",
   }), link.state), "already_connected");
@@ -935,7 +935,7 @@ test("a legacy shared Tink identity cannot sync and reconnect binds to the curre
   const before = snapshot.calls;
   assert.equal((await workflow.sync(id, true)).status, "expired");
   assert.equal(snapshot.calls, before, "never requests a shared identity's data");
-  const link = await workflow.startConnect(id, "student@example.com", true);
+  const link = await workflow.startConnect(id, "person@example.com", true);
   const state = (await db.query<{ tink_external_user_id: string }>(
     "select tink_external_user_id from oauth_states where state=$1", [link.state],
   )).rows[0]!;

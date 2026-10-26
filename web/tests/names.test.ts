@@ -8,9 +8,9 @@ test("registration and profile agree on Unicode codepoint boundaries", () => {
   for (const character of ["a", "𠮷", "😀"]) {
     for (const length of [100, 101]) {
       const name = character.repeat(length);
-      assert.equal(Boolean(registrationNameData(name, "Student")), length <= 100);
-      assert.equal(validateProfile({ username: "student", firstName: name, lastName: "Student", street: "", postalCode: "", city: "", countryCode: "" }).ok, length <= 100);
-      assert.equal(Boolean(registrationNameData("Student", name)), length <= 100);
+      assert.equal(Boolean(registrationNameData(name, "User")), length <= 100);
+      assert.equal(validateProfile({ username: "budgeter", firstName: name, lastName: "User", street: "", postalCode: "", city: "", countryCode: "" }).ok, length <= 100);
+      assert.equal(Boolean(registrationNameData("User", name)), length <= 100);
     }
   }
   assert.equal("𠮷".repeat(100).length <= NAME_INPUT_MAX_LENGTH, true);

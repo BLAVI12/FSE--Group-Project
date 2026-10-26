@@ -329,8 +329,8 @@ registration migrations in order on new environments; both are already
 applied on hosted. Web validation counts up to 100
 Unicode codepoints, matching PostgreSQL length; HTML maxlength allows up to
 200 UTF-16 units so supplementary characters are not blocked prematurely.
-The local demo seed fills missing username and names with `demo_student`,
-`Demo`, `Student`, while retaining already saved values.
+The local demo seed fills missing username and names with `demo_user`,
+`Demo`, `User`, while retaining already saved values.
 
 
 With the Supabase CLI and Docker: `supabase start`, then `supabase db reset`
