@@ -43,7 +43,7 @@ test("a repeat with identical data plans nothing", () => {
   const a = stored(tx("1001", "2026-10-02", 188703, "Salary"));
   const b = stored(tx("1002", "2026-10-01", -1799, "Burger King", "PENDING"));
   const plan = planTransactions([a, b], [tx("1001", "2026-10-02", 188703, "Salary"), tx("1002", "2026-10-01", -1799, "Burger King", "PENDING")]);
-  assert.deepEqual(plan, { inserts: [], updates: [], deletes: [], successors: [] });
+  assert.deepEqual(plan, { inserts: [], updates: [], deletes: [] });
 });
 
 test("pending rows Tink stops returning are deleted; booked history is kept", () => {
@@ -111,15 +111,6 @@ test("a payment Tink briefly returns as pending and booked leaves no booked dupl
   assert.deepEqual(after.deletes, [hold.id]);
   assert.equal(after.inserts.length, 0);
   assert.ok(after.updates.every((u) => u.id === booked.id), "the pending hold is not booked as a second payment");
-  assert.deepEqual(after.successors, [{ from: hold.id, to: booked.id }], "the hold's category goes to the booked row");
-});
-
-test("a pending row that vanishes without a booked version has no successor", () => {
-  const hold = stored(tx("1003", "2026-10-08", -249, "Coffee Fellows", "PENDING"));
-  const other = stored(tx("1004", "2026-10-08", -1999, "Burger King"));
-  const plan = planTransactions([hold, other], [tx("1004", "2026-10-08", -1999, "Burger King")]);
-  assert.deepEqual(plan.deletes, [hold.id]);
-  assert.deepEqual(plan.successors, []);
 });
 
 test("a pending payment that books keeps its row and category when Tink returns only the booked version", () => {

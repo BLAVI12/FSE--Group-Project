@@ -1082,7 +1082,7 @@ test("complete fetch removes vanished pending rows, retains booked history and f
   );
 });
 
-test("a payment Tink briefly returns as pending and booked keeps one row and the user's category", async () => {
+test("a payment Tink briefly returns as pending and booked keeps one row; categories stay on their own row", async () => {
   const chooseCategory = async (userId: string, transactionId: string, name: string) => {
     await db.exec("begin; set local role authenticated");
     try {
@@ -1103,7 +1103,8 @@ test("a payment Tink briefly returns as pending and booked keeps one row and the
      where a.transaction_id=$1 and a.is_active and a.is_primary and a.assignment_source='manual'`, [transactionId],
   )).rows.map((row) => row.name);
 
-  for (const bookedChoice of [null, "Groceries"]) {
+  // "Uncategorized" is a category the user can choose, so it is kept like any other.
+  for (const bookedChoice of [null, "Groceries", "Uncategorized"]) {
     const id = await user();
     const { workflow, snapshot } = fake();
     snapshot.transactions = [coffee("1026", "PENDING")];
@@ -1127,9 +1128,10 @@ test("a payment Tink briefly returns as pending and booked keeps one row and the
     const after = await rows(id);
     assert.equal(after.length, 1, "one payment, no booked duplicate");
     assert.equal(after[0]!.id, during[1]!.id);
-    assert.equal(after[0]!.category, bookedChoice ?? "Shopping",
-      bookedChoice ? "an explicit choice on the booked row is kept" : "the pending row's choice moves to the booked row");
-    assert.deepEqual(await manual(after[0]!.id), [bookedChoice ?? "Shopping"]);
+    // Tink's data cannot tell this from a cancelled hold next to a separate
+    // identical payment, so the pending row's choice is not carried over.
+    assert.equal(after[0]!.category, bookedChoice ?? during[1]!.category);
+    assert.deepEqual(await manual(after[0]!.id), bookedChoice ? [bookedChoice] : []);
   }
 });
 

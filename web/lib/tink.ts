@@ -198,28 +198,6 @@ async function applyPlan(
   exclusions: Rule[],
   rules: Rule[],
 ) {
-  // A pending row that is now booked as another row hands on the user's
-  // category, unless the user has already chosen one for the booked row.
-  for (const { from, to } of plan.successors) {
-    if (!plan.deletes.includes(from)) continue;
-    const manual = (await db.query<{ id: string; category: string | null }>(
-      `select a.id,t.category from public.category_assignments a join public.transactions t on t.id=a.transaction_id
-       where a.user_id=$1 and a.transaction_id=$2 and a.is_active and a.is_primary and a.assignment_source='manual'`,
-      [userId, from],
-    )).rows[0];
-    if (!manual) continue;
-    const chosen = (await db.query(
-      "select 1 from public.category_assignments where user_id=$1 and transaction_id=$2 and assignment_source='manual' limit 1",
-      [userId, to],
-    )).rows.length > 0;
-    if (chosen) continue;
-    await db.query(
-      "update public.category_assignments set is_active=false where user_id=$1 and transaction_id=$2 and is_active and is_primary",
-      [userId, to],
-    );
-    await db.query("update public.category_assignments set transaction_id=$3 where id=$2 and user_id=$1", [userId, manual.id, to]);
-    await db.query("update public.transactions set category=$3 where id=$2 and user_id=$1", [userId, to, manual.category]);
-  }
   if (plan.deletes.length) {
     await db.query(
       `delete from public.transactions

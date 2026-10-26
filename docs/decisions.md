@@ -247,7 +247,11 @@ The live replay (11 arrivals) reports `11 added, 0 updated, 3455 renumbered`.
 A real bank's corrected description, or a hold booking with a new amount,
 still updates the row in place. The cost: a pending transaction that books
 with *both* a different merchant text and a different amount is treated as a
-new transaction, so a category set on the pending row is lost. And the
+new transaction, so a category set on the pending row is lost. The same
+happens when Tink briefly returns a payment as both pending and booked: the
+booked row stays and the pending row's category is not carried over, because
+Tink's data cannot tell this from a cancelled hold next to a separate,
+identical payment. And the
 guarantee that a repeated sync changes nothing now rests on the content key
 instead of Tink's id.
 
