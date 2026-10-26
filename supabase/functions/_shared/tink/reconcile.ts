@@ -16,7 +16,8 @@
  *      Bank hands a vanished row's id to an unrelated newer transaction.
  *   3. Insert what is still unmatched from Tink. Delete stored PENDING rows
  *      Tink no longer returns. Keep stored BOOKED rows: real banks only return
- *      about 90 days, and older history must stay.
+ *      about 90 days, and older history must stay. A deleted pending row whose
+ *      booked version is still there hands its category on (`successors`).
  *
  * A paired row keeps its database id, so a user's category stays on the right
  * transaction however Tink renumbers.
@@ -48,6 +49,12 @@ export interface TransactionPlan {
   inserts: (TransactionValues & { occurrence: number })[];
   updates: PlannedUpdate[];
   deletes: string[];
+  /**
+   * A deleted pending row next to a booked row with the same content that
+   * Tink still returns: the same payment, booked. The user's category moves
+   * from the pending row to the booked one.
+   */
+  successors: { from: string; to: string }[];
 }
 
 const contentKey = (t: Pick<TransactionValues, "bookedDate" | "amount" | "description">) =>
@@ -138,5 +145,17 @@ export function planTransactions(stored: StoredTransaction[], incoming: Transact
   const paired = new Set(pairs.map(([s]) => s.id));
   const deletes = stored.filter((s) => !paired.has(s.id) && s.status === "PENDING").map((s) => s.id);
 
-  return { inserts, updates, deletes };
+  const bookedByContent = new Map<string, string[]>();
+  for (const [s, t] of pairs) {
+    if (s.status !== "BOOKED" || t.status !== "BOOKED" || contentKey(s) !== contentKey(t)) continue;
+    bookedByContent.set(contentKey(s), [...(bookedByContent.get(contentKey(s)) ?? []), s.id]);
+  }
+  const successors = stored
+    .filter((s) => deletes.includes(s.id))
+    .flatMap((s) => {
+      const to = bookedByContent.get(contentKey(s))?.shift();
+      return to ? [{ from: s.id, to }] : [];
+    });
+
+  return { inserts, updates, deletes, successors };
 }

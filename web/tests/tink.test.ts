@@ -1082,6 +1082,57 @@ test("complete fetch removes vanished pending rows, retains booked history and f
   );
 });
 
+test("a payment Tink briefly returns as pending and booked keeps one row and the user's category", async () => {
+  const chooseCategory = async (userId: string, transactionId: string, name: string) => {
+    await db.exec("begin; set local role authenticated");
+    try {
+      await db.query("select set_config('request.jwt.claim.sub',$1,true)", [userId]);
+      await db.query(
+        "select set_transaction_category($1,(select id from categories where name=$2 and user_id is null))",
+        [transactionId, name],
+      );
+      await db.exec("commit");
+    } catch (error) { await db.exec("rollback"); throw error; }
+  };
+  const coffee = (id: string, status: string) => transaction(id, "Coffee Fellows", status);
+  const rows = async (id: string) => (await db.query<{ id: string; status: string; category: string }>(
+    "select id,status,category from transactions where user_id=$1 and description='Coffee Fellows' order by occurrence", [id],
+  )).rows;
+  const manual = async (transactionId: string) => (await db.query<{ name: string }>(
+    `select c.name from category_assignments a join categories c on c.id=a.category_id
+     where a.transaction_id=$1 and a.is_active and a.is_primary and a.assignment_source='manual'`, [transactionId],
+  )).rows.map((row) => row.name);
+
+  for (const bookedChoice of [null, "Groceries"]) {
+    const id = await user();
+    const { workflow, snapshot } = fake();
+    snapshot.transactions = [coffee("1026", "PENDING")];
+    await connect(id, workflow);
+    await workflow.sync(id);
+    const [hold] = await rows(id);
+    await chooseCategory(id, hold!.id, "Shopping");
+
+    // While it books, Tink returns both versions.
+    snapshot.transactions = [coffee("1003", "PENDING"), coffee("1004", "BOOKED")];
+    await due(id);
+    await workflow.sync(id);
+    const during = await rows(id);
+    assert.deepEqual(during.map((row) => row.status), ["PENDING", "BOOKED"]);
+    if (bookedChoice) await chooseCategory(id, during[1]!.id, bookedChoice);
+
+    // Then only the booked version.
+    snapshot.transactions = [coffee("1026", "BOOKED")];
+    await due(id);
+    assert.equal((await workflow.sync(id)).status, "synced");
+    const after = await rows(id);
+    assert.equal(after.length, 1, "one payment, no booked duplicate");
+    assert.equal(after[0]!.id, during[1]!.id);
+    assert.equal(after[0]!.category, bookedChoice ?? "Shopping",
+      bookedChoice ? "an explicit choice on the booked row is kept" : "the pending row's choice moves to the booked row");
+    assert.deepEqual(await manual(after[0]!.id), [bookedChoice ?? "Shopping"]);
+  }
+});
+
 test("same IBAN is matched within each user and reconnect preserves the local account", async () => {
   const id = await user();
   const other = await user();
