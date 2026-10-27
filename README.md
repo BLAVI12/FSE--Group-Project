@@ -7,12 +7,30 @@ login, and a bank connection through Tink (Demo Bank sandbox).
 The project documentation (user stories with acceptance criteria, the Tink
 integration, decisions) starts at [docs/README.md](docs/README.md).
 
+## How to evaluate
+
+Nothing needs to be installed.
+
+1. Open https://fse-group-project.vercel.app and log in with
+   `demo@example.com` and password `demo-planner-2026`. This login is public on
+   purpose and owns only sandbox data ([demo login](supabase/README.md#demo-login)).
+2. Look at the dashboard (balances, income and spending per month, spending
+   by category), **Transactions** (filter, search, change a category, export
+   as CSV) and **Manage bank** (connection status, **Refresh data**).
+3. If the bank page says the connection has expired: the saved accounts and
+   transactions stay visible. Tink's free sandbox deletes its users (see
+   [known limitations](#known-limitations)). Click **Reconnect bank**, choose
+   **Tink Demo Bank** in Tink Link and log in with a Tink Demo Bank test user;
+   the import starts by itself when you return.
+4. Each user story names the code that implements it and the tests that check
+   it: [docs/user-stories.md](docs/user-stories.md).
+
 ## Project structure
 
 ```text
 web/                  Next.js app: pages, API routes, components (see web/README.md)
 src/
-	features/         Shared JavaScript: categorisation and exact amounts, auth helpers
+	features/         Shared JavaScript: categorisation and exact amounts; auth/ is unused (see Authentication)
 	lib/supabase/     Supabase client for the shared code
 supabase/
 	migrations/       Database schema, applied in file-name order
@@ -30,39 +48,15 @@ The web app has its own settings file; see `web/README.md`. For the scripts in
 URL and publishable key. Never put a Supabase secret or service-role key in
 client-side environment variables.
 
-## Authentication foundation
+## Authentication
 
-The framework-neutral authentication service lives in
-`src/features/auth/auth-service.js`. It supports email/password and Google
-authentication, local logout, verified current-user lookup and auth-state subscriptions.
-Google login uses the PKCE flow; `src/features/auth/oauth-callback.js` exchanges
-the returned authorization code for a session.
+The web app logs in with `@supabase/ssr` directly: email and password in
+`web/app/login/page.tsx`, and Google login finished on the server in
+`web/app/auth/callback/route.ts`. See `web/README.md`.
 
-Create one browser client for the application and inject it into the service:
-
-```js
-import { createAuthService } from "./src/features/auth/auth-service.js";
-import { createSupabaseBrowserClient } from "./src/lib/supabase/client.js";
-
-const supabase = createSupabaseBrowserClient({
-  url: process.env.SUPABASE_URL,
-  publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY
-});
-
-const auth = createAuthService(supabase);
-await auth.signIn({ email, password });
-
-// Redirects the browser to Google and then back to /auth/callback.
-await auth.signInWithGoogle();
-```
-
-The environment access shown above is an integration placeholder. Replace it
-with the selected frontend framework's public-environment mechanism when the UI
-stack is chosen.
-
-The web app in `web/` does not use this service yet: it logs in with
-`@supabase/ssr` directly (`web/app/login/page.tsx`) and finishes Google login
-on the server in `web/app/auth/callback/route.ts`. See `web/README.md`.
+`src/features/auth/` is an earlier, framework-neutral login service written
+before the web stack was chosen. The web app does not use it; only the manual
+check `scripts/try-login.mjs` and its own tests in `tests/` do.
 
 ### Google OAuth configuration
 
@@ -125,7 +119,10 @@ transactions in `tests/fixtures/`.
   one Demo Bank login (two app users on the same Demo Bank login stayed healthy
   side by side). Support is not available to sandbox apps. Effect: the app asks
   the person to reconnect; their saved accounts, transactions and categories
-  stay.
+  stay. An hourly read-only check on 26 and 27 October saw this happen: one
+  user's Tink user disappeared between 14:58 and 08:53 UTC; the app marked the
+  connection expired and kept all 3,582 saved transactions. The demo login was
+  not affected.
 - **Demo Bank only.** The bank connection refuses to start with
   `TINK_TEST_MODE=false`. Real banks would need a commercial and regulatory
   arrangement with Tink, code changes and testing against real banks.
@@ -134,6 +131,23 @@ transactions in `tests/fixtures/`.
   currencies, so an account in another currency would make them wrong.
 - **One bank per user.** After the first bank is connected, the app offers
   only **Manage bank** for it, not a second bank.
+
+### Remaining security limitations
+
+- **Administrators can read every user's profile**, including name and
+  address (policy "Admins read profiles"). The admin page itself shows neither
+  ([user story 12](docs/user-stories.md#user-story-12-manage-users-as-an-administrator)).
+- **The demo password is public** on purpose, so the examiners can log in. The
+  demo login owns only sandbox data.
+- **No multi-factor login.** Email and password, or Google.
+- **`main` is not protected on GitHub.** Reviews and green checks before
+  merging are a team rule ([AGENTS.md](AGENTS.md)), not enforced by GitHub.
+- **The server code runs in the US.** Vercel runs the app's server routes in
+  its default region (Washington, D.C., `iad1`); the database is in the EU
+  (Ireland). Bank data passes through the US on its way to the database.
+- **One hand-made table on the hosted database**, `Mastertabelle`, belongs to
+  no migration. Row-level security is on and it has no policies, so no app
+  user can read it ([supabase/README.md](supabase/README.md)).
 
 ## Checks
 
@@ -163,7 +177,19 @@ node tests/database/rls-check.mjs "$API_URL" "$PUBLISHABLE_KEY"
 Rules for every coding agent working in this repository, and for the people
 instructing them, are in [AGENTS.md](AGENTS.md): no direct pushes to `main`,
 no secrets in Git, a person types the bank login, and the data rules learned
-from live Tink data. `CLAUDE.md` points to the same file.
+from live Tink data. The agent configuration is versioned here:
+[AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md) (points to `AGENTS.md`) and
+[web/AGENTS.md](web/AGENTS.md) (notes for the Next.js app).
+
+- **Data the agents see:** the project holds no real bank data; all bank data
+  is Tink sandbox data (the Demo Bank). Agents work in the repository and,
+  only when a team member asks, run read-only checks on the hosted database,
+  which holds the team's own test accounts. Secrets stay in git-ignored local
+  files; agents must not print them or ask for them.
+- **Same bar as human code:** AI-written changes go through the same pull
+  request template (with its "AI use" section), the same CI checks and a
+  teammate's review. Their commits end with a `Co-Authored-By:` line naming
+  the agent.
 
 ## Categories
 

@@ -63,8 +63,6 @@ it.
 **Verified by:** [`web/tests/auth-routes.test.ts`](../web/tests/auth-routes.test.ts),
 [`auth-redirects.test.ts`](../web/tests/auth-redirects.test.ts),
 [`registration.test.ts`](../web/tests/registration.test.ts);
-[`tests/auth-service.test.js`](../tests/auth-service.test.js),
-[`tests/oauth-callback.test.js`](../tests/oauth-callback.test.js);
 `npm run test:onboarding` in `web/` (against a temporary local Supabase)
 
 ### User story 2: Complete my profile
