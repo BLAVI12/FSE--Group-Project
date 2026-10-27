@@ -325,7 +325,9 @@ export function TransactionsExplorer({
             ariaLabel="Period"
             value={period}
             options={[
+              { value: "3", label: "Last 3 months" },
               { value: "6", label: "Last 6 months" },
+              { value: "9", label: "Last 9 months" },
               { value: "12", label: "Last 12 months" },
               { value: ALL, label: "All history" },
             ]}
