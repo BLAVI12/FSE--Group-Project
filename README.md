@@ -146,9 +146,6 @@ transactions in `tests/fixtures/`.
 - **The server code runs in the US.** Vercel runs the app's server routes in
   its default region (Washington, D.C., `iad1`); the database is in the EU
   (Ireland). Bank data passes through the US on its way to the database.
-- **One hand-made table on the hosted database**, `Mastertabelle`, belongs to
-  no migration. Row-level security is on and it has no policies, so no app
-  user can read it ([supabase/README.md](supabase/README.md)).
 
 ## Checks
 

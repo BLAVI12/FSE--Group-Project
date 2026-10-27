@@ -250,11 +250,13 @@ indexes, policies, grants, functions, triggers). All of it was applied by hand
 in the SQL Editor; it had no CLI migration history **at that time**. One
 table on the hosted database belongs to no migration: `Mastertabelle`, a
 manual upload of the 3,534 Demo Bank transactions. RLS is on and it has no
-policies, so the API cannot read it; the app does not use it.
+policies, so the API cannot read it; the app does not use it. It was dropped
+on 27 October 2026, so the hosted database now holds only tables from the
+migrations.
 
 To check again, run `tests/database/schema-fingerprint.sql` in the SQL Editor
-and against a local rebuild, and compare: only the `data` line and
-`Mastertabelle` may differ. It only reads.
+and against a local rebuild, and compare: only the `data` line may differ. It
+only reads.
 
 **Category list, 5 October 2026.** The category tables on the hosted database
 were empty, so the Tink sync stopped with `MISSING_CATEGORY_SEED` for new
