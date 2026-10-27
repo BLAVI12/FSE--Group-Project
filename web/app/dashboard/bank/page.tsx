@@ -41,7 +41,7 @@ export default async function BankPage({ searchParams }: {
         </h1>
         <p className="mt-4 max-w-xl leading-7 text-slate-600">
           {unavailable ? "We could not verify your saved bank connection. Please try again. This does not mean your bank or data has been removed."
-            : phase === "needs_setup" ? "One more step to get started: connect your bank to see your accounts, transactions and budget in one place."
+            : phase === "needs_setup" ? "One more step to get started: connect your bank to see your accounts, transactions and spending in one place."
               : phase === "initial_import" ? "Your bank login is connected. We’ll open your dashboard when the first import has finished. You can retry here if the import fails."
                 : "Update your saved bank data or renew your bank permission. Your existing accounts and transaction history stay in place."}
         </p>

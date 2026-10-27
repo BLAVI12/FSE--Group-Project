@@ -97,7 +97,7 @@ function LoginForm() {
             </h1>
 
             <p className="mt-2 text-slate-600">
-              Log in to view your transactions and budget.
+              Log in to view your transactions and spending.
             </p>
           </div>
 
