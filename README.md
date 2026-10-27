@@ -2,7 +2,10 @@
 
 Personal finance planner: a Next.js web app in `web/`, deployed on Vercel
 at https://fse-group-project.vercel.app, with Supabase for the database and
-login, and a bank connection through Tink (Demo Bank sandbox).
+login, and a bank connection through Tink (Demo Bank sandbox). The database
+and the app's server routes both run in Ireland: Supabase in `eu-west-1` and
+Vercel Functions in Dublin (`dub1`, set under Settings → Functions on Vercel).
+To check it, the `x-vercel-id` response header contains `dub1`.
 
 The project documentation (user stories with acceptance criteria, the Tink
 integration, decisions) starts at [docs/README.md](docs/README.md).
@@ -143,9 +146,6 @@ transactions in `tests/fixtures/`.
 - **No multi-factor login.** Email and password, or Google.
 - **`main` is not protected on GitHub.** Reviews and green checks before
   merging are a team rule ([AGENTS.md](AGENTS.md)), not enforced by GitHub.
-- **The server code runs in the US.** Vercel runs the app's server routes in
-  its default region (Washington, D.C., `iad1`); the database is in the EU
-  (Ireland). Bank data passes through the US on its way to the database.
 
 ## Checks
 
