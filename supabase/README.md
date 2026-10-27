@@ -92,7 +92,7 @@ not bypass the RLS policies protecting accounts or transactions.
 
 Apply `20261008000002_admin_management.sql` before deploying the updated app.
 Existing accounts default to `active`. The admin lookup searches usernames and
-filters role/status in pages of 20; it returns registration and last sign-in
+filters role/status in pages of 20; it returns registration and last activity
 timestamps, not addresses, emails or financial details.
 
 Suspension restricts application access; it is not an Auth ban or deletion.
@@ -109,8 +109,16 @@ reason and confirmation. Only active admins can read the audit log, which stores
 actor/target IDs, action, old/new values and reason. Reasons must not contain
 financial or sensitive personal data. This release retains records until a
 separate retention policy is agreed; no automatic purge is configured.
-The UI shows the latest 20 events. Account deletion and user-activity tracking
-are separate future features.
+The UI shows the latest 20 events. Account deletion is a separate future
+feature.
+
+**Last activity** (`20261012000001_user_activity.sql`, applied on 25 October
+2026). Supabase's own `last_sign_in_at` changes only when someone signs in, not
+while they keep using an open session. So `profiles.last_seen_at` records use
+of the app: on each request of a signed-in, active user, the app calls
+`record_user_activity()`, which writes the time at most every 5 minutes and
+only for the caller's own profile. `admin_list_users` returns the later of the
+two times, shown as **Last activity** on the admin page.
 
 ## Rules
 
@@ -121,6 +129,28 @@ are separate future features.
 - Money is stored as integer cents (`bigint`); negative means money out.
 
 ## Hosted project
+
+### 25 and 26 October 2026 migration record
+
+Applied with the team's agreement, each migration in one database
+transaction through the server's database connection and recorded in
+`supabase_migrations.schema_migrations` as the CLI does (the CLI could not run
+on the machine used):
+
+| Migration | Applied | Order relative to the code |
+|---|---|---|
+| `20261012000001_user_activity.sql` | 25 October, about 20:00 UTC | Merged on 15 October without being applied; the app's activity time (`record_user_activity`) needs it |
+| `20261023000001_bank_refresh_attempt.sql` | 25 October, about 20:00 UTC | After #58 was merged. It should have come first: the bank sync on the live site failed from about 19:30 UTC until it was applied |
+| `20261024000001_needs_renewal.sql` | 25 October, about 20:00 UTC | Before #61 (adds a column with a default, safe for the old code) |
+| `20261025000001_reevaluate_expired.sql` | 26 October, about 13:20 UTC | After #61's production deployment (11:44 UTC), as its comment requires. It set 5 expired connections back to `ACTIVE`; the next sync expires again those whose Tink user is gone. No bank data changed |
+
+Verified afterwards: the newest recorded version is `20261025000001`, and
+every migration in `migrations/` is recorded. **No migrations are pending.**
+
+One data repair on 26 October 2026, with the team's agreement: a duplicate
+booked transaction (Coffee Fellows, 8 October, -2.49 EUR) on one user, left
+behind by the bug fixed in #62, was deleted. Both copies had only the
+automatic category; the row was saved to a backup first.
 
 ### Verified state and application, 11 October 2026
 
@@ -220,11 +250,13 @@ indexes, policies, grants, functions, triggers). All of it was applied by hand
 in the SQL Editor; it had no CLI migration history **at that time**. One
 table on the hosted database belongs to no migration: `Mastertabelle`, a
 manual upload of the 3,534 Demo Bank transactions. RLS is on and it has no
-policies, so the API cannot read it; the app does not use it.
+policies, so the API cannot read it; the app does not use it. A team member
+dropped it on 27 October 2026, so the hosted database now holds only tables
+from the migrations.
 
 To check again, run `tests/database/schema-fingerprint.sql` in the SQL Editor
-and against a local rebuild, and compare: only the `data` line and
-`Mastertabelle` may differ. It only reads.
+and against a local rebuild, and compare: only the `data` line may differ. It
+only reads.
 
 **Category list, 5 October 2026.** The category tables on the hosted database
 were empty, so the Tink sync stopped with `MISSING_CATEGORY_SEED` for new

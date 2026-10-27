@@ -6,7 +6,7 @@ criteria say how we check that it is done. Every story names where it is
 implemented and which tests verify it, so it can be followed from requirement
 to code, test and deployment.
 
-State of the `main` branch on 24 October 2026.
+State of the `main` branch on 26 October 2026.
 
 **Status:** **Done** = built, tested and running on the live site ·
 **Partly** = built in part; the open acceptance criteria are named in the
@@ -22,7 +22,7 @@ story · **Planned** = not built yet
 | **Bank connection** | | |
 | User story 3 | [Connect my bank](#user-story-3-connect-my-bank) | Done |
 | User story 4 | [Correct amounts and balances](#user-story-4-correct-amounts-and-balances) | Done |
-| User story 5 | [Up-to-date data without duplicates](#user-story-5-up-to-date-data-without-duplicates) | Partly |
+| User story 5 | [Up-to-date data without duplicates](#user-story-5-up-to-date-data-without-duplicates) | Done |
 | User story 6 | [Clear messages when the bank connection fails](#user-story-6-clear-messages-when-the-bank-connection-fails) | Done |
 | **Money overview** | | |
 | User story 7 | [See my financial situation at a glance](#user-story-7-see-my-financial-situation-at-a-glance) | Done |
@@ -31,7 +31,7 @@ story · **Planned** = not built yet
 | User story 10 | [Export my transactions](#user-story-10-export-my-transactions) | Done |
 | **Security and administration** | | |
 | User story 11 | [Only I can see my data](#user-story-11-only-i-can-see-my-data) | Done |
-| User story 12 | [Manage users as an administrator](#user-story-12-manage-users-as-an-administrator) | Partly |
+| User story 12 | [Manage users as an administrator](#user-story-12-manage-users-as-an-administrator) | Done |
 
 ---
 
@@ -63,8 +63,6 @@ it.
 **Verified by:** [`web/tests/auth-routes.test.ts`](../web/tests/auth-routes.test.ts),
 [`auth-redirects.test.ts`](../web/tests/auth-redirects.test.ts),
 [`registration.test.ts`](../web/tests/registration.test.ts);
-[`tests/auth-service.test.js`](../tests/auth-service.test.js),
-[`tests/oauth-callback.test.js`](../tests/oauth-callback.test.js);
 `npm run test:onboarding` in `web/` (against a temporary local Supabase)
 
 ### User story 2: Complete my profile
@@ -164,24 +162,32 @@ reconnecting.
   once a minute.
 - Refreshing twice in a row changes nothing the second time.
 - A transaction that Tink renumbers is recognised and not saved twice; a
-  pending transaction that gets booked is updated in place.
+  pending transaction that gets booked is updated in place. Exception: when
+  Tink briefly returns a payment as both pending and booked, the booked row
+  stays and the pending row is removed, so a category chosen on the pending
+  row is not carried over ([decision 6](decisions.md#decision-6-transactions-are-identified-by-their-content)).
 - A refresh that fails changes no saved accounts or transactions: the data of
   the last successful refresh stays.
 - A refresh in which some transactions are incomplete still saves the usable
   transactions and the updated balances, skips the incomplete ones, keeps
   every pending transaction and tells the user to refresh again later.
-- Open: bank data is refreshed automatically up to four times a day, also while
-  nobody uses the app (pull request #58).
+- Bank data is refreshed automatically up to four times a day, also while
+  nobody uses the app.
 
-**Status:** Partly
+**Status:** Done
 
 **Implemented in:** [`web/lib/tink.ts`](../web/lib/tink.ts),
 [`web/lib/use-bank-sync.ts`](../web/lib/use-bank-sync.ts),
-[`supabase/functions/_shared/tink/reconcile.ts`](../supabase/functions/_shared/tink/reconcile.ts)
+[`supabase/functions/_shared/tink/reconcile.ts`](../supabase/functions/_shared/tink/reconcile.ts),
+[`web/app/api/cron/bank-sync/route.ts`](../web/app/api/cron/bank-sync/route.ts),
+[`.github/workflows/bank-sync.yml`](../.github/workflows/bank-sync.yml)
 
 **Verified by:** [`tests/tink/reconcile.test.ts`](../tests/tink/reconcile.test.ts);
 [`web/tests/tink.test.ts`](../web/tests/tink.test.ts) (renumbered and changed
-transactions, failed fetches, incomplete snapshots, limits between refreshes)
+transactions, failed fetches, incomplete snapshots, limits between refreshes);
+[`web/tests/scheduled-sync.test.ts`](../web/tests/scheduled-sync.test.ts) (the
+scheduled route). On the live site, the scheduled workflow ran green on
+26 October 2026.
 
 ### User story 6: Clear messages when the bank connection fails
 
@@ -192,6 +198,9 @@ transactions, failed fetches, incomplete snapshots, limits between refreshes)
 
 - Expired bank permission, or a bank login that no longer exists at Tink: the
   user is asked to reconnect their bank.
+- If one of several bank logins expires, only its accounts stop updating: the
+  others keep syncing, and the bank page shows **Reconnect bank** next to
+  **Refresh data**.
 - Any other failed update: the user is told that the last update failed and to
   try again in a minute.
 - A cancelled or failed connection says so and can be tried again.
@@ -204,11 +213,13 @@ transactions, failed fetches, incomplete snapshots, limits between refreshes)
 
 **Implemented in:** [`web/lib/use-bank-sync.ts`](../web/lib/use-bank-sync.ts)
 (the messages), [`web/lib/tink.ts`](../web/lib/tink.ts) (which failure means
-"reconnect"), [`web/lib/bank-error.ts`](../web/lib/bank-error.ts) (what is
+"reconnect"), [`supabase/functions/_shared/tink/consents.ts`](../supabase/functions/_shared/tink/consents.ts)
+(which bank logins need renewing), [`web/lib/bank-error.ts`](../web/lib/bank-error.ts) (what is
 logged), [`web/components/bank-connection.tsx`](../web/components/bank-connection.tsx)
 
 **Verified by:** [`web/tests/tink.test.ts`](../web/tests/tink.test.ts) (missing
-Tink user, expired consent, failed and partial fetches keep the saved data);
+Tink user, expired consent, one expired login among several, failed and
+partial fetches keep the saved data);
 [`web/tests/bank-error.test.ts`](../web/tests/bank-error.test.ts) (only known
 codes are logged)
 
@@ -344,14 +355,20 @@ suspend or reactivate accounts, **so that** I can deal with misuse.
   open.
 - Every change needs a reason and is written to an audit log.
 - Users cannot make themselves administrators.
-- Open: the time of a user's last sign-in is not updated yet (issue #43; its
-  migration is not yet applied to the live database).
-- Open: administrators can read users' names and addresses.
+- The admin list shows each user's **Last activity**: the later of their last
+  sign-in and their last use of the app, recorded at most every 5 minutes while
+  they use it (issue #43).
 
-**Status:** Partly
+Accepted limitation: administrators can read every user's name and address in
+the database. The admin page shows only the username; see
+[remaining security limitations](../README.md#remaining-security-limitations).
+
+**Status:** Done
 
 **Implemented in:** [`web/app/dashboard/admin`](../web/app/dashboard/admin),
-[`supabase/migrations/20261008000002_admin_management.sql`](../supabase/migrations/20261008000002_admin_management.sql)
+[`supabase/migrations/20261008000002_admin_management.sql`](../supabase/migrations/20261008000002_admin_management.sql),
+[`supabase/migrations/20261012000001_user_activity.sql`](../supabase/migrations/20261012000001_user_activity.sql)
+(the activity time), [`web/lib/supabase/proxy.ts`](../web/lib/supabase/proxy.ts) (records it)
 
 **Verified by:** [`web/tests/tink.test.ts`](../web/tests/tink.test.ts)
 (suspension blocks open sessions; roles cannot be raised by the user)
@@ -363,6 +380,7 @@ suspend or reactivate accounts, **so that** I can deal with misuse.
 | Feature | What changed and why |
 |---|---|
 | Planner for students | First designed for students. Student-specific features would have widened the scope too far, so it became a planner for anyone with a current account. |
-| Monthly budget | Not built. The landing page shows a monthly budget as an example; the team decides whether to build it or remove the example, and records the reason here. |
+| Monthly budget | Dropped (decided 26 October 2026). The team focused on importing transactions correctly and classifying them correctly instead. |
 | Automatic bank updates | First planned twice a day; now up to four times a day, the most PSD2 allows without the user present ([decision 7](decisions.md#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day), pull request #58). |
+| Currencies | Euro only, and only banks in the EU (decided 25 October 2026). Totals add up amounts without converting currencies, so other currencies are out of scope rather than half supported. |
 | Investments | Out of scope on purpose: stocks, ETFs and crypto each need their own data source. Named as the next step. |

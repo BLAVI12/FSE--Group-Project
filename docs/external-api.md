@@ -95,7 +95,7 @@ messages.
 | Tink does not answer in time | Each call is cut off after `TINK_TIMEOUT_MS` (default 20 s), a whole request after 45 s, a bank refresh after 30 s. The sync is marked as failed. | "The last update failed. Please try again in a minute." Saved data stays. |
 | Tink cannot be reached | The network error becomes a Tink error with a code; same as above. | Same as above. |
 | Tink's token has expired during a sync | A new token is fetched once and the sync continues. | Nothing; the sync succeeds. |
-| The bank permission has expired | Detected from Tink's list of bank permissions, also before Tink changes the status. The connection is marked expired and not synced again until the user renews it. | "Your bank login needs to be renewed. Please reconnect your bank." Reconnect opens Tink's renewal page for exactly that bank login. |
+| The bank permission has expired | Detected from Tink's list of bank permissions, also before Tink changes the status. If every account's bank login needs renewing, the connection is marked expired and not synced again until the user renews it. If only some do, the other accounts keep syncing and the connection is flagged (`connections.needs_renewal`). | "Your bank login needs to be renewed. Please reconnect your bank." Reconnect opens Tink's renewal page for exactly that bank login. With only some logins expired, the bank page shows **Reconnect bank** next to **Refresh data**. |
 | Tink no longer knows the user (`USER_NOT_FOUND`) or returns no accounts | Treated like an expired permission. On reconnect, a new Tink user is created; saved accounts are matched by IBAN, so history and categories stay. | "Please reconnect your bank." |
 | The bank asks for a new login during **Refresh data** | Recognised from the bank login's status; no data is fetched. | "Please reconnect your bank." |
 | Some transactions are incomplete (no booking date, no amount) | A partial import (see above): the usable transactions and the updated balances are saved, the rest skipped and counted. Pending transactions are not deleted after an incomplete fetch, because they might only be missing from it. | "Available bank data loaded. Some transactions are incomplete. Try Refresh again later." |
@@ -120,9 +120,9 @@ the settings check. Tests never call the real Tink API.
 ## Limits
 
 - **How often:** dashboard visits at most every 15 minutes (only Tink's
-  saved copy); **Refresh data** at most once a minute. Planned with pull
-  request #58: a bank refresh for every user up to four times a day, the most
-  PSD2 allows without the user present
+  saved copy); **Refresh data** at most once a minute; a scheduled bank
+  refresh for every user up to four times a day, the most PSD2 allows without
+  the user present
   ([decision 7](decisions.md#decision-7-scheduled-bank-sync-through-github-actions-four-times-a-day)).
 - **Demo Bank only.** The bank route refuses to start unless `TINK_TEST_MODE`
   is on. Real banks would need a commercial and regulatory arrangement with
