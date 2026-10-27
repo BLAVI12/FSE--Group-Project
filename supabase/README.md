@@ -250,9 +250,9 @@ indexes, policies, grants, functions, triggers). All of it was applied by hand
 in the SQL Editor; it had no CLI migration history **at that time**. One
 table on the hosted database belongs to no migration: `Mastertabelle`, a
 manual upload of the 3,534 Demo Bank transactions. RLS is on and it has no
-policies, so the API cannot read it; the app does not use it. It was dropped
-on 27 October 2026, so the hosted database now holds only tables from the
-migrations.
+policies, so the API cannot read it; the app does not use it. It has since
+been removed: on 27 October 2026 the hosted database had no such table, so it
+holds only tables from the migrations.
 
 To check again, run `tests/database/schema-fingerprint.sql` in the SQL Editor
 and against a local rebuild, and compare: only the `data` line may differ. It
