@@ -31,7 +31,7 @@ story · **Planned** = not built yet
 | User story 10 | [Export my transactions](#user-story-10-export-my-transactions) | Done |
 | **Security and administration** | | |
 | User story 11 | [Only I can see my data](#user-story-11-only-i-can-see-my-data) | Done |
-| User story 12 | [Manage users as an administrator](#user-story-12-manage-users-as-an-administrator) | Partly |
+| User story 12 | [Manage users as an administrator](#user-story-12-manage-users-as-an-administrator) | Done |
 
 ---
 
@@ -358,9 +358,12 @@ suspend or reactivate accounts, **so that** I can deal with misuse.
 - The admin list shows each user's **Last activity**: the later of their last
   sign-in and their last use of the app, recorded at most every 5 minutes while
   they use it (issue #43).
-- Open: administrators can read users' names and addresses.
 
-**Status:** Partly
+Accepted limitation: administrators can read every user's name and address in
+the database. The admin page shows only the username; see
+[remaining security limitations](../README.md#remaining-security-limitations).
+
+**Status:** Done
 
 **Implemented in:** [`web/app/dashboard/admin`](../web/app/dashboard/admin),
 [`supabase/migrations/20261008000002_admin_management.sql`](../supabase/migrations/20261008000002_admin_management.sql),

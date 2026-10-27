@@ -135,7 +135,8 @@ transactions in `tests/fixtures/`.
 ### Remaining security limitations
 
 - **Administrators can read every user's profile**, including name and
-  address (policy "Admins read profiles"). The admin page itself shows neither
+  address (policy "Admins read profiles"). The admin page itself shows only
+  the username. The team accepts this
   ([user story 12](docs/user-stories.md#user-story-12-manage-users-as-an-administrator)).
 - **The demo password is public** on purpose, so the examiners can log in. The
   demo login owns only sandbox data.
